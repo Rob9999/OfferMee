@@ -1,3 +1,6 @@
+
+<img src="https://github.com/user-attachments/assets/b6615724-493a-406a-b4db-a7f6ca373938" alt="Logo_OfferMee" width="150px" />
+
 # OfferMee
 OfferMee – AI-powered project scout for freelancers. Automatically find projects, suggest pricing, and send offers, all in one.
 
