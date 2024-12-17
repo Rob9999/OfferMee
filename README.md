@@ -64,3 +64,8 @@ OfferMee – AI-powered project scout for freelancers. Automatically find projec
 - Organize data by client, project, and contact person.
 
 ---
+
+## **Repository Information**
+- **License:** MPL 2.0
+- **Status:** Open-source
+- **Roadmap:** Planned MVP with iterative updates based on user feedback.
