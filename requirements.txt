@@ -1,0 +1,4 @@
+# Python dependencies
+beautifulsoup4
+scrapy
+selenium
