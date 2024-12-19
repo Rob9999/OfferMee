@@ -1,4 +1,4 @@
-from .base_scraper import BaseScraper
+from offermee.scraper.base_scraper import BaseScraper
 
 
 class FreelanceMapScraper(BaseScraper):
@@ -79,3 +79,45 @@ class FreelanceMapScraper(BaseScraper):
             projects.append({"title": title, "link": link, "description": description})
 
         return projects
+
+    def fetch_projects_paginated(
+        self,
+        query=None,
+        categories=None,
+        contract_types=None,
+        remote=None,
+        industries=None,
+        matching_skills=None,
+        countries=None,
+        states=None,
+        sort=1,
+        max_pages=5,
+        max_results=50,
+    ):
+        """
+        Durchsucht mehrere Seiten und extrahiert Projekte.
+        """
+        all_projects = []
+        for page in range(1, max_pages + 1):
+            projects = self.fetch_projects(
+                query=query,
+                categories=categories,
+                contract_types=contract_types,
+                remote=remote,
+                industries=industries,
+                matching_skills=matching_skills,
+                countries=countries,
+                states=states,
+                sort=sort,
+                page=page,
+                max_results=max_results,
+            )
+
+            if not projects:
+                break  # Keine weiteren Projekte gefunden
+            all_projects.extend(projects)
+
+            if len(all_projects) >= max_results:
+                break  # Maximale Anzahl erreicht
+
+        return all_projects

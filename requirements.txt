@@ -2,3 +2,7 @@
 beautifulsoup4
 scrapy
 selenium
+python-dotenv 
+openai
+streamlit
+sqlalchemy

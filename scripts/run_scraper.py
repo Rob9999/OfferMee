@@ -26,6 +26,21 @@ def main():
         print(f"   Link: {project['link']}")
         print(f"   Beschreibung: {project['description']}\n")
 
+    print("Starte Freelancermap-Scraper paginated...")
+    projects = scraper.fetch_projects_paginated(
+        query="Python OR Java",
+        contract_types=["contracting"],
+        countries=[1, 2, 3],
+        max_pages=3,
+        max_results=20,
+    )
+
+    print("\nGefundene Projekte:")
+    for idx, project in enumerate(projects, 1):
+        print(f"{idx}. {project['title']}")
+        print(f"   Link: {project['link']}")
+        print(f"   Beschreibung: {project['description']}\n")
+
 
 if __name__ == "__main__":
     main()
