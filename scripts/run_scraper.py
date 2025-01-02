@@ -3,7 +3,7 @@ from offermee.scraper.freelancermap import FreelanceMapScraper
 
 def main():
     print("Starte Freelancermap-Scraper...")
-    scraper = FreelanceMapScraper("https://www.freelancermap.de")
+    scraper = FreelanceMapScraper()
 
     projects = scraper.fetch_projects(
         query="C# OR C++ OR Java OR Python OR KI",

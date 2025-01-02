@@ -6,11 +6,9 @@ from offermee.database.models.matching_score_model import MatchingScoreModel
 
 
 def main():
-    # Datenbank initialisieren
-    DatabaseManager.initialize_database(db_name="TestDB", shall_overwrite=True)
-
-    # Session starten
-    db_manager = DatabaseManager("TestDB")
+    # select database type
+    db_manager = DatabaseManager("TEST", shall_overwrite=True)
+    # start session
     session = db_manager.Session()
 
     try:

@@ -4,7 +4,9 @@ import subprocess
 
 def main():
     # Dashboard-Datei
-    dashboard_file = os.path.join("offermee", "dashboard", "app.py")
+    dashboard_file = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "../offermee/dashboard/app.py"
+    )
 
     # Prüfen, ob die Datei existiert
     if not os.path.exists(dashboard_file):
