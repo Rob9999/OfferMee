@@ -11,7 +11,10 @@ setup(
         "selenium",
         "python-dotenv",
         "openai",
+        "google.generativeai",
         "streamlit",
         "sqlalchemy",
+        "fuzzywuzzy",
+        "PyPDF2",
     ],
 )

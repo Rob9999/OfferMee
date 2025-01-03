@@ -1,3 +1,6 @@
+import datetime
+import locale
+from dateutil import parser
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -53,6 +56,49 @@ class DatabaseManager:
             self.Session = sessionmaker(bind=self.engine)
             self.initialized = True  # Markiert als initialisiert
             self.logger.info(f"DatabaseManager initialized with db_type: {db_type}")
+
+    @staticmethod
+    def get_instance():
+        return DatabaseManager._instance
+
+    @staticmethod
+    def parse_date(date_str: str, locale_str: str = "de_DE.UTF-8") -> datetime.date:
+        if date_str is None:
+            return None
+
+        # Set locale for date parsing
+        try:
+            locale.setlocale(locale.LC_TIME, locale_str)
+        except locale.Error:
+            raise ValueError(f"Locale {locale_str} not supported on this system")
+
+        # Try parsing with dateutil.parser
+        try:
+            return parser.parse(date_str).date()
+        except (ValueError, TypeError):
+            pass
+
+        # Reset locale to default
+        locale.setlocale(locale.LC_TIME, "")
+
+        date_formats = ["%d.%m.%Y", "%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y", "%d/%m/%Y"]
+        for date_format in date_formats:
+            try:
+                return datetime.datetime.strptime(date_str, date_format).date()
+            except ValueError:
+                continue
+
+        raise ValueError(
+            "Incorrect date format, should be one of YYYY-MM-DD, DD-MM-YYYY, DD.MM.YYYY, MM/DD/YYYY, or DD/MM/YYYY"
+        )
+
+    @staticmethod
+    def join_list(value, delimiter=", "):
+        if value is None:
+            return None
+        if not isinstance(value, list):
+            value = [value]
+        return delimiter.join(value)
 
     @staticmethod
     def validate_db_type(db_type="TEST") -> str:

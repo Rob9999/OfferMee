@@ -5,7 +5,7 @@
 			"name": "Python: OfferMee Debug",
 			"type": "debugpy",
 			"request": "launch",
-			"program": "${workspaceFolder}/scripts/run_database.py", // Zu debuggendes Skript
+			"program": "${workspaceFolder}/scripts/run_scraper.py", // Zu debuggendes Skript
 			"console": "integratedTerminal",
 			"justMyCode": true,
 			"envFile": "${workspaceFolder}/.env" // Umgebungsvariablen

@@ -1,5 +1,12 @@
+import datetime
 import logging
+import json
+from offermee.database.models.enums.project_status import ProjectStatus
 from offermee.scraper.base_scraper import BaseScraper
+from offermee.AI.ai_manager import AIManager
+from offermee.database.database_manager import DatabaseManager
+from offermee.database.models.base_project_model import BaseProjectModel
+from sqlalchemy.orm import sessionmaker
 
 
 class FreelanceMapScraper(BaseScraper):
@@ -14,6 +21,8 @@ class FreelanceMapScraper(BaseScraper):
     - Logging and error handling for invalid or missing parameters.
     - Paginated fetching of projects.
     - Extraction of project details (title, description, and link).
+    - Analysis of project descriptions using LLM (GPT-4).
+    - Storing structured project data in the database.
     """
 
     BASE_URL = "https://www.freelancermap.de"
@@ -49,6 +58,11 @@ class FreelanceMapScraper(BaseScraper):
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
+        # LLM-Client initialisieren
+        self.llm_client = AIManager().get_default_client()
+        # Datenbankmanager initialisieren
+        self.db_manager = DatabaseManager()
+        self.Session = sessionmaker(bind=self.db_manager.engine)
 
     def map_params(self, contract_types, remote, countries):
         """
@@ -186,6 +200,73 @@ class FreelanceMapScraper(BaseScraper):
 
         return projects
 
+    def process_project(self, project):
+        """
+        Analysiert die Projektbeschreibung mit dem LLM und speichert die extrahierten Daten.
+
+        Args:
+            project (dict): Dictionary mit den Projektinformationen (title, link, description).
+        """
+        analysis_json = self.llm_client.analyze_project(project["description"])
+        if not analysis_json:
+            self.logger.error(f"Analyse fehlgeschlagen für Projekt: {project['title']}")
+            return
+
+        try:
+            analysis = json.loads(analysis_json)
+            project["analysis"] = analysis
+        except json.JSONDecodeError as e:
+            self.logger.error(
+                f"JSON-Decode-Fehler für Projekt: {project['title']} - {e}"
+            )
+            return
+
+        # Erstellen Sie ein BaseProjectModel-Objekt mit den extrahierten Daten
+        session = self.Session()
+        try:
+            existing_project = (
+                session.query(BaseProjectModel)
+                .filter_by(original_link=project["link"])
+                .first()
+            )
+            if existing_project:
+                self.logger.info(f"Projekt bereits vorhanden: {project['title']}")
+                return
+
+            new_project = BaseProjectModel(
+                title=project["title"],
+                description=project["description"],
+                location=analysis.get("Location"),
+                must_haves=DatabaseManager.join_list(
+                    analysis.get("Must-Have Requirements", [])
+                ),
+                nice_to_haves=DatabaseManager.join_list(
+                    analysis.get("Nice-To-Have Requirements", [])
+                ),
+                tasks=DatabaseManager.join_list(
+                    analysis.get("Tasks/Responsibilities", [])
+                ),
+                hourly_rate=analysis.get("Max Hourly Rate", 0.0),
+                other_conditions=DatabaseManager.join_list(
+                    analysis.get("Other conditions", [])
+                ),
+                contact_person=analysis.get("Contact Person", ""),
+                provider=analysis.get("Project Provider", ""),
+                start_date=DatabaseManager.parse_date(
+                    analysis.get("Project Start Date")
+                ),
+                original_link=project["link"],
+                status=ProjectStatus.NEW,
+            )
+            session.add(new_project)
+            session.commit()
+            self.logger.info(f"Projekt gespeichert: {new_project.title}")
+        except Exception as e:
+            session.rollback()
+            self.logger.error(f"Fehler beim Speichern des Projekts: {e}")
+        finally:
+            session.close()
+
     def fetch_projects_paginated(
         self,
         query=None,
@@ -237,9 +318,15 @@ class FreelanceMapScraper(BaseScraper):
 
             if not projects:
                 break  # Keine weiteren Projekte gefunden
-            all_projects.extend(projects)
+
+            for project in projects:
+                self.process_project(project)  # Analyse und Speicherung
+                all_projects.append(project)
+
+                if len(all_projects) >= max_results:
+                    break  # Maximale Anzahl erreicht
 
             if len(all_projects) >= max_results:
-                break  # Maximale Anzahl erreicht
+                break
 
         return all_projects

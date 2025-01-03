@@ -1,8 +1,10 @@
+from offermee.AI.ai_manager import AIManager
 from offermee.scraper.freelancermap import FreelanceMapScraper
 
 
 def main():
     print("Starte Freelancermap-Scraper...")
+    ai_manager = AIManager("genai")
     scraper = FreelanceMapScraper()
 
     projects = scraper.fetch_projects(
