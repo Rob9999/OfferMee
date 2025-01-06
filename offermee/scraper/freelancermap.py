@@ -1,12 +1,12 @@
-import datetime
 import logging
 import json
-from offermee.database.models.enums.project_status import ProjectStatus
+from sqlalchemy.orm import sessionmaker
+
 from offermee.scraper.base_scraper import BaseScraper
-from offermee.AI.ai_manager import AIManager
 from offermee.database.database_manager import DatabaseManager
 from offermee.database.models.base_project_model import BaseProjectModel
-from sqlalchemy.orm import sessionmaker
+from offermee.database.models.enums.project_status import ProjectStatus
+from offermee.AI.ai_manager import AIManager
 
 
 class FreelanceMapScraper(BaseScraper):
@@ -28,7 +28,7 @@ class FreelanceMapScraper(BaseScraper):
     BASE_URL = "https://www.freelancermap.de"
     SEARCH_URL = "https://www.freelancermap.de/projektboerse.html"
 
-    # Mapping für Länder, Vertragsarten und Remote-Optionen
+    # Mapping for countries, contract types, and remote options
     COUNTRY_MAPPING = {
         "Deutschland": 1,
         "Österreich": 2,
@@ -52,15 +52,11 @@ class FreelanceMapScraper(BaseScraper):
     }
 
     def __init__(self):
-        super(FreelanceMapScraper, self).__init__(self.BASE_URL)
-        # Logger einrichten
-        self.logger = logging.getLogger(__name__)
-        logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-        )
-        # LLM-Client initialisieren
+        # Call the constructor of the base class
+        super().__init__(self.BASE_URL)
+        # Initialize LLM client
         self.llm_client = AIManager().get_default_client()
-        # Datenbankmanager initialisieren
+        # Initialize database manager
         self.db_manager = DatabaseManager()
         self.Session = sessionmaker(bind=self.db_manager.engine)
 
@@ -84,25 +80,22 @@ class FreelanceMapScraper(BaseScraper):
         If an invalid contract type is provided, such as "InvalidType", it will be ignored and logged as a warning.
         Valid entries like "Contractor" will be mapped correctly to "contracting".
         """
-        # Map Contract Types
         mapped_contract_types = []
         if contract_types:
             for ct in contract_types:
                 if ct in self.CONTRACT_TYPE_MAPPING:
                     mapped_contract_types.append(self.CONTRACT_TYPE_MAPPING[ct])
                 else:
-                    self.logger.warning(f"Ungültiger Vertragsart-Wert: {ct}")
+                    self.logger.warning(f"Invalid contract type value: {ct}")
 
-        # Map Remote Options
         mapped_remote = []
         if remote:
             for r in remote:
                 if r in self.REMOTE_MAPPING:
                     mapped_remote.append(self.REMOTE_MAPPING[r])
                 else:
-                    self.logger.warning(f"Ungültiger Remote-Wert: {r}")
+                    self.logger.warning(f"Invalid remote value: {r}")
 
-        # Map Countries
         mapped_countries = []
         if countries:
             for country in countries:
@@ -112,7 +105,7 @@ class FreelanceMapScraper(BaseScraper):
                 elif mapped_value:
                     mapped_countries.append(mapped_value)
                 else:
-                    self.logger.warning(f"Ungültiger Länder-Wert: {country}")
+                    self.logger.warning(f"Invalid country value: {country}")
 
         return mapped_contract_types, mapped_remote, mapped_countries
 
@@ -149,7 +142,7 @@ class FreelanceMapScraper(BaseScraper):
         Returns:
         - list: List of project dictionaries with title, link, and description.
         """
-        # Mappe die Enum-Werte
+        # Map the Enum values
         mapped_contract_types, mapped_remote, mapped_countries = self.map_params(
             contract_types, remote, countries
         )
@@ -168,18 +161,17 @@ class FreelanceMapScraper(BaseScraper):
             "hideAppliedProjects": "true",
         }
 
-        # Filter leere Parameter
+        # Filter empty parameters
         params = {key: value for key, value in params.items() if value}
 
         html_content = self.fetch_page(self.SEARCH_URL, params=params)
         if not html_content:
-            self.logger.error("Keine Inhalte von der Seite erhalten.")
+            self.logger.error("No content received from the page.")
             return []
 
         soup = self.parse_html(html_content)
         projects = []
 
-        # Projekte extrahieren
         for item in soup.find_all(
             "div", class_="project-container project card box", limit=max_results
         ):
@@ -202,26 +194,23 @@ class FreelanceMapScraper(BaseScraper):
 
     def process_project(self, project):
         """
-        Analysiert die Projektbeschreibung mit dem LLM und speichert die extrahierten Daten.
+        Analyzes the project description with the LLM and stores the extracted data.
 
         Args:
-            project (dict): Dictionary mit den Projektinformationen (title, link, description).
+            project (dict): Dictionary with project information (title, link, description).
         """
         analysis_json = self.llm_client.analyze_project(project["description"])
         if not analysis_json:
-            self.logger.error(f"Analyse fehlgeschlagen für Projekt: {project['title']}")
+            self.logger.error(f"Analysis failed for project: {project['title']}")
             return
 
         try:
             analysis = json.loads(analysis_json)
             project["analysis"] = analysis
         except json.JSONDecodeError as e:
-            self.logger.error(
-                f"JSON-Decode-Fehler für Projekt: {project['title']} - {e}"
-            )
+            self.logger.error(f"JSON decode error for project {project['title']}: {e}")
             return
 
-        # Erstellen Sie ein BaseProjectModel-Objekt mit den extrahierten Daten
         session = self.Session()
         try:
             existing_project = (
@@ -230,7 +219,7 @@ class FreelanceMapScraper(BaseScraper):
                 .first()
             )
             if existing_project:
-                self.logger.info(f"Projekt bereits vorhanden: {project['title']}")
+                self.logger.info(f"Project already exists: {project['title']}")
                 return
 
             new_project = BaseProjectModel(
@@ -260,10 +249,10 @@ class FreelanceMapScraper(BaseScraper):
             )
             session.add(new_project)
             session.commit()
-            self.logger.info(f"Projekt gespeichert: {new_project.title}")
+            self.logger.info(f"Project saved: {new_project.title}")
         except Exception as e:
             session.rollback()
-            self.logger.error(f"Fehler beim Speichern des Projekts: {e}")
+            self.logger.error(f"Error saving project: {e}")
         finally:
             session.close()
 
@@ -317,14 +306,13 @@ class FreelanceMapScraper(BaseScraper):
             )
 
             if not projects:
-                break  # Keine weiteren Projekte gefunden
+                break  # No more projects found
 
             for project in projects:
-                self.process_project(project)  # Analyse und Speicherung
+                self.process_project(project)  # Analyze and save
                 all_projects.append(project)
-
                 if len(all_projects) >= max_results:
-                    break  # Maximale Anzahl erreicht
+                    break  # Maximum number reached
 
             if len(all_projects) >= max_results:
                 break

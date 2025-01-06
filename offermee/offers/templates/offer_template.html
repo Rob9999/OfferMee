@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Angebot für {{ project.title }}</title>
+</head>
+<body>
+    <p>Sehr geehrte/r {{ contact_person }},</p>
+
+    <p>vielen Dank für Ihr Interesse an meinen Dienstleistungen als {{ freelancer.name }}.</p>
+
+    <p>Basierend auf Ihrer Projektbeschreibung "<strong>{{ project.title }}</strong>" biete ich Ihnen folgendes an:</p>
+
+    <ul>
+        <li><strong>Beschreibung:</strong> {{ project.description }}</li>
+        <li><strong>Stundensatz:</strong> {{ freelancer.desired_rate }} €/Stunde</li>
+        <li><strong>Startdatum:</strong> {{ project.start_date }}</li>
+        <li><strong>Weitere Bedingungen:</strong> {{ project.other_conditions }}</li>
+    </ul>
+
+    <p>Ich freue mich auf eine erfolgreiche Zusammenarbeit.</p>
+
+    <p>Mit freundlichen Grüßen,<br>{{ freelancer.name }}</p>
+    <p>{{ current_date }}</p>
+</body>
+</html>

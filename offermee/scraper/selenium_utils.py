@@ -5,7 +5,7 @@ import time
 
 
 def setup_browser(driver_path="chromedriver"):
-    """Initialisiert einen Selenium-Browser."""
+    """Initializes a Selenium browser."""
     service = Service(driver_path)
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
@@ -13,10 +13,10 @@ def setup_browser(driver_path="chromedriver"):
 
 
 def fetch_dynamic_page(url, wait_time=3):
-    """Lädt eine Seite mit Selenium und gibt den HTML-Inhalt zurück."""
+    """Loads a page with Selenium and returns the HTML content."""
     browser = setup_browser()
     browser.get(url)
-    time.sleep(wait_time)  # Warten, bis die Seite geladen ist
+    time.sleep(wait_time)  # Wait until the page is loaded
     content = browser.page_source
     browser.quit()
     return content

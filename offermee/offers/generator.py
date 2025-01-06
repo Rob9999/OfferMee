@@ -1,43 +1,46 @@
-from jinja2 import Template
+import datetime
+from jinja2 import Environment, FileSystemLoader
+import os
 
 
 class OfferGenerator:
+    """
+    Generator for creating offer documents based on templates.
+    """
 
-    @staticmethod
-    def generate_offer(project, freelancer):
+    def __init__(self, template_dir="templates"):
         """
-        Generiert ein Angebot basierend auf dem Projekt und den Freelancer-Daten.
+        Initializes the Jinja2 environment with the specified template directory.
 
         Args:
-            project (BaseProjectModel): Das Projektmodell mit extrahierten Anforderungen.
-            freelancer (FreelancerModel): Das Freelancer-Modell mit Fähigkeiten und gewünschtem Stundensatz.
+            template_dir (str): Directory where the templates are stored.
+        """
+        self.env = Environment(loader=FileSystemLoader(template_dir))
+        self.template_name = "offer_template.html"  # HTML template for offers
+
+    def generate_offer(self, project, freelancer):
+        """
+        Generates an offer based on the project and freelancer data.
+
+        Args:
+            project (BaseProjectModel): The project model with extracted requirements.
+            freelancer (FreelancerModel): The freelancer model with skills and desired hourly rate.
 
         Returns:
-            str: Das generierte Angebot als Text.
+            str: The generated offer as HTML text.
         """
-        template_str = """
-        Sehr geehrte/r {{ contact_person }},
+        try:
+            template = self.env.get_template(self.template_name)
+        except Exception as e:
+            print(f"Error loading the template: {e}")
+            return None
 
-        vielen Dank für Ihr Interesse an meinen Dienstleistungen als {{ freelancer.name }}.
-
-        Basierend auf Ihrer Projektbeschreibung "{{ project.title }}" biete ich Ihnen folgendes an:
-
-        - **Beschreibung:** {{ project.description }}
-        - **Stundensatz:** {{ freelancer.desired_rate }} €/Stunde
-        - **Startdatum:** {{ project.start_date }}
-        - **Weitere Bedingungen:** {{ project.other_conditions }}
-
-        Ich freue mich auf eine erfolgreiche Zusammenarbeit.
-
-        Mit freundlichen Grüßen,
-        {{ freelancer.name }}
-        """
-        template = Template(template_str)
         offer = template.render(
             contact_person=(
-                project.contact_person if project.contact_person else "Herr/Frau"
+                project.contact_person if project.contact_person else "Mr./Ms."
             ),
             freelancer=freelancer,
             project=project,
+            current_date=datetime.datetime.now().strftime("%d.%m.%Y"),
         )
         return offer

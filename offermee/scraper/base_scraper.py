@@ -1,24 +1,64 @@
+import logging
 import requests
 from bs4 import BeautifulSoup
 
+from offermee.scraper.scraper_interface import Scraper
 
-class BaseScraper:
+
+class BaseScraper(Scraper):
+    """
+    General base class for scrapers.
+    Provides basic functions such as HTTP fetching,
+    HTML parsing, and unified logging.
+    """
+
     def __init__(self, base_url):
         self.base_url = base_url
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+            )
         }
+        # Set up logger
+        self.logger = logging.getLogger(self.__class__.__name__)
+        if not self.logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
 
     def fetch_page(self, url, params=None):
-        """Sendet eine HTTP-Anfrage und gibt den Inhalt der Seite zurück."""
+        """
+        Sends an HTTP request and returns the content of the page.
+        """
         try:
             response = requests.get(url, params=params, headers=self.headers)
             response.raise_for_status()
             return response.text
         except requests.RequestException as e:
-            print(f"Error fetching page: {e}")
+            self.logger.error(f"Error fetching page: {e}")
             return None
 
     def parse_html(self, html_content):
-        """Parst HTML-Inhalt und gibt ein BeautifulSoup-Objekt zurück."""
+        """
+        Parses HTML content and returns a BeautifulSoup object.
+        """
         return BeautifulSoup(html_content, "html.parser")
+
+    def fetch_projects(self, *args, **kwargs):
+        """
+        Default implementation, can be overridden by subclasses.
+        """
+        raise NotImplementedError("fetch_projects must be overridden in the subclass.")
+
+    def fetch_projects_paginated(self, *args, **kwargs):
+        """
+        Default implementation, can be overridden by subclasses.
+        """
+        raise NotImplementedError(
+            "fetch_projects_paginated must be overridden in the subclass."
+        )
