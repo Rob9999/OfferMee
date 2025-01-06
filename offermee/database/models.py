@@ -1,4 +1,5 @@
-# Database models (e.g., SQLAlchemy)
-def setup_models():
-    # Add model definitions
-    pass
+from models.base_project_model import BaseProjectModel
+from models.edited_project_model import EditedProjectModel
+from models.freelancer_model import FreelancerModel
+from models.intermediate_project_model import IntermediateProjectModel
+from models.matching_score_model import MatchingScoreModel

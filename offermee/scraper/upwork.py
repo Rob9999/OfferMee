@@ -21,30 +21,39 @@ class UpworkScraper(BaseScraper):
         """
         Fetches projects from Upwork based on the search query.
         """
-        params = {
-            "q": query,
-            "sort": "recency",
-            "paging": f"1;{max_results}",  # Example for pagination
-        }
-        self.logger.info(f"Fetching Upwork projects with query: '{query}'")
-        xml_content = self.fetch_page(self.SEARCH_URL, params=params)
-        if not xml_content:
-            self.logger.warning("No content received from Upwork.")
+        try:
+            params = {
+                "q": query,
+                "sort": "recency",
+                "paging": f"1;{max_results}",  # Example for pagination
+            }
+            self.logger.info(f"Fetching Upwork projects with query: '{query}'")
+            xml_content = self.fetch_page(self.SEARCH_URL, params=params)
+            if not xml_content:
+                self.logger.warning("No content received from Upwork.")
+                return []
+
+            soup = BeautifulSoup(xml_content, "xml")
+            projects = []
+            for item in soup.find_all("item", limit=max_results):
+                title = item.title.text if item.title else "No title"
+                link = item.link.text if item.link else "No link"
+                description = (
+                    item.description.text if item.description else "No description"
+                )
+
+                projects.append(
+                    {"title": title, "link": link, "description": description}
+                )
+
+            self.logger.info(f"Found {len(projects)} projects from Upwork.")
+            return projects
+        except AttributeError as e:
+            self.logger.error(f"AttributeError beim Parsen eines Projekts: {e}")
             return []
-
-        soup = BeautifulSoup(xml_content, "xml")
-        projects = []
-        for item in soup.find_all("item", limit=max_results):
-            title = item.title.text if item.title else "No title"
-            link = item.link.text if item.link else "No link"
-            description = (
-                item.description.text if item.description else "No description"
-            )
-
-            projects.append({"title": title, "link": link, "description": description})
-
-        self.logger.info(f"Found {len(projects)} projects from Upwork.")
-        return projects
+        except Exception as e:
+            self.logger.error(f"Allgemeiner Fehler beim Abrufen von Projekten: {e}")
+            return []
 
     def fetch_projects_paginated(
         self,

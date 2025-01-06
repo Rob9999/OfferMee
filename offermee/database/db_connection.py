@@ -1,4 +1,7 @@
 # Database connection setup
+from offermee.database.database_manager import DatabaseManager
+
+
 def connect_to_db():
-    # Add connection logic
-    pass
+    # get default database session
+    return DatabaseManager.get_default_session

@@ -1,6 +1,8 @@
 import json
 import unittest
 from unittest.mock import patch, MagicMock
+
+import requests
 from offermee.scraper.freelancermap import FreelanceMapScraper
 
 
@@ -90,6 +92,16 @@ class TestFreelanceMapScraper(unittest.TestCase):
         mock_session.add.assert_not_called()
         mock_session.commit.assert_not_called()
         mock_session.close.assert_called_once()
+
+    @patch("offermee.scraper.freelancermap.requests.get")
+    def test_fetch_projects_network_error(self, mock_get):
+        mock_get.side_effect = requests.exceptions.ConnectionError("Netzwerkfehler")
+
+        scraper = FreelanceMapScraper()
+        projects = scraper.fetch_projects(query="Test", max_results=5)
+
+        self.assertEqual(projects, [])
+        mock_get.assert_called_once()
 
 
 if __name__ == "__main__":

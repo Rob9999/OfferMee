@@ -1,6 +1,9 @@
+import datetime
 import streamlit as st
-from offermee.database.database_manager import DatabaseManager
+from offermee.database.db_connection import connect_to_db
 from offermee.database.models.base_project_model import BaseProjectModel
+from offermee.database.models.edited_project_model import EditedProjectModel
+from offermee.database.models.enums.offer_status import OfferStatus
 from offermee.database.models.freelancer_model import FreelancerModel
 from offermee.database.models.enums.project_status import ProjectStatus
 from offermee.matcher.skill_matcher import SkillMatcher
@@ -13,8 +16,7 @@ def get_freelancer_skills():
     """
     Holt die Fähigkeiten des Freelancers aus der Datenbank.
     """
-    db_manager = DatabaseManager()
-    session = db_manager.get_default_session()
+    session = connect_to_db()
     freelancer = session.query(FreelancerModel).first()
     session.close()
     return (
@@ -28,8 +30,7 @@ def get_freelancer_desired_rate():
     """
     Holt den gewünschten Stundensatz des Freelancers aus der Datenbank.
     """
-    db_manager = DatabaseManager()
-    session = db_manager.get_default_session()
+    session = connect_to_db()
     freelancer = session.query(FreelancerModel).first()
     session.close()
     return freelancer.desired_rate if freelancer else 0.0
@@ -38,9 +39,7 @@ def get_freelancer_desired_rate():
 def render():
     st.header("Projektübersicht")
 
-    db_manager = DatabaseManager()
-    session = db_manager.get_default_session()
-
+    session = connect_to_db()
     projects = (
         session.query(BaseProjectModel)
         .filter(BaseProjectModel.status == ProjectStatus.NEW.value)
@@ -81,14 +80,25 @@ def render():
                 )
                 continue
 
-            offer = OfferGenerator.generate_offer(project, freelancer)
-            EmailUtils.send_email(
-                project.contact_person, f"Angebot für {project.title}", offer
+            offer_content = OfferGenerator.generate_offer(project, freelancer)
+            EmailUtils().send_email(
+                project.contact_person, f"Angebot für {project.title}", offer_content
             )
+
             st.success("Angebot erfolgreich gesendet!")
 
             # Aktualisieren des Projektstatus
             project.status = ProjectStatus.IN_PROGRESS.value
+
+            # Neues EditedProjectModel anlegen oder vorhandenes updaten:
+            edited_offer = EditedProjectModel(
+                id=project.id,
+                offer_written=True,
+                offer=offer_content,
+                offer_status=OfferStatus.SENT,
+                sent_date=datetime.datetime.now(),  # <- hier setzen wir das Versanddatum
+            )
+            session.merge(edited_offer)
             session.commit()
 
     session.close()

@@ -142,55 +142,66 @@ class FreelanceMapScraper(BaseScraper):
         Returns:
         - list: List of project dictionaries with title, link, and description.
         """
-        # Map the Enum values
-        mapped_contract_types, mapped_remote, mapped_countries = self.map_params(
-            contract_types, remote, countries
-        )
+        try:
+            # Map the Enum values
+            mapped_contract_types, mapped_remote, mapped_countries = self.map_params(
+                contract_types, remote, countries
+            )
 
-        params = {
-            "query": query,
-            "categories[]": categories,
-            "projectContractTypes[]": mapped_contract_types,
-            "remoteInPercent[]": mapped_remote,
-            "industry[]": industries,
-            "matchingSkills[]": matching_skills,
-            "countries[]": mapped_countries,
-            "states[]": states,
-            "sort": sort,
-            "pagenr": page,
-            "hideAppliedProjects": "true",
-        }
+            params = {
+                "query": query,
+                "categories[]": categories,
+                "projectContractTypes[]": mapped_contract_types,
+                "remoteInPercent[]": mapped_remote,
+                "industry[]": industries,
+                "matchingSkills[]": matching_skills,
+                "countries[]": mapped_countries,
+                "states[]": states,
+                "sort": sort,
+                "pagenr": page,
+                "hideAppliedProjects": "true",
+            }
 
-        # Filter empty parameters
-        params = {key: value for key, value in params.items() if value}
+            # Filter empty parameters
+            params = {key: value for key, value in params.items() if value}
 
-        html_content = self.fetch_page(self.SEARCH_URL, params=params)
-        if not html_content:
-            self.logger.error("No content received from the page.")
+            html_content = self.fetch_page(self.SEARCH_URL, params=params)
+            if not html_content:
+                self.logger.error("No content received from the page.")
+                return []
+
+            soup = self.parse_html(html_content)
+            projects = []
+
+            for item in soup.find_all(
+                "div", class_="project-container project card box", limit=max_results
+            ):
+                title_tag = item.find("a", class_="project-title")
+                title = title_tag.text.strip() if title_tag else "No title"
+                link = (
+                    f"https://www.freelancermap.de{title_tag['href']}"
+                    if title_tag
+                    else "No link"
+                )
+
+                description_tag = item.find("div", class_="description")
+                description = (
+                    description_tag.text.strip()
+                    if description_tag
+                    else "No description"
+                )
+
+                projects.append(
+                    {"title": title, "link": link, "description": description}
+                )
+
+            return projects
+        except AttributeError as e:
+            self.logger.error(f"AttributeError beim Parsen eines Projekts: {e}")
             return []
-
-        soup = self.parse_html(html_content)
-        projects = []
-
-        for item in soup.find_all(
-            "div", class_="project-container project card box", limit=max_results
-        ):
-            title_tag = item.find("a", class_="project-title")
-            title = title_tag.text.strip() if title_tag else "No title"
-            link = (
-                f"https://www.freelancermap.de{title_tag['href']}"
-                if title_tag
-                else "No link"
-            )
-
-            description_tag = item.find("div", class_="description")
-            description = (
-                description_tag.text.strip() if description_tag else "No description"
-            )
-
-            projects.append({"title": title, "link": link, "description": description})
-
-        return projects
+        except Exception as e:
+            self.logger.error(f"Allgemeiner Fehler beim Abrufen von Projekten: {e}")
+            return []
 
     def process_project(self, project):
         """

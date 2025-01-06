@@ -1,17 +1,10 @@
 import streamlit as st
-from offermee.database.database_manager import DatabaseManager
+from offermee.database.db_connection import connect_to_db
 from offermee.enums.contract_types import ContractType
 from offermee.enums.countries import Country
 from offermee.enums.sites import Site
 from offermee.scraper.freelancermap import FreelanceMapScraper
 from offermee.database.models.intermediate_project_model import IntermediateProjectModel
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-
-# Datenbankverbindung einrichten
-engine = create_engine("sqlite:///offermee.db")
-Session = sessionmaker(bind=engine)
-session = Session()
 
 
 def render():
@@ -61,7 +54,8 @@ def render():
             # Ergebnisse anzeigen und speichern
             if projects:
                 # Session starten
-                session = DatabaseManager.get_default_session()
+                session = connect_to_db()
+
                 try:
                     st.success(f"{len(projects)} Projekte gefunden!")
                     for project in projects:
