@@ -2,9 +2,11 @@ import datetime
 import locale
 from dateutil import parser
 import os
+import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-import logging
+
+from offermee.logger import CentralLogger
 
 
 """
@@ -43,11 +45,7 @@ class DatabaseManager:
 
     def __init__(self, db_type="TEST", shall_overwrite=True):
         if not hasattr(self, "initialized"):  # Verhindert mehrfache Initialisierung
-            self.logger = logging.getLogger(__name__)
-            logging.basicConfig(
-                level=logging.INFO,
-                format="%(asctime)s - %(levelname)s - %(message)s",
-            )
+            self.logger = CentralLogger.getLogger(__name__)
             self.db_type = DatabaseManager.set_default_db(db_type)
             if shall_overwrite:
                 DatabaseManager._delete_database(db_type)

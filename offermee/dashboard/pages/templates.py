@@ -1,10 +1,12 @@
 import streamlit as st
+from offermee.dashboard.web_dashboard import stop_if_not_logged_in
 from offermee.database.db_connection import connect_to_db
 from offermee.database.models.freelancer_model import FreelancerModel
 
 
 def render():
     st.header("Standardangebotstemplate")
+    stop_if_not_logged_in()
 
     session = connect_to_db()
 

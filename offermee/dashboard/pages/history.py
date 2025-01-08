@@ -1,4 +1,5 @@
 import streamlit as st
+from offermee.dashboard.web_dashboard import stop_if_not_logged_in
 from offermee.database.db_connection import connect_to_db
 from offermee.database.models.edited_project_model import EditedProjectModel
 from offermee.database.models.enums.offer_status import OfferStatus
@@ -7,6 +8,7 @@ from datetime import datetime
 
 def render():
     st.header("Offer History")
+    stop_if_not_logged_in()
 
     session = connect_to_db()
 

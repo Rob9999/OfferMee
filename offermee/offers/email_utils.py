@@ -4,6 +4,9 @@ from email.mime.multipart import MIMEMultipart
 import os
 import logging
 
+from offermee.config import Config
+from offermee.logger import CentralLogger
+
 
 class EmailUtils:
     """
@@ -11,21 +14,11 @@ class EmailUtils:
     """
 
     def __init__(self):
-        self.sender_email = os.getenv("SENDER_EMAIL")
-        self.sender_password = os.getenv("SENDER_PASSWORD")
-        self.smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-        self.smtp_port = int(os.getenv("SMTP_PORT", 465))
-
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.INFO)
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.INFO)
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-        handler.setFormatter(formatter)
-        if not self.logger.handlers:
-            self.logger.addHandler(handler)
+        self.logger = CentralLogger.getLogger(__name__)
+        self.sender_email = Config.SENDER_EMAIL
+        self.sender_password = Config.SENDER_PASSWORD
+        self.smtp_server = Config.SMTP_SERVER
+        self.smtp_port = Config.SMTP_PORT
 
     def send_email(self, recipient, subject, body, html=False):
         """

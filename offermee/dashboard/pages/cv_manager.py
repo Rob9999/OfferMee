@@ -1,4 +1,5 @@
 import streamlit as st
+from offermee.dashboard.web_dashboard import stop_if_not_logged_in
 from offermee.database.database_manager import DatabaseManager
 from offermee.database.models.freelancer_model import FreelancerModel
 import PyPDF2
@@ -30,6 +31,8 @@ def extract_name(text):
 
 def render():
     st.header("CV hinterlegen")
+    stop_if_not_logged_in()
+
     uploaded_file = st.file_uploader(
         "Laden Sie Ihren Lebenslauf (PDF) hoch:", type=["pdf"]
     )

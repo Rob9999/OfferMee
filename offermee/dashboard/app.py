@@ -1,47 +1,113 @@
 import streamlit as st
+from offermee.dashboard.web_dashboard import is_logged_in
 
+# Best practice: set page config at very top
 st.set_page_config(page_title="OfferMee Dashboard", layout="wide")
-
 st.title("OfferMee - Dashboard")
-st.sidebar.title("Navigation")
-page = st.sidebar.radio(
-    "Gehe zu:",
-    [
-        "CV hinterlegen",
-        "Standardangebotstemplate",
-        "Scrapper",
-        "Projektsuche",
-        "Projektübersicht",
-        "Angebotshistorie",
-    ],
-)
 
-if page == "CV hinterlegen":
-    from offermee.dashboard.pages.cv_manager import render as cv_manager_render
+# Initialize session state for page selection
+if "page" not in st.session_state:
+    st.session_state.page = "Login"
 
-    cv_manager_render()
+# Define possible pages when logged out
+LOGGED_OUT_PAGES = [
+    "Login",
+    "Sign Up",
+]
 
-elif page == "Standardangebotstemplate":
-    from offermee.dashboard.pages.templates import render as templates_render
+# Define possible pages when logged in
+LOGGED_IN_PAGES = [
+    "CV hinterlegen",
+    "Standardangebotstemplate",
+    "Scraper",  # Renamed from "Scrapper" to "Scraper"
+    "Projektsuche",
+    "Projektübersicht",
+    "Angebotshistorie",
+    "Settings",
+    "Logout",
+]
 
-    templates_render()
 
-elif page == "Projektsuche":
-    from offermee.dashboard.pages.search import render as search_render
+def set_valid_page(allowed_pages):
+    """
+    If st.session_state.page isn't in allowed_pages,
+    reset it to the first allowed page to avoid ValueError
+    in the st.sidebar.radio index argument.
+    """
+    if st.session_state.page not in allowed_pages:
+        st.session_state.page = allowed_pages[0]
 
-    search_render()
 
-elif page == "Scrapper":
-    from offermee.dashboard.pages.scraper import render as scrapper_render
+# Check if someone is logged in
+if not is_logged_in():
+    # If not logged in, allow only the 'LOGGED_OUT_PAGES' set
+    set_valid_page(LOGGED_OUT_PAGES)
 
-    scrapper_render()
+    page = st.sidebar.radio(
+        "Gehe zu:",
+        LOGGED_OUT_PAGES,
+        index=LOGGED_OUT_PAGES.index(st.session_state.page),
+    )
+    st.session_state.page = page
 
-elif page == "Projektübersicht":
-    from offermee.dashboard.pages.matches import render as matches_render
+    if page == "Login":
+        from offermee.dashboard.pages.login import render as login_render
 
-    matches_render()
+        login_render()
 
-elif page == "Angebotshistorie":
-    from offermee.dashboard.pages.history import render as history_render
+    elif page == "Sign Up":
+        from offermee.dashboard.pages.signup import render as signup_render
 
-    history_render()
+        signup_render()
+
+else:
+    # If someone is logged in, allow the 'LOGGED_IN_PAGES' set
+    set_valid_page(LOGGED_IN_PAGES)
+
+    page = st.sidebar.radio(
+        "Gehe zu:",
+        LOGGED_IN_PAGES,
+        index=LOGGED_IN_PAGES.index(st.session_state.page),
+    )
+    st.session_state.page = page
+
+    if page == "CV hinterlegen":
+        from offermee.dashboard.pages.cv_manager import render as cv_manager_render
+
+        cv_manager_render()
+
+    elif page == "Standardangebotstemplate":
+        from offermee.dashboard.pages.templates import render as templates_render
+
+        templates_render()
+
+    elif page == "Scraper":
+        # Renamed import to match the label
+        from offermee.dashboard.pages.scraper import render as scraper_render
+
+        scraper_render()
+
+    elif page == "Projektsuche":
+        from offermee.dashboard.pages.search import render as search_render
+
+        search_render()
+
+    elif page == "Projektübersicht":
+        from offermee.dashboard.pages.matches import render as matches_render
+
+        matches_render()
+
+    elif page == "Angebotshistorie":
+        from offermee.dashboard.pages.history import render as history_render
+
+        history_render()
+
+    elif page == "Settings":
+        from offermee.dashboard.pages.settings_page import render as settings_render
+
+        settings_render()
+
+    elif page == "Logout":
+        from offermee.dashboard.pages.logout import render as logout_render
+
+        logout_render()

@@ -3,6 +3,7 @@ from offermee.database.models.base_project_model import BaseProjectModel
 from offermee.database.models.edited_project_model import EditedProjectModel
 from offermee.database.models.intermediate_project_model import IntermediateProjectModel
 from offermee.database.models.matching_score_model import MatchingScoreModel
+from offermee.logger import CentralLogger
 
 
 def main():

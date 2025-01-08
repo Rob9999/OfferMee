@@ -1,10 +1,13 @@
 import streamlit as st
 
+from offermee.dashboard.web_dashboard import stop_if_not_logged_in
 from offermee.database.db_connection import connect_to_db
 
 
 def render():
     st.header("Projekte suchen")
+    stop_if_not_logged_in()
+
     session = connect_to_db()
 
     start_date = st.date_input("Startdatum")

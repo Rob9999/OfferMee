@@ -16,5 +16,7 @@ setup(
         "sqlalchemy",
         "fuzzywuzzy",
         "PyPDF2",
+        "pycryptodome",
+        "streamlit-authenticator",
     ],
 )

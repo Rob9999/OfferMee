@@ -1,18 +1,12 @@
 import logging
 from abc import ABC, abstractmethod
 
+from offermee.logger import CentralLogger
+
 
 class LLMClient(ABC):
     def __init__(self, api_key, model_name):
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.DEBUG)
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        self.logger = CentralLogger.getLogger(__name__)
 
         self.api_key = api_key
         self.model_name = model_name

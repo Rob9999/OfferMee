@@ -1,16 +1,11 @@
 import logging
 from offermee.AI.llm_client import LLMClient
-from offermee.config import (
-    OPENAI_API_KEY,
-    OPENAI_MODEL,
-    GENAI_API_KEY,
-    GENAI_MODEL,
-    # Weitere API-Keys und Modelle hier hinzufügen
-)
+from offermee.config import Config
 
-# Import der LLMClient-Klassen
+# Import the LLMClient classes
 from offermee.AI.openai_client import OpenAIClient
 from offermee.AI.genai_client import GenAIClient
+from offermee.logger import CentralLogger
 
 
 class AIManager:
@@ -24,34 +19,26 @@ class AIManager:
     def __init__(self, default_client: str = None):
         if hasattr(self, "_initialized") and self._initialized:
             return
-        # Logger initialisieren
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
-        # Initialisieren eines Dictionaries zur Speicherung der Clients
+        # Initialize logger
+        self.logger = CentralLogger.getLogger(__name__)
+        # Initialize a dictionary to store the clients
         self.clients = {}
         self.set_default_client(default_client)
         self._initialized = True
 
     def set_default_client(self, provider: str):
         """
-        Setzt den Standard-LLM-Client für die Analyse von Projektbeschreibungen.
+        Sets the default LLM client for analyzing project descriptions.
 
-        :param provider: Name des Anbieters (z.B. 'openai', 'genai')
+        :param provider: Name of the provider (e.g., 'openai', 'genai')
         """
         if not provider:
-            self.logger.warning("Es wurde kein Standard-LLM-Client festgelegt.")
+            self.logger.warning("No default LLM client was set.")
             self.default_client = None
             return
 
         if provider is None:
-            self.logger.warning("Es wurde kein Standard-LLM-Client festgelegt.")
+            self.logger.warning("No default LLM client was set.")
             self.default_client = None
             return
 
@@ -59,53 +46,57 @@ class AIManager:
 
         if provider in ["openai", "genai"]:
             self.logger.debug(
-                f"Der {provider}-Client wurde als Standard-LLM-Client festgelegt."
+                f"The {provider} client has been set as the default LLM client."
             )
             self.default_client = provider
         else:
-            self.logger.error(f"Unbekannter Anbieter: {provider}")
-            raise ValueError(f"Unbekannter Anbieter: {provider}")
+            self.logger.error(f"Unknown provider: {provider}")
+            raise ValueError(f"Unknown provider: {provider}")
 
     def get_default_client(self) -> "LLMClient":
         """
-        Gibt den Standard-LLM-Client zurück.
+        Returns the default LLM client.
         """
         if self.default_client:
             self.logger.debug(
-                f"Rückgabe des Standard-LLM-Clients: {self.default_client}"
+                f"Returning the default LLM client: {self.default_client}"
             )
             return self.get_client(self.default_client)
         else:
-            self.logger.error("Es wurde kein Standard-LLM-Client festgelegt.")
-            raise ValueError("Es wurde kein Standard-LLM-Client festgelegt.")
+            self.logger.error("No default LLM client was set.")
+            raise ValueError("No default LLM client was set.")
 
     def get_client(self, provider: str) -> "LLMClient":
         """
-        Gibt eine Instanz des gewünschten LLM-Clients zurück.
+        Returns an instance of the desired LLM client.
 
-        :param provider: Name des Anbieters (z.B. 'openai', 'genai')
-        :return: Instanz eines LLMClient
+        :param provider: Name of the provider (e.g., 'openai', 'genai')
+        :return: Instance of an LLMClient
         """
         provider = provider.lower()
 
         if provider in self.clients:
-            self.logger.debug(
-                f"Rückgabe des bereits initialisierten {provider}-Clients."
-            )
+            self.logger.debug(f"Returning the already initialized {provider} client.")
             return self.clients[provider]
 
         if provider == "openai":
-            client = OpenAIClient(api_key=OPENAI_API_KEY, model_name=OPENAI_MODEL)
+            client = OpenAIClient(
+                api_key=Config.get_ai_family_api_key("openai"),
+                model_name=Config.get_ai_family_model("openai"),
+            )
             self.clients[provider] = client
-            self.logger.info("OpenAI Client erstellt und gespeichert.")
+            self.logger.info("OpenAI Client created and stored.")
             return client
 
         elif provider == "genai":
-            client = GenAIClient(api_key=GENAI_API_KEY, model_name=GENAI_MODEL)
+            client = GenAIClient(
+                api_key=Config.get_ai_family_api_key("genai"),
+                model_name=Config.get_ai_family_model("genai"),
+            )
             self.clients[provider] = client
-            self.logger.info("GenAI Client erstellt und gespeichert.")
+            self.logger.info("GenAI Client created and stored.")
             return client
 
         else:
-            self.logger.error(f"Unbekannter Anbieter: {provider}")
-            raise ValueError(f"Unbekannter Anbieter: {provider}")
+            self.logger.error(f"Unknown provider: {provider}")
+            raise ValueError(f"Unknown provider: {provider}")

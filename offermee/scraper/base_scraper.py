@@ -2,6 +2,7 @@ import logging
 import requests
 from bs4 import BeautifulSoup
 
+from offermee.logger import CentralLogger
 from offermee.scraper.scraper_interface import Scraper
 
 
@@ -21,15 +22,7 @@ class BaseScraper(Scraper):
             )
         }
         # Set up logger
-        self.logger = logging.getLogger(self.__class__.__name__)
-        if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
+        self.logger = CentralLogger.getLogger(__name__)
 
     def fetch_page(self, url, params=None):
         """

@@ -1,5 +1,6 @@
 import datetime
 import streamlit as st
+from offermee.dashboard.web_dashboard import stop_if_not_logged_in
 from offermee.database.db_connection import connect_to_db
 from offermee.database.models.base_project_model import BaseProjectModel
 from offermee.database.models.edited_project_model import EditedProjectModel
@@ -38,6 +39,7 @@ def get_freelancer_desired_rate():
 
 def render():
     st.header("Projektübersicht")
+    stop_if_not_logged_in()
 
     session = connect_to_db()
     projects = (
