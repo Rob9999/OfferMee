@@ -10,6 +10,9 @@ class FreelancerModel(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    skills = Column(String, nullable=True)  # Comma-separated list
-    desired_rate = Column(Float, nullable=True)  # Desired hourly rate
+    soft_skills = Column(String, nullable=True)
+    tech_skills = Column(String, nullable=True)
+
+    desired_rate_min = Column(Float, nullable=True)  # Desired hourly minimum rate
+    desired_rate_max = Column(Float, nullable=True)  # Desired hourly maximum rate
     offer_template = Column(Text, nullable=True)  # Offer template

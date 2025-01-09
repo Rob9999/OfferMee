@@ -1,12 +1,11 @@
-import logging
-import json
 from sqlalchemy.orm import sessionmaker
 
+from offermee.AI.project_processor import ProjectProcessor
+from offermee.logger import CentralLogger
 from offermee.scraper.base_scraper import BaseScraper
 from offermee.database.database_manager import DatabaseManager
 from offermee.database.models.base_project_model import BaseProjectModel
 from offermee.database.models.enums.project_status import ProjectStatus
-from offermee.AI.ai_manager import AIManager
 
 
 class FreelanceMapScraper(BaseScraper):
@@ -54,8 +53,8 @@ class FreelanceMapScraper(BaseScraper):
     def __init__(self):
         # Call the constructor of the base class
         super().__init__(self.BASE_URL)
-        # Initialize LLM client
-        self.llm_client = AIManager().get_default_client()
+        self.logger = CentralLogger.getLogger(__name__)
+        self.project_processor = ProjectProcessor()
         # Initialize database manager
         self.db_manager = DatabaseManager()
         self.Session = sessionmaker(bind=self.db_manager.engine)
@@ -210,16 +209,9 @@ class FreelanceMapScraper(BaseScraper):
         Args:
             project (dict): Dictionary with project information (title, link, description).
         """
-        analysis_json = self.llm_client.analyze_project(project["description"])
-        if not analysis_json:
+        analysis = self.project_processor.analyze_project(project["description"])
+        if not (analysis and analysis.get("project")):
             self.logger.error(f"Analysis failed for project: {project['title']}")
-            return
-
-        try:
-            analysis = json.loads(analysis_json)
-            project["analysis"] = analysis
-        except json.JSONDecodeError as e:
-            self.logger.error(f"JSON decode error for project {project['title']}: {e}")
             return
 
         session = self.Session()

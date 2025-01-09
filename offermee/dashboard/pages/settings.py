@@ -1,28 +1,20 @@
 import streamlit as st
 import os
+from offermee.config import Config
 from offermee.dashboard.web_dashboard import stop_if_not_logged_in
-from offermee.local_settings import LocalSettings
 
 
 def render():
     st.title("Einstellungen")
     stop_if_not_logged_in()
 
-    # Beispiel: Pfade zu den RSA-Keys, hier ggf. nur Platzhalter oder
-    # später aus ENV:
-    default_public_key = os.path.expanduser("~/.offermee/keys/public.pem")
-    default_private_key = os.path.expanduser("~/.offermee/keys/private.pem")
+    config = Config.get_instance()
 
-    # Instanz des LocalSettings
-    local_settings = LocalSettings(
-        public_key_path=default_public_key, private_key_path=default_private_key
-    )
-
-    # 1) Settings laden (falls vorhanden)
-    local_settings.load_settings()
+    # 1) Settings aktuell halten
+    config.reload_settings()
 
     # 2) Aktuelle Werte lesen (gesamtes Dictionary aus der verschlüsselten .settings)
-    current_data = local_settings.to_dict()
+    current_data = config.get_local_settings_to_dict()
 
     # --- AI PROVIDERS ---
 
@@ -124,13 +116,6 @@ def render():
     )
     currency = st.text_input("Währung", value=current_data.get("currency", "EUR"))
 
-    # --- RSA-Schlüssel (optional) ---
-    st.subheader("RSA-Schlüssel")
-    rsa_public_key_path = st.text_input(
-        "Pfad zur Public Key Datei",
-        value=current_data.get("rsa_public_key_path", default_public_key),
-    )
-
     # --- Speichern ---
     if st.button("Speichern"):
         # Alle Felder in new_settings sammeln
@@ -153,10 +138,9 @@ def render():
             "account_password": account_password,
             "language": language,
             "currency": currency,
-            "rsa_public_key_path": rsa_public_key_path,
         }
 
         # In local_settings speichern (wird verschlüsselt)
-        local_settings.save_settings(new_settings)
+        config.save_local_settings(new_settings)
 
         st.success("Einstellungen erfolgreich gespeichert und verschlüsselt.")

@@ -18,8 +18,9 @@ LOGGED_OUT_PAGES = [
 # Define possible pages when logged in
 LOGGED_IN_PAGES = [
     "CV hinterlegen",
+    "CV bearbeiteb",
     "Standardangebotstemplate",
-    "Scraper",  # Renamed from "Scrapper" to "Scraper"
+    "Scraper",
     "Projektsuche",
     "Projektübersicht",
     "Angebotshistorie",
@@ -76,6 +77,11 @@ else:
 
         cv_manager_render()
 
+    if page == "CV bearbeiten":
+        from offermee.dashboard.pages.cv_edit import render as cv_edit_render
+
+        cv_edit_render()
+
     elif page == "Standardangebotstemplate":
         from offermee.dashboard.pages.templates import render as templates_render
 
@@ -103,7 +109,7 @@ else:
         history_render()
 
     elif page == "Settings":
-        from offermee.dashboard.pages.settings_page import render as settings_render
+        from offermee.dashboard.pages.settings import render as settings_render
 
         settings_render()
 

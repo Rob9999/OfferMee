@@ -1,81 +1,93 @@
 import streamlit as st
+
+from offermee.config import Config
+from offermee.AI.cv_processor import CVProcessor
 from offermee.dashboard.web_dashboard import stop_if_not_logged_in
 from offermee.database.database_manager import DatabaseManager
+from offermee.database.db_connection import get_freelancer_by_name
 from offermee.database.models.freelancer_model import FreelancerModel
 import PyPDF2
-import re
-
-
-def extract_skills(text):
-    """
-    Extrahiert Fähigkeiten aus dem CV-Text.
-    Dies ist eine einfache Implementierung und sollte für Produktionszwecke verfeinert werden.
-    """
-    # Beispiel: Extraktion von Schlagwörtern nach "Skills" Abschnitt
-    skills = []
-    skills_section = re.search(r"Skills?:\s*(.*)", text, re.IGNORECASE)
-    if skills_section:
-        skills_text = skills_section.group(1)
-        skills = [skill.strip() for skill in skills_text.split(",")]
-    return skills
-
-
-def extract_name(text):
-    """
-    Extrahiert den Namen des Freelancers aus dem CV-Text.
-    """
-    # Beispiel: Annahme, dass der Name in der ersten Zeile steht
-    lines = text.strip().split("\n")
-    return lines[0].strip() if lines else "Unbekannt"
 
 
 def render():
-    st.header("CV hinterlegen")
+    st.header("Upload CV")
     stop_if_not_logged_in()
 
-    uploaded_file = st.file_uploader(
-        "Laden Sie Ihren Lebenslauf (PDF) hoch:", type=["pdf"]
+    config = Config.get_instance()
+    cv_candiate = st.text_input(
+        label="Candiate", value=config.get_name_from_local_settings()
     )
+
+    uploaded_file = st.file_uploader("Upload your resume (PDF):", type=["pdf"])
     if uploaded_file is not None:
-        # Extraktion von Text aus dem PDF
         reader = PyPDF2.PdfReader(uploaded_file)
         text = ""
         for page in reader.pages:
             text += page.extract_text() or ""
 
-        # Extrahieren von relevanten Informationen
-        name = extract_name(text)
-        skills = extract_skills(text)
+        # Get CVProcessor and analyze cv text
+        cv_processor = CVProcessor()
+        cv_data = cv_processor.analyze_cv(text)
 
-        # Optional: Extrahieren des gewünschten Stundensatzes
-        # Hier könnte eine weitere Funktion implementiert werden, um den Stundensatz zu extrahieren
+        if not cv_data:
+            st.error("Fehler beim Analysieren des Lebenslaufs.")
+            return
 
-        # Beispiel: Eingabe des gewünschten Stundensatzes durch den Benutzer
-        desired_rate = st.number_input(
-            "Gewünschter Stundensatz (€)", min_value=0.0, step=10.0
+        st.write("Extrahierte Daten:", cv_data)
+
+        # Zugriff auf extrahierte Personendaten
+        person_data = cv_data.get("person", {})
+        st.write("Extrahierte Personendaten:", person_data)
+
+        person_name = CVProcessor.get_person_name(person_data, max_firstnames=2)
+        st.write(person_name)
+
+        soft_skills = CVProcessor.get_all_soft_skills(cv_data)
+        tech_skills = CVProcessor.get_all_tech_skills(cv_data)
+
+        # Determine the desired hourly rate
+        desired_rate = st.slider(
+            "Desired hourly rate (€)",
+            min_value=0.0,
+            max_value=500.0,  # Example upper limit
+            value=(50.0, 150.0),  # Default range (min, max)
+            step=10.0,
         )
 
-        if st.button("Speichern"):
+        # Split the tuple into separate variables if needed
+        desired_rate_min, desired_rate_max = desired_rate
+
+        st.write(
+            f"Minimum hourly rate: {desired_rate_min} €, Maximum hourly rate: {desired_rate_max} €"
+        )
+
+        if st.button("Save"):
             db_manager = DatabaseManager()
             session = db_manager.get_default_session()
 
             try:
-                freelancer = session.query(FreelancerModel).first()
+                freelancer = get_freelancer_by_name(name=cv_candiate)
                 if not freelancer:
                     freelancer = FreelancerModel(
-                        name=name,
-                        skills=", ".join(skills),
-                        desired_rate=desired_rate,
+                        name=person_name,
+                        soft_skills=", ".join(soft_skills),
+                        tech_skills=", ".join(tech_skills),
+                        desired_rate_min=desired_rate_min,
+                        desired_rate_max=desired_rate_max,
                     )
                     session.add(freelancer)
                 else:
-                    freelancer.name = name
-                    freelancer.skills = ", ".join(skills)
-                    freelancer.desired_rate = desired_rate
+                    freelancer.name = cv_candiate
+                    soft_skills = ", ".join(soft_skills)
+                    tech_skills = ", ".join(tech_skills)
+                    freelancer.desired_rate_min = desired_rate_min
+                    freelancer.desired_rate_max = desired_rate_max
                 session.commit()
-                st.success("CV erfolgreich gespeichert und Skills extrahiert!")
+                st.success("CV successfully saved and skills extracted!")
             except Exception as e:
                 session.rollback()
-                st.error(f"Fehler beim Speichern des CV: {e}")
+                st.error(f"Error saving CV: {e}")
             finally:
                 session.close()
+
+        st.success("CV erfolgreich analysiert und gespeichert!")
