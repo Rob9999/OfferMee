@@ -18,7 +18,8 @@ LOGGED_OUT_PAGES = [
 # Define possible pages when logged in
 LOGGED_IN_PAGES = [
     "CV hinterlegen",
-    "CV bearbeiteb",
+    "CV bearbeiten",
+    "CV exportieren",
     "Standardangebotstemplate",
     "Scraper",
     "Projektsuche",
@@ -81,6 +82,11 @@ else:
         from offermee.dashboard.pages.cv_edit import render as cv_edit_render
 
         cv_edit_render()
+
+    if page == "CV exportieren":
+        from offermee.dashboard.pages.cv_export import render as cv_export_render
+
+        cv_export_render()
 
     elif page == "Standardangebotstemplate":
         from offermee.dashboard.pages.templates import render as templates_render

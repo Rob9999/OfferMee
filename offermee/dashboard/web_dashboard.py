@@ -2,6 +2,21 @@ import streamlit_authenticator as stauth
 import streamlit as st
 from offermee.config import Config
 from offermee.users.credential_loader import load_credentials_from_db
+from offermee.logger import CentralLogger
+
+web_logger = CentralLogger().getLogger(name="web")
+
+
+def get_logger():
+    return web_logger
+
+
+def log_info(page_name: str, message: str):
+    web_logger.info(f"{page_name} - {message}")
+
+
+def log_error(page_name: str, message: str):
+    web_logger.error(f"{page_name} - {message}")
 
 
 def start_dashboard():

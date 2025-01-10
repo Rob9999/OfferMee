@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String
 from offermee.database.database_manager import DatabaseManager
-from sqlalchemy.ext.declarative import declarative_base
 
 Base = DatabaseManager.Base
 

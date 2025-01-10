@@ -3,6 +3,7 @@ from offermee.config import Config
 from offermee.dashboard.web_dashboard import stop_if_not_logged_in
 from offermee.database.db_connection import connect_to_db, get_freelancer_by_name
 from offermee.database.models.cv_model import CVModel
+from offermee.database.models.freelancer_model import FreelancerModel
 
 
 def render():
@@ -15,7 +16,7 @@ def render():
     )
 
     session = connect_to_db()
-    freelancer = get_freelancer_by_name(name=cv_candiate)
+    freelancer: FreelancerModel = get_freelancer_by_name(name=cv_candiate)
     if not freelancer:
         st.error("Kein CV hinterlegt")
         st.stop()

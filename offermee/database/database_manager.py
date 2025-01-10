@@ -43,7 +43,7 @@ class DatabaseManager:
             logging.info("Creating a new instance of DatabaseManager")
         return cls._instance
 
-    def __init__(self, db_type="TEST", shall_overwrite=True):
+    def __init__(self, db_type="TEST", shall_overwrite=False):
         if not hasattr(self, "initialized"):  # Verhindert mehrfache Initialisierung
             self.logger = CentralLogger.getLogger(__name__)
             self.db_type = DatabaseManager.set_default_db(db_type)
@@ -160,6 +160,13 @@ class DatabaseManager:
 
     @staticmethod
     def _create_database(db_path: str):
+        if os.path.exists(db_path):
+            logging.info(f"Database already exists at {db_path}. Skipping creation.")
+            # Connect to the existing database
+            engine = create_engine(f"sqlite:///{db_path}")
+            return engine
+
+        # Create new database if it doesn't exist
         engine = create_engine(f"sqlite:///{db_path}")
         DatabaseManager.Base.metadata.create_all(engine)
         logging.info(f"Database created at {db_path}")

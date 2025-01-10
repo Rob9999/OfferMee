@@ -18,5 +18,6 @@ setup(
         "PyPDF2",
         "pycryptodome",
         "streamlit-authenticator",
+        "reportlab",
     ],
 )
