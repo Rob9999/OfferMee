@@ -13,7 +13,7 @@ def render():
     session = connect_to_db()
 
     # Alle verfügbaren CV-Einträge abrufen
-    cvs = session.query(CVModel).all()
+    cvs: list[CVModel] = session.query(CVModel).all()
 
     if not cvs:
         st.info("Keine Lebensläufe in der Datenbank gefunden.")
@@ -28,6 +28,7 @@ def render():
             {
                 "CV-ID": cv.id,
                 "Freelancer-ID": cv.freelancer_id,
+                "Name": cv.name,
                 "Letztes Update": (
                     cv.structured_data[:50] + "..." if cv.structured_data else ""
                 ),
@@ -39,7 +40,7 @@ def render():
     selected_cv_id = st.selectbox(
         "Wählen Sie einen CV zum Exportieren aus:",
         options=[cv["CV-ID"] for cv in cv_table_data],
-        format_func=lambda x: f"CV {x} (Freelancer {next(item['Freelancer-ID'] for item in cv_table_data if item['CV-ID'] == x)})",
+        format_func=lambda x: f"CV {x}, Freelancer #{next(item['Freelancer-ID'] for item in cv_table_data if item['CV-ID'] == x)} {next(item['Name'] for item in cv_table_data if item['CV-ID'] == x)}",
     )
 
     # Sprachwahl für den Export (optional)
@@ -48,12 +49,16 @@ def render():
     # Knopf zum Exportieren
     if st.button("CV als PDF exportieren"):
         # Finde das ausgewählte CV-Modell
-        selected_cv = session.query(CVModel).filter_by(id=selected_cv_id).first()
+        selected_cv: CVModel = (
+            session.query(CVModel).filter_by(id=selected_cv_id).first()
+        )
         if not selected_cv:
             st.error("Gewählter Lebenslauf nicht gefunden.")
         else:
             # Exportiere den CV als PDF
-            pdf_filename = export_cv_to_pdf(selected_cv, language=language)
+            pdf_filename = export_cv_to_pdf(
+                selected_cv.freelancer_id, language=language
+            )
             if pdf_filename and os.path.exists(pdf_filename):
                 st.success(f"Lebenslauf wurde erfolgreich exportiert: {pdf_filename}")
                 # Biete dem Nutzer an, die PDF-Datei herunterzuladen

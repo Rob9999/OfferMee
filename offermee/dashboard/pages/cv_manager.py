@@ -1,13 +1,13 @@
+import json
 import streamlit as st
 
 from offermee.config import Config
 from offermee.AI.cv_processor import CVProcessor
 from offermee.dashboard.web_dashboard import log_error, log_info, stop_if_not_logged_in
-from offermee.database.database_manager import DatabaseManager
 from offermee.database.db_connection import (
-    connect_to_db,
     get_cv_by_freelancer_id,
     get_freelancer_by_name,
+    session_scope,
 )
 from offermee.database.models.cv_model import CVModel
 from offermee.database.models.freelancer_model import FreelancerModel
@@ -98,58 +98,72 @@ def render():
             and uploaded_cv.get("cv_structured_data")
             and st.button("Save")
         ):
-            log_info(__name__, "Saving processed cv...")
-            session = connect_to_db()
             try:
-                freelancer: FreelancerModel = get_freelancer_by_name(name=cv_candiate)
-                if not freelancer:
-                    log_info(
-                        __name__, f"Adding new freelancer of {cv_candiate} to db..."
-                    )
-                    freelancer = FreelancerModel(
-                        name=cv_candiate,
-                        soft_skills=", ".join(uploaded_cv.get("cv_soft_skills")),
-                        tech_skills=", ".join(uploaded_cv.get("cv_tech_skills")),
-                        desired_rate_min=desired_rate_min,
-                        desired_rate_max=desired_rate_max,
-                    )
-                    session.add(freelancer)
-                else:
-                    log_info(__name__, f"Updating freelancer of {cv_candiate} to db.")
-                    freelancer.name = cv_candiate
-                    freelancer.soft_skills = ", ".join(
-                        uploaded_cv.get("cv_soft_skills")
-                    )
-                    freelancer.tech_skills = ", ".join(
-                        uploaded_cv.get("cv_tech_skills")
-                    )
-                    freelancer.desired_rate_min = desired_rate_min
-                    freelancer.desired_rate_max = desired_rate_max
-                session.commit()
-                cv: CVModel = get_cv_by_freelancer_id(freelancer.id)
-                if not cv:
-                    log_info(__name__, f"Adding new cv of {cv_candiate} to db...")
-                    cv = CVModel(
-                        freelancer_id=freelancer.id,
-                        name=cv_candiate,
-                        raw_text=uploaded_cv.get("cv_text"),
-                        structured_data=str(uploaded_cv.get("cv_structured_data")),
-                    )
-                    session.add(cv)
-                else:
-                    log_info(__name__, f"Updating cv of {cv_candiate} to db.")
-                    cv.freelancer_id = freelancer.id
-                    cv.name = cv_candiate
-                    cv.raw_text = uploaded_cv.get("cv_text")
-                    cv.structured_data = str(uploaded_cv.get("cv_structured_data"))
-                session.commit()
+                save_cv_logic(
+                    cv_candiate=cv_candiate,
+                    uploaded_cv=uploaded_cv,
+                    desired_rate_min=desired_rate_min,
+                    desired_rate_max=desired_rate_max,
+                )
                 log_info(
                     __name__, f"Committed freelancer and cv of {cv_candiate} to db."
                 )
                 st.success("CV skills extracted and successfully saved!")
             except Exception as e:
-                session.rollback()
                 log_error(__name__, f"Error saving CV: {e}")
                 st.error(f"Error saving CV: {e}")
             finally:
-                session.close()
+                st.session_state["uploaded_cv"] = None
+
+
+def save_cv_logic(cv_candiate, uploaded_cv, desired_rate_min, desired_rate_max):
+    log_info(__name__, "Saving processed cv...")
+    with session_scope() as session:
+        # Freelancer
+        freelancer: FreelancerModel = get_freelancer_by_name(
+            name=cv_candiate, session=session
+        )
+        if not freelancer:
+            log_info(__name__, f"Adding new freelancer of {cv_candiate} to db...")
+            freelancer = FreelancerModel(
+                name=cv_candiate,
+                soft_skills=", ".join(uploaded_cv.get("cv_soft_skills")),
+                tech_skills=", ".join(uploaded_cv.get("cv_tech_skills")),
+                desired_rate_min=desired_rate_min,
+                desired_rate_max=desired_rate_max,
+            )
+            session.add(freelancer)
+        else:
+            log_info(
+                __name__,
+                f"Updating existing freelancer {freelancer.id} of {cv_candiate} to db.",
+            )
+            freelancer.soft_skills = ", ".join(uploaded_cv.get("cv_soft_skills"))
+            freelancer.tech_skills = ", ".join(uploaded_cv.get("cv_tech_skills"))
+            freelancer.desired_rate_min = desired_rate_min
+            freelancer.desired_rate_max = desired_rate_max
+
+        # CV
+        cv: CVModel = get_cv_by_freelancer_id(freelancer.id, session=session)
+        if cv:
+            log_info(__name__, f"Existing CV found with id: {cv.id}")
+        else:
+            log_info(
+                __name__,
+                "No existing CV found for freelancer_id: {freelancer.id}",
+            )
+        if not cv:
+            log_info(__name__, f"Adding new cv of {cv_candiate} to db...")
+            cv = CVModel(
+                freelancer_id=freelancer.id,
+                name=cv_candiate,
+                raw_text=uploaded_cv.get("cv_text"),
+                structured_data=json.dumps(uploaded_cv.get("cv_structured_data")),
+            )
+            session.add(cv)
+        else:
+            log_info(__name__, f"Updating cv of {cv_candiate} to db.")
+            cv.name = cv_candiate
+            cv.raw_text = uploaded_cv.get("cv_text")
+            cv.structured_data = json.dumps(uploaded_cv.get("cv_structured_data"))
+        # Commit and Rollback are handled automatically by the contect manager

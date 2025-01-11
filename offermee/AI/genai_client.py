@@ -19,7 +19,7 @@ class GenAIClient(LLMClient):
             return None
 
         self.logger.info("Sending extraction request to genai...")
-        self.logger.debug("Sending prompt:\n" + prompt)
+        # self.logger.debug("Sending prompt:\n" + prompt)
         try:
             # Generate content using the model
             response = self.model.generate_content(
@@ -31,7 +31,7 @@ class GenAIClient(LLMClient):
                 ]
             )
             json_string = response.candidates[0].content.parts[0].text
-            self.logger.debug("Received JSON:\n" + json_string)
+            # self.logger.debug("Received JSON:\n" + json_string)
             # Remove the preceding and trailing markdown formatting
             json_string = json_string.strip("```json\n").strip("\n```")
             return json_string

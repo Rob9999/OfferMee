@@ -2,135 +2,20 @@
 import json
 from offermee.AI.ai_manager import AIManager
 from offermee.logger import CentralLogger
+from offermee.schemas.json_schema_loader import get_cv_schema
 
 
 class CVProcessor:
     def __init__(self):
         self.logger = CentralLogger.getLogger(__name__)
-        # Prompt und JSON-Formatdefinitions-Strings ...
-        self.json_project_format: str = """
-        { 
-            "project":
-                {
-                "title": "title",
-                "start": "dd.mm.yyyy or mm.yyyy",
-                "end": "dd.mm.yyyy or mm.yyyy",
-                "person-days": "number",
-                "industry": "industry",
-                "firm": "firm",
-                "result": "result",
-                "tasks": ["task1", ...],
-                "soft-skills": ["skill1", ...],
-                "tech-skills": ["skill1", ...],
-                "responsibilities": ["resp1", ...]
-            }
-        }
-        """
-        self.json_job_format: str = """
-        { 
-            "job":
-                {
-                "title": "title",
-                "start": "dd.mm.yyyy or mm.yyyy",
-                "end": "dd.mm.yyyy or mm.yyyy",
-                "person-days": "number",
-                "industry": "industry",
-                "firm": "firm",
-                "result": "result",
-                "tasks": ["task1", ...],
-                "soft-skills": ["skill1", ...],
-                "tech-skills": ["skill1", ...],
-                "responsibilities": ["resp1", ...]
-            }
-        }
-        """
-        self.json_education_format: str = """
-        { 
-            "education":
-                {
-                "title": "title",
-                "start": "dd.mm.yyyy or mm.yyyy",
-                "end": "dd.mm.yyyy or mm.yyyy",
-                "person-days": "number",
-                "facility": "facility",
-                "type": "Master/Fachhochschule/Technische Hochschule/Bachelor/PhD/Highschool/Primaryschool/Online/Bootcamp",
-                "grade": "MA/BA/Diplom-Ingenieur/Diplom-Ingenieur (FH)/Diplom-Ingenieur (TH)/PhD/Highschool/Primaryschool/Certificate/etc",
-                "topics": ["topic1", ...]
-            }
-        }
-        """
-        self.json_person_format: str = """
-        { 
-            "person":
-                {
-                "firstnames": ["firstname1", ...],
-                "lastname": "lastname",
-                "birth": "dd.mm.yyyy",
-                "birth-place": "birth-place",
-                "address": "address",
-                "city": "city",                
-                "zip-code": "zip-code",
-                "country": "country",
-                "phone": "phone",   
-                "email": "email",
-                "linkedin": "linkedin",
-                "xing": "xing",
-                "github": "github",
-                "website": "website",
-                "languages": ["language1", ...]
-            }
-        }
-        """
-        self.json_contact_format: str = """
-        { 
-            "contact":
-                {   
-                "address": "address",
-                "city": "city",
-                "zip-code": "zip-code",
-                "country": "country",                                 
-                "phone": "phone",   
-                "email": "email",
-                "linkedin": "linkedin",
-                "xing": "xing",
-                "github": "github",
-                "website": "website"
-            }
-        }
-        """
-
-        self.json_tech_skills_format: str = """
-        { 
-            "skill":
-                {   
-                "name": "name",
-                "month": "month (month of evaluatable experiences)",
-                "experience": "(0....10) (if evaluatable)",
-            }
-        }
-        """
-
-        self.json_soft_skills_format: str = """
-        { 
-            "skill":
-                {   
-                "name": "name",
-                "month": "month (month of evaluatable experiences)",
-                "experience": "(0....10) (if evaluatable)",
-            }
-        }
-        """
-
+        self.cv_json_schema = get_cv_schema()
         self.prompt_cv_analyze = (
-            "Please analyze the following CV and extract the following information in a JSON format:\n"
-            f"1. projects: Format [{self.json_project_format}].\n"
-            f"2. jobs: Format [{self.json_job_format}].\n"
-            f"3. educations: Format [{self.json_education_format}].\n"
-            f"4. person: Format {self.json_person_format}.\n"
-            f"5. contact: Format {self.json_contact_format}.\n"
-            # f"6. soft-skills: Format {self.json_soft_skills_format}"
-            # f"7. tech-skills: Format {self.json_tech_skills_format}"
-            "Please provide the results as a valid JSON object."
+            "Please analyze the following CV and extract the required information into a structured JSON format.\n"
+            "Follow these instructions strictly:\n"
+            " 1. For any data that is not available or cannot be evaluated, set its value to null as specified in the schema.\n"
+            " 2. Ensure all fields in the JSON schema are filled to the best of your ability.\n"
+            " 3. Adhere to the provided JSON schema format without deviations.\n"
+            " 4. Normalize dates to one of the following formats: dd.mm.yyyy, mm.yyyy, or yyyy depending on the available precision.\n"
         )
 
     def analyze_cv(self, cv_text: str) -> dict:
@@ -143,17 +28,21 @@ class CVProcessor:
             return {}
 
         # Prompt mit tatsächlichem CV-Text erstellen
-        prompt = self.prompt_cv_analyze + f"\n\nCV:\n{cv_text}"
+        prompt = (
+            self.prompt_cv_analyze
+            + f"\n\nSCHEMA:\n{json.dumps(self.cv_json_schema, indent=2)}"
+            + f"\n\nCV:\n{cv_text}"
+        )
 
         self.logger.info(f"Send prompt to {ai_manager.model_name}")
 
         # Anfrage an das LLM senden
         response = ai_manager.extract_to_json(prompt)
-        self.logger.info(f"Response {response}")
+        # self.logger.debug(f"Response {response}")
         try:
             data = json.loads(response)
             self.logger.info("Parsed ai respone to JSON")
-            self.logger.info(f"Parsed ai respone to JSON:\n{data}")
+            # self.logger.debug(f"Parsed ai respone to JSON:\n{data}")
             return data
         except json.JSONDecodeError as e:
             self.logger.error(f"JSON decoding error: {e}")
