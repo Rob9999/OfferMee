@@ -29,6 +29,7 @@ class BaseScraper(Scraper):
         Sends an HTTP request and returns the content of the page.
         """
         try:
+            self.logger.info(f"fetch_page: url='{url}', params='{params}'")
             response = requests.get(url, params=params, headers=self.headers)
             response.raise_for_status()
             return response.text

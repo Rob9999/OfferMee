@@ -23,7 +23,7 @@ LOGGED_IN_PAGES = [
     "Standardangebotstemplate",
     "Scraper",
     "Projektsuche",
-    "Projektübersicht",
+    "Projektmatcher & Angebotserstellung",
     "Angebotshistorie",
     "Settings",
     "Logout",
@@ -104,7 +104,7 @@ else:
 
         search_render()
 
-    elif page == "Projektübersicht":
+    elif page == "Projektmatcher & Angebotserstellung":
         from offermee.dashboard.pages.matches import render as matches_render
 
         matches_render()

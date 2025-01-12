@@ -12,7 +12,7 @@ def render():
 
     config = Config.get_instance()
     cv_candiate = st.text_input(
-        label="Candiate", value=config.get_name_from_local_settings()
+        label="Candidate", value=config.get_name_from_local_settings()
     )
 
     session = connect_to_db()

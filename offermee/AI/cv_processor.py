@@ -2,13 +2,14 @@
 import json
 from offermee.AI.ai_manager import AIManager
 from offermee.logger import CentralLogger
-from offermee.schemas.json_schema_loader import get_cv_schema
+from offermee.schemas.json.schema_keys import SchemaKey
+from offermee.schemas.json.schema_loader import get_schema
 
 
 class CVProcessor:
     def __init__(self):
         self.logger = CentralLogger.getLogger(__name__)
-        self.cv_json_schema = get_cv_schema()
+        self.cv_schema_json = json.dumps(get_schema(SchemaKey.CV), indent=2)
         self.prompt_cv_analyze = (
             "Please analyze the following CV and extract the required information into a structured JSON format.\n"
             "Follow these instructions strictly:\n"
@@ -30,7 +31,7 @@ class CVProcessor:
         # Prompt mit tatsächlichem CV-Text erstellen
         prompt = (
             self.prompt_cv_analyze
-            + f"\n\nSCHEMA:\n{json.dumps(self.cv_json_schema, indent=2)}"
+            + f"\n\nSCHEMA:\n{self.cv_schema_json}"
             + f"\n\nCV:\n{cv_text}"
         )
 
@@ -100,17 +101,19 @@ class CVProcessor:
 
         # Durchlaufe alle Projekte und sammle Soft Skills
         projects = json_data.get("projects", [])
-        for project in projects:
+        for project_wrapper in projects:
+            # Greife auf das verschachtelte 'project'-Objekt zu
+            project = project_wrapper.get("project", {})
             skills = project.get("soft-skills", [])
             soft_skills_set.update(skills)
 
         # Durchlaufe alle Jobs und sammle Soft Skills
         jobs = json_data.get("jobs", [])
-        for job in jobs:
+        for job_wrapper in jobs:
+            # Ähnliche Struktur wie Projekte: Greife auf 'job'-Objekt zu
+            job = job_wrapper.get("job", {})
             skills = job.get("soft-skills", [])
             soft_skills_set.update(skills)
-
-        # Optional: Weitere Bereiche wie "person" oder "contact" hinzufügen, falls benötigt.
 
         return list(soft_skills_set)
 
@@ -124,16 +127,18 @@ class CVProcessor:
 
         # Durchlaufe alle Projekte und sammle Tech Skills
         projects = json_data.get("projects", [])
-        for project in projects:
+        for project_wrapper in projects:
+            # Greife auf das verschachtelte 'project'-Objekt zu
+            project = project_wrapper.get("project", {})
             skills = project.get("tech-skills", [])
             tech_skills_set.update(skills)
 
         # Durchlaufe alle Jobs und sammle Tech Skills
         jobs = json_data.get("jobs", [])
-        for job in jobs:
+        for job_wrapper in jobs:
+            # Ähnliche Struktur wie Projekte: Greife auf 'job'-Objekt zu
+            job = job_wrapper.get("job", {})
             skills = job.get("tech-skills", [])
             tech_skills_set.update(skills)
-
-        # Optional: Weitere Bereiche wie "skill" auf oberster Ebene hinzufügen, falls benötigt.
 
         return list(tech_skills_set)

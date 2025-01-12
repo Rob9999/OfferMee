@@ -1,0 +1,171 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Project Requirements",
+	"type": "object",
+	"properties": {
+		"project": {
+			"type": "object",
+			"properties": {
+				"title": {
+					"type": "string",
+					"description": "The project title"
+				},
+				"description": {
+					"type": "string",
+					"description": "The project description (summarized, structured in lines, max. 20 lines)"
+				},
+				"location": {
+					"type": [
+						"string",
+						"null"
+					],
+					"enum": [
+						"Remote",
+						"On-site",
+						"Hybrid",
+						null
+					],
+					"description": "Expected working modality: Remote, On-site or Hybrid"
+				},
+				"must-have-requirements": {
+					"type": "array",
+					"items": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"description": "Mandatory requirements for the project"
+				},
+				"nice-to-have-requirements": {
+					"type": "array",
+					"items": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"description": "Desirable additional requirements"
+				},
+				"tasks": {
+					"type": "array",
+					"items": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"description": "List of tasks in the project"
+				},
+				"responsibilities": {
+					"type": "array",
+					"items": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"description": "List of responsibilities in the project"
+				},
+				"max-hourly-rate": {
+					"type": [
+						"number",
+						"null"
+					],
+					"description": "Maximum hourly rate (if available)"
+				},
+				"other-conditions": {
+					"type": [
+						"string",
+						"null"
+					],
+					"description": "Other conditions or requirements"
+				},
+				"contact-person": {
+					"type": [
+						"string",
+						"null"
+					],
+					"description": "Contact person for the project"
+				},
+				"project-provider": {
+					"type": [
+						"string",
+						"null"
+					],
+					"description": "Project provider (if available)"
+				},
+				"project-provider-link": {
+					"type": [
+						"string",
+						"null"
+					],
+					"format": "uri",
+					"description": "Link to the project provider (if available)"
+				},
+				"start-date": {
+					"type": [
+						"string",
+						"null"
+					],
+					"pattern": "^(\\d{2}\\.\\d{2}\\.\\d{4}|\\d{2}\\.\\d{4})$",
+					"description": "Start date in format dd.mm.yyyy or mm.yyyy"
+				},
+				"end-date": {
+					"type": [
+						"string",
+						"null"
+					],
+					"pattern": "^(\\d{2}\\.\\d{2}\\.\\d{4}|\\d{2}\\.\\d{4})$",
+					"description": "End date in format dd.mm.yyyy or mm.yyyy"
+				},
+				"duration": {
+					"type": [
+						"integer",
+						"null"
+					],
+					"minimum": 1,
+					"description": "Duration in months"
+				},
+				"extension-option": {
+					"type": [
+						"string",
+						"null"
+					],
+					"enum": [
+						"Yes",
+						"No",
+						null
+					],
+					"description": "Option to extend the project duration"
+				},
+				"original-link": {
+					"type": [
+						"string",
+						"null"
+					],
+					"format": "uri",
+					"description": "Link to the original source of the project"
+				}
+			},
+			"required": [
+				"title",
+				"location",
+				"must-have-requirements",
+				"nice-to-have-requirements",
+				"tasks",
+				"responsibilities",
+				"max-hourly-rate",
+				"other-conditions",
+				"contact-person",
+				"project-provider",
+				"project-provider-link",
+				"start-date",
+				"original-link"
+			]
+		}
+	},
+	"required": [
+		"project"
+	]
+}

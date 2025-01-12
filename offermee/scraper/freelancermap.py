@@ -1,11 +1,17 @@
+import os
+from urllib.parse import urlparse
 from sqlalchemy.orm import sessionmaker
 
 from offermee.AI.project_processor import ProjectProcessor
+from offermee.database.transformers.project_model_transformer import json_to_db
+from offermee.htmls.save_utils import generate_filename_from_url, save_html
 from offermee.logger import CentralLogger
 from offermee.scraper.base_scraper import BaseScraper
 from offermee.database.database_manager import DatabaseManager
 from offermee.database.models.base_project_model import BaseProjectModel
-from offermee.database.models.enums.project_status import ProjectStatus
+import requests
+from bs4 import BeautifulSoup, Tag
+import json
 
 
 class FreelanceMapScraper(BaseScraper):
@@ -108,6 +114,140 @@ class FreelanceMapScraper(BaseScraper):
 
         return mapped_contract_types, mapped_remote, mapped_countries
 
+    def parse_search_page_html(self, html_content, max_results=None):
+        self.logger.info(
+            f"Start parsing search page html content (max_results={max_results})."
+        )
+        projects = []
+        try:
+            # HTML parsen
+            search_page_soup = BeautifulSoup(html_content, "html.parser")
+            # Projekte aus der Liste extrahieren
+            for item in search_page_soup.find_all(
+                "div", class_="project-container project card box", limit=max_results
+            ):
+                title_tag = item.find("a", class_="project-title")
+                title = title_tag.text.strip() if title_tag else "No title"
+                link = (
+                    f"https://www.freelancermap.de{title_tag['href']}"
+                    if title_tag
+                    else "No link"
+                )
+                description_tag = item.find("div", class_="description")
+                short_description = (
+                    description_tag.text.strip()
+                    if description_tag
+                    else "No description"
+                )
+                project = {
+                    "title": title,
+                    "link": link,
+                    "short-description": short_description,
+                }
+                projects.append(project)
+                self.logger.info(
+                    f"Parsed from html content the project: {str(project)}"
+                )
+        except Exception as e:
+            self.logger.error(f"Error while parsing html: {e}")
+        finally:
+            return projects
+
+    def parse_project_page_html(self, html_content, project):
+        self.logger.info(
+            f"Start parsing project page html content (count: {str(project)}, html size: {len(html_content)})."
+        )
+
+        # save html to disk
+        save_html(html_content, filename=generate_filename_from_url(project["link"]))
+
+        try:
+            # HTML parsen
+            project_page_soup = BeautifulSoup(html_content, "html.parser")
+
+            # Titel extrahieren
+            title_header_tag = project_page_soup.find("h1", class_="m-t-1 h2")
+            title_header = (
+                title_header_tag.get_text(strip=True)
+                if title_header_tag
+                else "No title header"
+            )
+
+            # Get project content description
+            description_div = project_page_soup.find(
+                "div", class_="projectcontent", itemprop="description"
+            )
+
+            # Beschreibung extrahieren
+            # Hier suchen wir nach dem h2 mit Text "Beschreibung"
+            # und holen uns den nächsten div.content
+            description = ""
+            keywords = []
+            if description_div:
+                description_divs: list[Tag] = description_div.find_all("div")
+                for desc_div in description_divs:
+                    class_attributes = desc_div.get_attribute_list("class")
+                    for class_attribute in class_attributes:
+                        if (
+                            class_attribute
+                            == "keywords-container"  # keywords-container content
+                        ):
+                            # Extract keywords
+                            # print(f"FOUND keywords-container content:\n{desc_div}")
+                            keyword_spans = desc_div.find_all(
+                                "span", class_="keyword no-truncate"
+                            )
+                            for kw_span in keyword_spans:
+                                keywords.append(kw_span.get_text(strip=True))
+                        elif class_attribute == "content":
+                            # Extract description
+                            # print(f"FOUND content:\n{desc_div}")
+                            description = desc_div.get_text(strip=False).replace(
+                                '<h2 class="h4">Beschreibung</h2>',
+                                "",  # remove header and take raw text
+                            )
+            # Details aus dem <dl>-Bereich extrahieren (unverändert)
+            details = {}
+            details_section = project_page_soup.find_all("dl", class_="m-t-1")
+            for dl in details_section:
+                for dt, dd in zip(dl.find_all("dt"), dl.find_all("dd")):
+                    label = dt.get_text(strip=True).replace(":", "")
+                    value = dd.get_text(strip=True)
+                    details[label] = value
+
+            # Projekt-Daten sammeln
+            project.update(
+                {
+                    "title-header": title_header,
+                    "description": description,
+                    "keywords": keywords,
+                    "project-details": {
+                        "start": details.get("Start", "No start date"),
+                        "workload": details.get("Auslastung", "No workload"),
+                        "duration": details.get("Dauer", "No duration"),
+                        "provider": details.get("Von", "No provider"),
+                        "date-posted": details.get("Eingestellt", "No date posted"),
+                        "contact-person": details.get(
+                            "Ansprechpartner", "No contact person"
+                        ),
+                        "provider-project-id": details.get(
+                            "Projekt-ID", "No project ID"
+                        ),
+                        "industry": details.get("Branche", "No industry"),
+                        "contract-type": details.get("Vertragsart", "No contract type"),
+                        "type-of-assignment": details.get(
+                            "Einsatzart", "No type of assignment"
+                        ),
+                    },
+                }
+            )
+
+            self.logger.info(f"Parsed from html content the project: {str(project)}")
+        except Exception as e:
+            self.logger.error(f"Error while parsing html: {e}")
+        finally:
+            return project
+
     def fetch_projects(
         self,
         query=None,
@@ -121,7 +261,7 @@ class FreelanceMapScraper(BaseScraper):
         sort=1,
         page=1,
         max_results=10,
-    ):
+    ) -> list:
         """
         Fetches projects from FreelancerMap based on detailed parameters.
 
@@ -164,36 +304,27 @@ class FreelanceMapScraper(BaseScraper):
             # Filter empty parameters
             params = {key: value for key, value in params.items() if value}
 
-            html_content = self.fetch_page(self.SEARCH_URL, params=params)
-            if not html_content:
+            search_page_html_content = self.fetch_page(self.SEARCH_URL, params=params)
+            if not search_page_html_content:
                 self.logger.error("No content received from the page.")
                 return []
-
-            soup = self.parse_html(html_content)
-            projects = []
-
-            for item in soup.find_all(
-                "div", class_="project-container project card box", limit=max_results
-            ):
-                title_tag = item.find("a", class_="project-title")
-                title = title_tag.text.strip() if title_tag else "No title"
-                link = (
-                    f"https://www.freelancermap.de{title_tag['href']}"
-                    if title_tag
-                    else "No link"
+            # parse for projects
+            projects = self.parse_search_page_html(
+                search_page_html_content, max_results=max_results
+            )
+            for project in projects:
+                # fetch project page
+                project_page_html_content = self.fetch_page(project["link"])
+                if not project_page_html_content:
+                    self.logger.error(
+                        f"No project page for '{str(project)}' available. SKIP"
+                    )
+                    continue
+                # parse each project html page
+                project = self.parse_project_page_html(
+                    project_page_html_content, project=project
                 )
-
-                description_tag = item.find("div", class_="description")
-                description = (
-                    description_tag.text.strip()
-                    if description_tag
-                    else "No description"
-                )
-
-                projects.append(
-                    {"title": title, "link": link, "description": description}
-                )
-
+                self.process_project(project)  # Analyze and store to db
             return projects
         except AttributeError as e:
             self.logger.error(f"AttributeError beim Parsen eines Projekts: {e}")
@@ -209,7 +340,8 @@ class FreelanceMapScraper(BaseScraper):
         Args:
             project (dict): Dictionary with project information (title, link, description).
         """
-        analysis = self.project_processor.analyze_project(project["description"])
+        self.logger.info(f"Processing project:\n{str(project)}")
+        analysis = self.project_processor.analyze_project(str(project))
         if not (analysis and analysis.get("project")):
             self.logger.error(f"Analysis failed for project: {project['title']}")
             return
@@ -224,32 +356,9 @@ class FreelanceMapScraper(BaseScraper):
             if existing_project:
                 self.logger.info(f"Project already exists: {project['title']}")
                 return
-
-            new_project = BaseProjectModel(
-                title=project["title"],
-                description=project["description"],
-                location=analysis.get("Location"),
-                must_haves=DatabaseManager.join_list(
-                    analysis.get("Must-Have Requirements", [])
-                ),
-                nice_to_haves=DatabaseManager.join_list(
-                    analysis.get("Nice-To-Have Requirements", [])
-                ),
-                tasks=DatabaseManager.join_list(
-                    analysis.get("Tasks/Responsibilities", [])
-                ),
-                hourly_rate=analysis.get("Max Hourly Rate", 0.0),
-                other_conditions=DatabaseManager.join_list(
-                    analysis.get("Other conditions", [])
-                ),
-                contact_person=analysis.get("Contact Person", ""),
-                provider=analysis.get("Project Provider", ""),
-                start_date=DatabaseManager.parse_date(
-                    analysis.get("Project Start Date")
-                ),
-                original_link=project["link"],
-                status=ProjectStatus.NEW,
-            )
+            # enrich analysis
+            self.logger.info(f"AI project analysis:\n{analysis}")
+            new_project = json_to_db(analysis)
             session.add(new_project)
             session.commit()
             self.logger.info(f"Project saved: {new_project.title}")
@@ -294,7 +403,7 @@ class FreelanceMapScraper(BaseScraper):
         """
         all_projects = []
         for page in range(1, max_pages + 1):
-            projects = self.fetch_projects(
+            projects: list = self.fetch_projects(
                 query=query,
                 categories=categories,
                 contract_types=contract_types,
@@ -312,8 +421,8 @@ class FreelanceMapScraper(BaseScraper):
                 break  # No more projects found
 
             for project in projects:
-                self.process_project(project)  # Analyze and save
                 all_projects.append(project)
+                # self.logger.info(f"Found Project: {project}")
                 if len(all_projects) >= max_results:
                     break  # Maximum number reached
 

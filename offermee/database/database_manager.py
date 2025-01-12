@@ -50,7 +50,9 @@ class DatabaseManager:
             if shall_overwrite:
                 DatabaseManager._delete_database(db_type)
             self.db_path = DatabaseManager.get_db_path(db_type)
-            self.engine = DatabaseManager._create_database(self.db_path)
+            self.engine = DatabaseManager._create_database(
+                self.db_path, create_all_tables=True
+            )
             self.Session = sessionmaker(bind=self.engine)
             self.initialized = True  # Markiert als initialisiert
             self.logger.info(f"DatabaseManager initialized with db_type: {db_type}")
@@ -159,15 +161,19 @@ class DatabaseManager:
                 logging.info(f"Deleted existing database: {db_path}")
 
     @staticmethod
-    def _create_database(db_path: str):
-        if os.path.exists(db_path):
+    def _create_database(db_path: str, create_all_tables: bool = False):
+        if os.path.exists(db_path) and not create_all_tables:
             logging.info(f"Database already exists at {db_path}. Skipping creation.")
             # Connect to the existing database
             engine = create_engine(f"sqlite:///{db_path}")
             return engine
-
-        # Create new database if it doesn't exist
+        # Create new database if it doesn't exist or create tables if specified so
+        # Ensure the directory exists
+        directory = os.path.dirname(db_path)
+        os.makedirs(directory, exist_ok=True)
+        # create db
         engine = create_engine(f"sqlite:///{db_path}")
+        # create all tables
         DatabaseManager.Base.metadata.create_all(engine)
         logging.info(f"Database created at {db_path}")
         return engine

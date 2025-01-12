@@ -20,7 +20,7 @@ def render():
 
     config = Config.get_instance()
     cv_candiate = st.text_input(
-        label="Candiate", value=config.get_name_from_local_settings()
+        label="Candidate", value=config.get_name_from_local_settings()
     )
 
     uploaded_file = st.file_uploader("Upload your resume (PDF):", type=["pdf"])
@@ -123,6 +123,38 @@ def save_cv_logic(cv_candiate, uploaded_cv, desired_rate_min, desired_rate_max):
         freelancer: FreelancerModel = get_freelancer_by_name(
             name=cv_candiate, session=session
         )
+        structured_data = uploaded_cv.get("cv_structured_data")
+        if not structured_data:
+            raise ValueError("cv_structured_data is missing.")
+        contact = structured_data.get("contact")
+        if not contact:
+            raise ValueError("contact is missing.")
+        contact_contact = contact.get("contact")
+        if not contact_contact:
+            raise ValueError("contact.contact is missing.")
+        address = contact_contact.get("address")
+        if not address:
+            raise ValueError("address is missing.")
+        city = contact_contact.get("city")
+        if not city:
+            raise ValueError("city is missing.")
+        zip_code = contact_contact.get("zip-code")
+        if not zip_code:
+            raise ValueError("zip-code is missing.")
+        country = contact_contact.get("country")
+        if not country:
+            # raise ValueError("country is missing.")
+            country = "Deutschland"
+        phone = contact_contact.get("phone")
+        if not phone:
+            raise ValueError("phone is missing.")
+        email = contact_contact.get("email")
+        if not email:
+            raise ValueError("email is missing.")
+        website = contact_contact.get("website")
+        if not website:
+            raise ValueError("website is missing.")
+
         if not freelancer:
             log_info(__name__, f"Adding new freelancer of {cv_candiate} to db...")
             freelancer = FreelancerModel(
@@ -131,6 +163,13 @@ def save_cv_logic(cv_candiate, uploaded_cv, desired_rate_min, desired_rate_max):
                 tech_skills=", ".join(uploaded_cv.get("cv_tech_skills")),
                 desired_rate_min=desired_rate_min,
                 desired_rate_max=desired_rate_max,
+                address=address,
+                city=city,
+                zip_code=zip_code,
+                country=country,
+                phone=phone,
+                email=email,
+                website=website,
             )
             session.add(freelancer)
         else:
@@ -142,6 +181,13 @@ def save_cv_logic(cv_candiate, uploaded_cv, desired_rate_min, desired_rate_max):
             freelancer.tech_skills = ", ".join(uploaded_cv.get("cv_tech_skills"))
             freelancer.desired_rate_min = desired_rate_min
             freelancer.desired_rate_max = desired_rate_max
+            freelancer.address = address
+            freelancer.city = city
+            freelancer.zip_code = zip_code
+            freelancer.country = country
+            freelancer.phone = phone
+            freelancer.email = email
+            freelancer.website = website
 
         # CV
         cv: CVModel = get_cv_by_freelancer_id(freelancer.id, session=session)

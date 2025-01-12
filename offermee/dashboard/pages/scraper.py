@@ -1,4 +1,5 @@
 import streamlit as st
+from offermee.dashboard.web_dashboard import log_info
 from offermee.database.db_connection import connect_to_db
 from offermee.enums.contract_types import ContractType
 from offermee.enums.countries import Country
@@ -36,7 +37,7 @@ def render():
     # Execute scraper
     if st.button("Start Scraping"):
         if platform == "FreelancerMap":
-            scraper = FreelanceMapScraper("https://www.freelancermap.de")
+            scraper = FreelanceMapScraper()  # "https://www.freelancermap.de"
             projects = scraper.fetch_projects_paginated(
                 query=query,
                 categories=None,
@@ -50,33 +51,13 @@ def render():
                 max_pages=max_pages,
                 max_results=max_results,
             )
-
+            # log_debug(__name__, f"Found Projects:\n{projects}")
             # Display and save results
             if projects:
-                # Start session
-                session = connect_to_db()
-
-                try:
-                    st.success(f"{len(projects)} projects found!")
-                    for project in projects:
-                        try:
-                            st.subheader(project["title"])
-                            st.write(f"Description: {project['description']}")
-                            st.write(f"[Link to Project]({project['link']})")
-
-                            # Temporary storage in the database
-                            temp_project = IntermediateProjectModel(
-                                title=project["title"],
-                                description=project["description"],
-                                analysis=None,  # Analysis will be added later
-                                is_saved=False,
-                            )
-                            session.add(temp_project)
-                        except Exception as e:
-                            session.rollback()
-                            print(f"Error saving {project['title']}: {e}")
-                    session.commit()
-                finally:
-                    session.close()
+                st.success(f"{len(projects)} projects found!")
+                for project in projects:
+                    st.subheader(project.get("title", ""))
+                    st.write(f"Description: {project.get('description', '')}")
+                    st.write(f"[Link to Project]({project.get('link', '')})")
             else:
                 st.warning("No projects found.")

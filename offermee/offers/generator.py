@@ -2,6 +2,10 @@ import datetime
 from jinja2 import Environment, FileSystemLoader
 import os
 
+from offermee.database.models.base_project_model import BaseProjectModel
+from offermee.database.models.freelancer_model import FreelancerModel
+from offermee.logger import CentralLogger
+
 
 class OfferGenerator:
     """
@@ -15,24 +19,30 @@ class OfferGenerator:
         Args:
             template_dir (str): Directory where the templates are stored.
         """
+        self.logger = CentralLogger.getLogger(__name__)
+        os.makedirs(template_dir, exist_ok=True)
         self.env = Environment(loader=FileSystemLoader(template_dir))
         self.template_name = "offer_template.html"  # HTML template for offers
 
-    def generate_offer(self, project, freelancer):
+    def generate_offer(
+        self, project: BaseProjectModel, freelancer: FreelancerModel, rates: dict
+    ):
         """
         Generates an offer based on the project and freelancer data.
 
         Args:
             project (BaseProjectModel): The project model with extracted requirements.
             freelancer (FreelancerModel): The freelancer model with skills and desired hourly rate.
+            rates: The offer rates dictionary containing hourly_rate_remote, hourly_rate_onsite and daily_rate_onsite_pauschal
 
         Returns:
             str: The generated offer as HTML text.
         """
         try:
+            self.logger.info(f"Starting to generate offer ...")
             template = self.env.get_template(self.template_name)
         except Exception as e:
-            print(f"Error loading the template: {e}")
+            self.logger.error(f"Error loading the template: {e}")
             return None
 
         offer = template.render(
@@ -41,6 +51,7 @@ class OfferGenerator:
             ),
             freelancer=freelancer,
             project=project,
+            rates=rates,
             current_date=datetime.datetime.now().strftime("%d.%m.%Y"),
         )
         return offer
