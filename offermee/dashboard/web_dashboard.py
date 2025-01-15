@@ -46,7 +46,7 @@ def get_authenticator(refresh: bool = False) -> stauth.Authenticate:
 
 
 def set_logged_in(logged_in: bool = False, username: str = None):
-    print(f"Setting logged_in to {logged_in} for {username}")
+    web_logger.info(f"Setting logged_in to {logged_in} for {username}")
     Config.get_instance().init_current_config(logged_in=logged_in, username=username)
 
 

@@ -151,14 +151,15 @@ class DatabaseManager:
         engine = DatabaseManager._create_database(
             db_path, create_all_tables=create_all_tables
         )
-        DatabaseManager._store_all_db_models_as_json_schema()
+        if create_all_tables:
+            DatabaseManager._store_all_db_models_as_json_schema()
         session = sessionmaker(bind=engine)()
         logging.info(f"Database {db_type} initialized at {db_path}")
         return session, engine, db_path
 
     @staticmethod
     def _store_all_db_models_as_json_schema():
-        storage_dir = os.path.normpath("../schemas/json/db")
+        storage_dir = os.path.normpath("./schemas/json/db")
         os.makedirs(storage_dir, exist_ok=True)
         logging.info(f"Storing all db models as json schema to '{storage_dir}' ...")
         try:
@@ -168,6 +169,9 @@ class DatabaseManager:
 
                 # Generiere ein JSON-Schema
                 schema_dict: Dict[str, Any] = db_model_to_json_schema(model=model_cls)
+                # logging.debug(
+                #    f"Generated JSON schema from db model '{model_cls.__name__}':\n{schema_dict}"
+                # )
 
                 # JSON als String serialisieren
                 json_schema_str = json.dumps(schema_dict, indent=4)
@@ -184,7 +188,7 @@ class DatabaseManager:
                 )
 
         except Exception as e:
-            logging.error("Error storing all DB schemas", exc_info=True)
+            logging.error(f"Error storing all DB schemas: {e}", exc_info=True)
 
     @staticmethod
     def _delete_database(db_type: str):

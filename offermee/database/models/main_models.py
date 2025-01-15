@@ -49,6 +49,7 @@ class TaskStatus(PyEnum):
 
 
 class DocumentRelatedType(PyEnum):
+    ADDRESS = "ADDRESS"
     CONTACT = "CONTACT"
     REQUEST = "REQUEST"
     OFFER = "OFFER"
@@ -83,6 +84,7 @@ class ProjectRole(PyEnum):
 
 
 class HistoryType(PyEnum):
+    ADDRESS = "ADDRESS"
     CONTACT = "CONTACT"
     REQUEST = "REQUEST"
     OFFER = "OFFER"
@@ -94,7 +96,6 @@ class HistoryType(PyEnum):
     COMPANY = "COMPANY"
     EMPLOYEE = "EMPLOYEE"
     WORKPACKAGE = "WORKPACKAGE"
-    ADDRESS = "ADDRESS"
     CAPABILITIES = "CAPABILITIES"
 
 
@@ -108,12 +109,12 @@ class AddressModel(Base):
     country = Column(String, nullable=False)
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'ADDRESS', DocumentModel.related_id == AddressModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'ADDRESS', foreign(DocumentModel.related_id)  == AddressModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'ADDRESS', HistoryModel.related_id == AddressModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'ADDRESS', foreign(HistoryModel.related_id) == AddressModel.id)",
         viewonly=True,
     )
     __table_args__ = (
@@ -145,12 +146,12 @@ class ContactModel(Base):
     address = relationship("AddressModel")
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'CONTACT', DocumentModel.related_id == ContactModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'CONTACT', foreign(DocumentModel.related_id)  == ContactModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'CONTACT', HistoryModel.related_id == ContactModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'CONTACT', foreign(HistoryModel.related_id) == ContactModel.id)",
         viewonly=True,
     )
     __table_args__ = (Index("idx_contact_name", "first_name", "last_name"),)
@@ -223,7 +224,7 @@ class HistoryModel(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'HISTORY', DocumentModel.related_id == HistoryModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'HISTORY', foreign(DocumentModel.related_id)  == HistoryModel.id)",
         viewonly=True,
     )
 
@@ -297,17 +298,17 @@ class CapabilitiesModel(Base):
 
     certificate_documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'CERTIFICATE', DocumentModel.related_id == CapabilitiesModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'CERTIFICATE', foreign(DocumentModel.related_id)  == CapabilitiesModel.id)",
         viewonly=True,
     )
     graduation_documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'GRADUATION', DocumentModel.related_id == CapabilitiesModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'GRADUATION', foreign(DocumentModel.related_id)  == CapabilitiesModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'CAPABILITIES', HistoryModel.related_id == CapabilitiesModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'CAPABILITIES', foreign(HistoryModel.related_id) == CapabilitiesModel.id)",
         viewonly=True,
     )
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -347,12 +348,12 @@ class FreelancerModel(Base):
 
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'FREELANCER', DocumentModel.related_id == FreelancerModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'FREELANCER', foreign(DocumentModel.related_id)  == FreelancerModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'FREELANCER', HistoryModel.related_id == FreelancerModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'FREELANCER', foreign(HistoryModel.related_id) == FreelancerModel.id)",
         viewonly=True,
     )
     __table_args__ = (Index("idx_freelancer_name", "name"),)
@@ -382,12 +383,12 @@ class CVModel(Base):
     )  # Link to schema
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'CV', DocumentModel.related_id == CVModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'CV', foreign(DocumentModel.related_id)  == CVModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'CV', HistoryModel.related_id == CVModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'CV', foreign(HistoryModel.related_id) == CVModel.id)",
         viewonly=True,
     )
     freelancer = relationship("FreelancerModel", backref="cv")
@@ -422,12 +423,12 @@ class EmployeeModel(Base):
 
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'EMPLOYEE', DocumentModel.related_id == EmployeeModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'EMPLOYEE', foreign(DocumentModel.related_id)  == EmployeeModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'EMPLOYEE', HistoryModel.related_id == EmployeeModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'EMPLOYEE', foreign(HistoryModel.related_id) == EmployeeModel.id)",
         viewonly=True,
     )
 
@@ -461,12 +462,12 @@ class ApplicantModel(Base):
 
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'APPLICANT', DocumentModel.related_id == ApplicantModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'APPLICANT', foreign(DocumentModel.related_id)  == ApplicantModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'APPLICANT', HistoryModel.related_id == ApplicantModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'APPLICANT', foreign(HistoryModel.related_id) == ApplicantModel.id)",
         viewonly=True,
     )
 
@@ -493,12 +494,12 @@ class CompanyModel(
 
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'COMPANY', DocumentModel.related_id == CompanyModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'COMPANY', foreign(DocumentModel.related_id)  == CompanyModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'COMPANY', HistoryModel.related_id == CompanyModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'COMPANY', foreign(HistoryModel.related_id) == CompanyModel.id)",
         viewonly=True,
     )
 
@@ -544,12 +545,12 @@ class ProjectModel(Base):
     offers = relationship("OfferModel", back_populates="project")
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'PROJECT', DocumentModel.related_id == ProjectModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'PROJECT', foreign(DocumentModel.related_id)  == ProjectModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'PROJECT', HistoryModel.related_id == ProjectModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'PROJECT', foreign(HistoryModel.related_id) == ProjectModel.id)",
         viewonly=True,
     )
 
@@ -572,12 +573,12 @@ class InterviewModel(Base):
     rating = Column(Float)
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'INTERVIEW', DocumentModel.related_id == InterviewModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'INTERVIEW', foreign(DocumentModel.related_id)  == InterviewModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'INTERVIEW', HistoryModel.related_id == InterviewModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'INTERVIEW', foreign(HistoryModel.related_id) == InterviewModel.id)",
         viewonly=True,
     )
     project = relationship("ProjectModel", back_populates="interviews")
@@ -602,12 +603,12 @@ class ContractModel(Base):
     project = relationship("ProjectModel", back_populates="contracts")
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'CONTRACT', DocumentModel.related_id == ContractModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'CONTRACT', foreign(DocumentModel.related_id)  == ContractModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'CONTRACT', HistoryModel.related_id == ContractModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'CONTRACT', foreign(HistoryModel.related_id) == ContractModel.id)",
         viewonly=True,
     )
 
@@ -631,12 +632,12 @@ class WorkPackageModel(Base):
     status = Column(Enum(TaskStatus), default=TaskStatus.OPEN)
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'WORK_PACKAGE', DocumentModel.related_id == WorkPackageModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'WORK_PACKAGE', foreign(DocumentModel.related_id)  == WorkPackageModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'WORK_PACKAGE', HistoryModel.related_id == WorkPackageModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'WORK_PACKAGE', foreign(HistoryModel.related_id) == WorkPackageModel.id)",
         viewonly=True,
     )
     project = relationship("ProjectModel", back_populates="workpackages")
@@ -665,12 +666,12 @@ class OfferModel(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'OFFER', DocumentModel.related_id == OfferModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'OFFER', foreign(DocumentModel.related_id)  == OfferModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'OFFER', HistoryModel.related_id == OfferModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'OFFER', foreign(HistoryModel.related_id) == OfferModel.id)",
         viewonly=True,
     )
     project = relationship("ProjectModel", back_populates="offers")
