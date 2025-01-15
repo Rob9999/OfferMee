@@ -1,12 +1,7 @@
 from datetime import datetime
 from dateutil import parser
 
-from offermee.database.models.base_project_model import (
-    BaseProjectModel,
-)
-from offermee.database.models.enums.project_status import (
-    ProjectStatus,
-)  # For flexible date parsing
+from offermee.database.models.main_models import ProjectModel, ProjectStatus
 
 
 def parse_date(date_str):
@@ -31,15 +26,15 @@ def parse_date(date_str):
                 return None
 
 
-def json_to_db(json_data) -> BaseProjectModel:
+def json_to_db(json_data) -> ProjectModel:
     """
-    Transform JSON data conforming to the Project schema to a BaseProjectModel instance.
+    Transform JSON data conforming to the Project schema to a ProjectModel instance.
     Assumes json_data is a dict containing a "project" key with the relevant data.
     """
     project_data = json_data.get("project", {})
 
-    # Create a new BaseProjectModel instance
-    project = BaseProjectModel()
+    # Create a new ProjectModel instance
+    project = ProjectModel()
     project.title = project_data.get("title")
     project.description = project_data.get("description")
     project.location = project_data.get("location")
@@ -81,9 +76,9 @@ def json_to_db(json_data) -> BaseProjectModel:
     return project
 
 
-def db_to_json(project: BaseProjectModel) -> dict:
+def db_to_json(project: ProjectModel) -> dict:
     """
-    Transform a BaseProjectModel instance to a JSON-like dict conforming to the Project schema.
+    Transform a ProjectModel instance to a JSON-like dict conforming to the Project schema.
     """
 
     # Helper to split comma-separated text back to lists
@@ -97,7 +92,7 @@ def db_to_json(project: BaseProjectModel) -> dict:
             "location": project.location,
             "must-have-requirements": text_to_list(project.must_haves),
             "nice-to-have-requirements": text_to_list(project.nice_to_haves),
-            "tasks": text_to_list(project.tasks),
+            "tasks": text_to_list(project.workpackages),
             "responsibilities": text_to_list(project.responsibilities),
             "max-hourly-rate": project.hourly_rate,
             "other-conditions": project.other_conditions,

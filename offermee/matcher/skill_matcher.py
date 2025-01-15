@@ -9,7 +9,7 @@ class SkillMatcher:
         Vergleicht die Fähigkeiten des Freelancers mit den Must-Have und Nice-To-Have Skills des Projekts.
 
         Args:
-            project (BaseProjectModel): Das Projektmodell mit extrahierten Anforderungen.
+            project (ProjectModel): Das Projektmodell mit extrahierten Anforderungen.
             freelancer_skills (list): Liste der Fähigkeiten des Freelancers.
 
         Returns:

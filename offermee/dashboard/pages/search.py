@@ -1,19 +1,26 @@
+from typing import Any, Dict, List
 import streamlit as st
 
+from offermee.dashboard.transformers.to_sreamlit import (
+    create_search_widget_from_json_schema,
+    display_dict_as_widgets,
+)
 from offermee.dashboard.web_dashboard import stop_if_not_logged_in
-from offermee.database.db_connection import connect_to_db
+from offermee.database.facades.main_facades import ProjectFacade
+from offermee.database.models.main_models import ProjectModel
+from offermee.database.transformers.to_json_schema import db_model_to_json_schema
 
 
 def render():
     st.header("Projekte suchen")
     stop_if_not_logged_in()
 
-    session = connect_to_db()
+    project_json_schema = db_model_to_json_schema(ProjectModel)
 
-    start_date = st.date_input("Startdatum")
-    location = st.text_input("Ort")
-    hourly_rate = st.number_input("Max. Stundensatz", min_value=0)
-    skills = st.text_input("Wunschskills (z. B. Senior AI Engineer)")
+    project_search_fields = create_search_widget_from_json_schema(project_json_schema)
 
-    if st.button("Suchen"):
+    if project_search_fields:
         st.success("Suche abgeschlossen! Ergebnisse anzeigen...")
+        projects: List[Dict[str, Any]] = ProjectFacade.get_all_by(project_search_fields)
+        st.success(f"Found {len(projects)} projects:")
+        display_dict_as_widgets(projects)

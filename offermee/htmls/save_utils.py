@@ -2,6 +2,7 @@ import os
 from urllib.parse import urlparse
 import re
 
+from offermee.config import Config
 from offermee.logger import CentralLogger
 
 save_utils_logger = CentralLogger.getLogger(__name__)
@@ -14,20 +15,22 @@ def sanitize_filename(filename):
 
 def save_html(html, filename: str, folder: str = "./saved_html"):
     """
-    Speichert HTML-Inhalt auf der Festplatte.
+    Speichert HTML-Inhalt auf der Festplatte im Anwender Verzeichnis ~/{folder}.
 
     Args:
         html (bytes): Der HTML-Inhalt als Bytes.
         filename (str): Der Name der Datei.
-        folder (str): Der Zielordner (Standard: "./saved_html").
+        folder (str): Der Zielordner im Anwenderverzeichnis (Standard: "./saved_html").
     """
-    save_utils_logger.info(f"Saving html to '{filename}' (folder='{folder}') ...")
+    save_utils_logger.info(f"Saving html to '{filename}' (folder='~/{folder}') ...")
     try:
+
+        save_folder = os.path.join(Config.get_instance().get_user_data_dir(), folder)
         # Erstelle den Zielordner, falls er nicht existiert
-        os.makedirs(folder, exist_ok=True)
+        os.makedirs(save_folder, exist_ok=True)
 
         # Vollständigen Pfad erstellen
-        filepath = os.path.join(folder, filename)
+        filepath = os.path.join(save_folder, filename)
 
         # HTML-Inhalt in Datei speichern
         with open(filepath, "w", encoding="utf-8") as f:
@@ -36,7 +39,7 @@ def save_html(html, filename: str, folder: str = "./saved_html"):
         return True
     except Exception as e:
         save_utils_logger.error(
-            f"Error while saving html to '{filename}' (folder='{folder}'):{e}"
+            f"Error while saving html to '{filename}' (folder='~/{folder}'):{e}"
         )
         return False
 

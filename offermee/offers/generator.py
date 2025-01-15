@@ -1,9 +1,8 @@
 import datetime
+from typing import Any, Dict
 from jinja2 import Environment, FileSystemLoader
 import os
 
-from offermee.database.models.base_project_model import BaseProjectModel
-from offermee.database.models.freelancer_model import FreelancerModel
 from offermee.logger import CentralLogger
 
 
@@ -25,14 +24,14 @@ class OfferGenerator:
         self.template_name = "offer_template.html"  # HTML template for offers
 
     def generate_offer(
-        self, project: BaseProjectModel, freelancer: FreelancerModel, rates: dict
+        self, project: Dict[str, Any], freelancer: Dict[str, Any], rates: dict
     ):
         """
         Generates an offer based on the project and freelancer data.
 
         Args:
-            project (BaseProjectModel): The project model with extracted requirements.
-            freelancer (FreelancerModel): The freelancer model with skills and desired hourly rate.
+            project (Dict[str, Any]): The project model with extracted requirements.
+            freelancer (Dict[str, Any]): The freelancer model with skills and desired hourly rate.
             rates: The offer rates dictionary containing hourly_rate_remote, hourly_rate_onsite and daily_rate_onsite_pauschal
 
         Returns:
@@ -47,7 +46,9 @@ class OfferGenerator:
 
         offer = template.render(
             contact_person=(
-                project.contact_person if project.contact_person else "Mr./Ms."
+                project.contact_person
+                if project.contact_person
+                else "Mr./Ms."  # TODO FIX
             ),
             freelancer=freelancer,
             project=project,

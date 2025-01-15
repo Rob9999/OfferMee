@@ -1,23 +1,20 @@
 # offermee/dashboard/pages/export_cv.py
 import os
+from typing import Any, Dict, List
 import streamlit as st
 from offermee.database.db_connection import connect_to_db
-from offermee.database.models.cv_model import CVModel
+from offermee.database.facades.main_facades import CVFacade
 from offermee.exporter.pdf_exporter import export_cv_to_pdf
 
 
 def render():
     st.header("CV Export")
 
-    # Verbindung zur Datenbank herstellen
-    session = connect_to_db()
-
     # Alle verfügbaren CV-Einträge abrufen
-    cvs: list[CVModel] = session.query(CVModel).all()
+    cvs: List[Dict[str, Any]] = CVFacade.get_all()
 
     if not cvs:
         st.info("Keine Lebensläufe in der Datenbank gefunden.")
-        session.close()
         return
 
     # Übersichtstabelle der verfügbaren CVs
@@ -26,11 +23,13 @@ def render():
         # Hier können weitere Freelancer-Informationen eingebunden werden
         cv_table_data.append(
             {
-                "CV-ID": cv.id,
-                "Freelancer-ID": cv.freelancer_id,
-                "Name": cv.name,
+                "CV-ID": cv.get("id"),
+                "Freelancer-ID": cv.get("freelancer_id"),
+                "Name": cv.get("name"),
                 "Letztes Update": (
-                    cv.structured_data[:50] + "..." if cv.structured_data else ""
+                    cv.get("structured_data", [])[:50] + "..."
+                    if cv.get("structured_data")
+                    else "<LEER>"
                 ),
             }
         )
@@ -49,15 +48,13 @@ def render():
     # Knopf zum Exportieren
     if st.button("CV als PDF exportieren"):
         # Finde das ausgewählte CV-Modell
-        selected_cv: CVModel = (
-            session.query(CVModel).filter_by(id=selected_cv_id).first()
-        )
+        selected_cv: Dict[str, Any] = CVFacade.get_by_id(id=selected_cv_id)
         if not selected_cv:
             st.error("Gewählter Lebenslauf nicht gefunden.")
         else:
             # Exportiere den CV als PDF
             pdf_filename = export_cv_to_pdf(
-                selected_cv.freelancer_id, language=language
+                selected_cv.get("freelancer_id"), language=language
             )
             if pdf_filename and os.path.exists(pdf_filename):
                 st.success(f"Lebenslauf wurde erfolgreich exportiert: {pdf_filename}")
@@ -71,5 +68,3 @@ def render():
                     )
             else:
                 st.error("Fehler beim Exportieren des Lebenslaufs.")
-
-    session.close()

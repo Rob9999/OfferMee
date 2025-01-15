@@ -4,13 +4,12 @@ import streamlit as st
 from offermee.config import Config
 from offermee.AI.cv_processor import CVProcessor
 from offermee.dashboard.web_dashboard import log_error, log_info, stop_if_not_logged_in
-from offermee.database.db_connection import (
-    get_cv_by_freelancer_id,
-    get_freelancer_by_name,
-    session_scope,
+from offermee.database.facades.main_facades import (
+    CVFacade,
+    FreelancerFacade,
+    ReadFacade,
 )
-from offermee.database.models.cv_model import CVModel
-from offermee.database.models.freelancer_model import FreelancerModel
+from offermee.database.models.main_models import ContactRole
 import PyPDF2
 
 
@@ -118,98 +117,136 @@ def render():
 
 def save_cv_logic(cv_candiate, uploaded_cv, desired_rate_min, desired_rate_max):
     log_info(__name__, "Saving processed cv...")
-    with session_scope() as session:
-        # Freelancer
-        freelancer: FreelancerModel = get_freelancer_by_name(
-            name=cv_candiate, session=session
-        )
-        structured_data = uploaded_cv.get("cv_structured_data")
-        if not structured_data:
-            raise ValueError("cv_structured_data is missing.")
-        contact = structured_data.get("contact")
-        if not contact:
-            raise ValueError("contact is missing.")
-        contact_contact = contact.get("contact")
-        if not contact_contact:
-            raise ValueError("contact.contact is missing.")
-        address = contact_contact.get("address")
-        if not address:
-            raise ValueError("address is missing.")
-        city = contact_contact.get("city")
-        if not city:
-            raise ValueError("city is missing.")
-        zip_code = contact_contact.get("zip-code")
-        if not zip_code:
-            raise ValueError("zip-code is missing.")
-        country = contact_contact.get("country")
-        if not country:
-            # raise ValueError("country is missing.")
-            country = "Deutschland"
-        phone = contact_contact.get("phone")
-        if not phone:
-            raise ValueError("phone is missing.")
-        email = contact_contact.get("email")
-        if not email:
-            raise ValueError("email is missing.")
-        website = contact_contact.get("website")
-        if not website:
-            raise ValueError("website is missing.")
+    current_user = Config.get_instance().get_current_user()
+    freelancer = ReadFacade.get_freelancer_by_name(name=cv_candiate)
+    structured_data = uploaded_cv.get("cv_structured_data")
+    if not structured_data:
+        raise ValueError("cv_structured_data is missing.")
+    contact = structured_data.get("contact")
+    if not contact:
+        raise ValueError("contact is missing.")
+    contact_contact = contact.get("contact")
+    if not contact_contact:
+        raise ValueError("contact.contact is missing.")
+    address = contact_contact.get("address")
+    if not address:
+        raise ValueError("address is missing.")
+    city = contact_contact.get("city")
+    if not city:
+        raise ValueError("city is missing.")
+    zip_code = contact_contact.get("zip-code")
+    if not zip_code:
+        raise ValueError("zip-code is missing.")
+    country = contact_contact.get("country")
+    if not country:
+        # raise ValueError("country is missing.")
+        country = "Deutschland"
+    phone = contact_contact.get("phone")
+    if not phone:
+        raise ValueError("phone is missing.")
+    email = contact_contact.get("email")
+    if not email:
+        raise ValueError("email is missing.")
+    website = contact_contact.get("website")
+    if not website:
+        raise ValueError("website is missing.")
 
-        if not freelancer:
-            log_info(__name__, f"Adding new freelancer of {cv_candiate} to db...")
-            freelancer = FreelancerModel(
-                name=cv_candiate,
-                soft_skills=", ".join(uploaded_cv.get("cv_soft_skills")),
-                tech_skills=", ".join(uploaded_cv.get("cv_tech_skills")),
-                desired_rate_min=desired_rate_min,
-                desired_rate_max=desired_rate_max,
-                address=address,
-                city=city,
-                zip_code=zip_code,
-                country=country,
-                phone=phone,
-                email=email,
-                website=website,
-            )
-            session.add(freelancer)
-        else:
-            log_info(
-                __name__,
-                f"Updating existing freelancer {freelancer.id} of {cv_candiate} to db.",
-            )
-            freelancer.soft_skills = ", ".join(uploaded_cv.get("cv_soft_skills"))
-            freelancer.tech_skills = ", ".join(uploaded_cv.get("cv_tech_skills"))
-            freelancer.desired_rate_min = desired_rate_min
-            freelancer.desired_rate_max = desired_rate_max
-            freelancer.address = address
-            freelancer.city = city
-            freelancer.zip_code = zip_code
-            freelancer.country = country
-            freelancer.phone = phone
-            freelancer.email = email
-            freelancer.website = website
+    def skills_to_db(type: str, names: list[str]):
+        db_skills = []
+        if names is not None:
+            for name in names:
+                db_skills.append({"type": type, "name": name})
+        return db_skills
+
+    if not freelancer:
+        log_info(__name__, f"Adding new freelancer of {cv_candiate} to db...")
+        new_freelancer = {
+            "name": cv_candiate,
+            "role": "DEVELOPER",
+            "availability": "Sofort",
+            "desired_rate_min": desired_rate_min,
+            "desired_rate_max": desired_rate_max,
+            "offer_template": "Standard-Template",
+            "capabilities": {
+                "soft_skills": skills_to_db("soft", uploaded_cv.get("cv_soft_skills")),
+                "tech_skills": skills_to_db("tech", uploaded_cv.get("cv_tech_skills")),
+            },
+            "contact": {
+                "first_name": uploaded_cv.get("firstnames"),
+                "last_name": uploaded_cv.get("lastname"),
+                "phone": phone,
+                "email": email,
+                "type": ContactRole.FREELANCER,
+                "address": {
+                    "street": address,
+                    "city": city,
+                    "zip_code": zip_code,
+                    "country": country,
+                },
+            },
+            "website": website,
+            "created_by": current_user,
+        }
+        freelancer = FreelancerFacade.create(new_freelancer)
+    else:
+        log_info(
+            __name__,
+            f"Updating existing freelancer {freelancer.id} of {cv_candiate} to db.",
+        )
+        update_freelancer = {
+            "name": cv_candiate,
+            "role": "DEVELOPER",
+            "availability": "Sofort",
+            "desired_rate_min": desired_rate_min,
+            "desired_rate_max": desired_rate_max,
+            "offer_template": "Standard-Template",
+            "capabilities": {
+                "soft_skills": skills_to_db("soft", uploaded_cv.get("cv_soft_skills")),
+                "tech_skills": skills_to_db("tech", uploaded_cv.get("cv_tech_skills")),
+            },
+            "contact": {
+                "first_name": uploaded_cv.get("firstnames"),
+                "last_name": uploaded_cv.get("lastname"),
+                "phone": phone,
+                "email": email,
+                "type": ContactRole.FREELANCER,
+                "address": {
+                    "street": address,
+                    "city": city,
+                    "zip_code": zip_code,
+                    "country": country,
+                },
+            },
+            "website": website,
+            "created_by": current_user,
+        }
+        FreelancerFacade.update(freelancer.get("id"), update_freelancer)
 
         # CV
-        cv: CVModel = get_cv_by_freelancer_id(freelancer.id, session=session)
+        cv = ReadFacade.get_cv_by_freelancer_id(freelancer.get("id"))
         if cv:
-            log_info(__name__, f"Existing CV found with id: {cv.id}")
+            log_info(__name__, f"Existing CV found with id: {cv.get('id')}")
         else:
             log_info(
                 __name__,
-                "No existing CV found for freelancer_id: {freelancer.id}",
+                f"No existing CV found for freelancer_id: {freelancer.get('id')}",
             )
         if not cv:
             log_info(__name__, f"Adding new cv of {cv_candiate} to db...")
-            cv = CVModel(
-                freelancer_id=freelancer.id,
-                name=cv_candiate,
-                raw_text=uploaded_cv.get("cv_text"),
-                structured_data=json.dumps(uploaded_cv.get("cv_structured_data")),
-            )
-            session.add(cv)
+            new_cv = {
+                "freelancer_id": freelancer.get("id"),
+                "name": cv_candiate,
+                "cv_raw_text": uploaded_cv.get("cv_text"),
+                "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
+                "created_by": current_user,
+            }
+            CVFacade.create(data=new_cv)
         else:
             log_info(__name__, f"Updating cv of {cv_candiate} to db.")
-            cv.name = cv_candiate
-            cv.raw_text = uploaded_cv.get("cv_text")
-            cv.structured_data = json.dumps(uploaded_cv.get("cv_structured_data"))
-        # Commit and Rollback are handled automatically by the contect manager
+            update_cv = {
+                "name": cv_candiate,
+                "cv_raw_text": uploaded_cv.get("cv_text"),
+                "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
+                "created_by": current_user,
+            }
+            CVFacade.update(record_id=cv.get("id"), data=update_cv)

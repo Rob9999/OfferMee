@@ -1,11 +1,11 @@
 import unittest
+from offermee.database.models.main_models import ProjectModel
 from offermee.matcher.skill_matcher import SkillMatcher
-from offermee.database.models.base_project_model import BaseProjectModel
 
 
 class TestSkillMatcher(unittest.TestCase):
     def setUp(self):
-        self.project = BaseProjectModel(
+        self.project = ProjectModel(
             must_haves="Python, SQL", nice_to_haves="Docker, Kubernetes"
         )
         self.freelancer_skills = ["python", "django", "docker", "aws"]

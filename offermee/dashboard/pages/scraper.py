@@ -5,7 +5,6 @@ from offermee.enums.contract_types import ContractType
 from offermee.enums.countries import Country
 from offermee.enums.sites import Site
 from offermee.scraper.freelancermap import FreelanceMapScraper
-from offermee.database.models.intermediate_project_model import IntermediateProjectModel
 
 
 def render():

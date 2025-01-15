@@ -17,10 +17,11 @@ class EmailUtils:
 
     def __init__(self):
         self.logger = CentralLogger.getLogger(__name__)
-        self.sender_email = Config.SENDER_EMAIL
-        self.sender_password = Config.SENDER_PASSWORD
-        self.smtp_server = Config.SMTP_SERVER
-        self.smtp_port = Config.SMTP_PORT
+        current_config = Config.get_instance().get_config_data()
+        self.sender_email = current_config.sender_email
+        self.sender_password = current_config.sender_password
+        self.smtp_server = current_config.smtp_server
+        self.smtp_port = current_config.smtp_port
 
     def send_email(self, recipient, subject, body, html=False):
         """
@@ -55,7 +56,7 @@ class EmailUtils:
                 raise e
         except Exception as e:
             self.logger.error(f"Error sending email to {recipient}: {e}")
-            save_html(body, sanitize_filename(subject), "../email_offers")
+            save_html(body, f"{sanitize_filename(subject)}.html", "./email_offers")
             return False
 
 

@@ -1,70 +1,134 @@
 import os
 import logging
+from dataclasses import dataclass, field
 from dotenv import load_dotenv
-import streamlit as st
+from platformdirs import (
+    site_data_dir,
+    site_config_dir,
+    site_cache_dir,
+    user_data_dir,
+    # site_log_dir,
+    user_log_dir,
+    user_runtime_dir,
+)
+import tempfile
+
 from offermee.AI.ai_manager import AIManager
 from offermee.local_settings import LocalSettings
 from offermee.logger import CentralLogger
 
 
-class Config:
-    CURRENT_LOGGED_IN: str = False
-    CURRENT_USER: str = None
-    AI_FAMILIES: dict = {}
-    AI_SELECTED_FAMILY: str = None
-    SENDER_EMAIL: str = None
-    SENDER_PASSWORD: str = None
-    SMTP_SERVER: str = None
-    SMTP_PORT: str = None
-    _instance: str = None
+APP_NAME = "OfferMee"
+# Set to False to avoid additional nesting on Windows (e.g. "MyCompany" folder).
+# If you prefer "OfferMee" or your company name as an author folder, set to a string.
+APP_AUTHOR = False
 
-    @staticmethod
-    def get_instance() -> "Config":
-        if Config._instance is None:
-            Config._instance = Config()
-        return Config._instance
+
+@dataclass
+class ConfigData:
+    """
+    Holds configuration fields in a structured way.
+    """
+
+    logged_in: bool = False
+    current_user: str = None
+
+    ai_families: dict = field(default_factory=dict)
+    ai_selected_family: str = None
+
+    sender_email: str = None
+    sender_password: str = None
+    smtp_server: str = "smtp.gmail.com"
+    smtp_port: int = 465
+
+
+class Config:
+    """
+    Central configuration class for the OfferMee project (Singleton).
+
+    Responsibilities:
+    - Manages login status and current user (ConfigData).
+    - Loads and holds settings (both local and environment-based).
+    - Manages email and AI-related configuration.
+    - Provides paths for central and user-specific databases.
+    - Now also provides getters for log, data, config, runtime, cache, and temp folders via platformdirs.
+    """
+
+    # Singleton instance
+    _instance = None
 
     def __new__(cls):
+        """
+        Singleton pattern implementation:
+        Creates an instance only once.
+        """
         if not cls._instance:
             cls._instance = super(Config, cls).__new__(cls)
             logging.info("Creating a new instance of Config")
         return cls._instance
 
+    @staticmethod
+    def get_instance() -> "Config":
+        """
+        Static method to retrieve the Singleton instance.
+        """
+        if Config._instance is None:
+            Config._instance = Config()
+        return Config._instance
+
+    def __init__(self):
+        """
+        Constructor:
+        - Initializes the logger
+        - Marks the instance as initialized
+        - Sets LocalSettings to None (will be loaded later if a user is logged in)
+        - Creates a new ConfigData object to hold config fields.
+        """
+        if not hasattr(self, "initialized"):
+            self.logger = CentralLogger.getLogger(name=__name__)
+            self.local_settings: LocalSettings = None
+            # New unified data container:
+            self.config_data = ConfigData()
+            self.initialized = True
+
     def __reset__(self):
+        """
+        Resets the configuration, e.g. when no user is logged in.
+        """
         self.logger.info("Resetting Config")
         self.local_settings = None
-        Config.CURRENT_LOGGED_IN = False
-        Config.CURRENT_USER = None
-        Config.AI_FAMILIES = {}
-        Config.AI_SELECTED_FAMILY = None
-        Config.SENDER_EMAIL = None
-        Config.SENDER_PASSWORD = None
-        Config.SMTP_SERVER = None
-        Config.SMTP_PORT = None
+
+        # Reset dataclass fields
+        self.config_data.logged_in = False
+        self.config_data.current_user = None
+        self.config_data.ai_families.clear()
+        self.config_data.ai_selected_family = None
+        self.config_data.sender_email = None
+        self.config_data.sender_password = None
+        self.config_data.smtp_server = "smtp.gmail.com"
+        self.config_data.smtp_port = 465
+
         AIManager().set_default_client()
         self.logger.info("Config reset.")
 
-    def __init__(self):
-        if not hasattr(self, "initialized"):  # Prevents multiple initializations
-            self.logger = CentralLogger.getLogger(name=__name__)
-            self.local_settings: LocalSettings = None
-            self.initialized = True  # Marks as initialized
+    def init_current_config(self, logged_in: bool = False, username: str = None):
+        """
+        Initializes the configuration depending on whether a user is logged in.
 
-    def init_current_config(self, logged_in=False, username=None):
+        :param logged_in: True if a user is logged in, otherwise False.
+        :param username: The username of the currently logged-in user.
         """
-        Returns the current configuration depending on whether a user is logged in or not.
-        """
-        # 1) Check if a user is logged in:
-        if logged_in != True:
-            # No user logged in -> empty config
+        if not logged_in:
+            # No user logged in -> reset config
             self.__reset__()
             return
-        # 2) Load RSA key paths from environment variables
+
+        # User is logged in -> load .env and read RSA key paths
         load_dotenv()
         RSA_PUBLIC_KEY_PATH = os.path.expanduser(os.getenv("OE_PUK"))
         RSA_PRIVATE_KEY_PATH = os.path.expanduser(os.getenv("OE_PRK"))
-        # 3) If a user is logged in:
-        #    => Initialize LocalSettings with RSA key paths and load encrypted .settings
+
+        # Create LocalSettings instance and load settings
         self.local_settings = LocalSettings(
             public_key_path=RSA_PUBLIC_KEY_PATH,
             private_key_path=RSA_PRIVATE_KEY_PATH,
@@ -72,94 +136,267 @@ class Config:
         )
         self.reload_settings(username=username)
         self.logger.info(f"Config initialized for user {username}")
-        return
 
     def reload_settings(self, username: str = None):
+        """
+        Reloads settings from the LocalSettings file and updates
+        both ConfigData and the old static class variables (if present).
+
+        :param username: The username to set (if provided).
+        :raises ValueError: if self.local_settings is None.
+        """
+        if not self.local_settings:
+            self.logger.error("LocalSettings is None, cannot reload settings.")
+            raise ValueError(
+                "LocalSettings is None. Make sure to call init_current_config first."
+            )
 
         self.logger.info("Reloading settings...")
         self.local_settings.load_settings()
 
-        # The settings file can look like this (as JSON):
-        # {
-        #   "email_address": "user@example.com",
-        #   "email_password": "secretpass",
-        #   "ai_selected_family": "openai",
-        #   "ai_families": {
-        #       "openai": {
-        #           "api_key": "sk-XXXXXX...",
-        #           "model": "gpt-4"
-        #       },
-        #       "genai": {
-        #           "api_key": "AIzaSy...",
-        #           "model": "gemini-1.5-flash"
-        #       }
-        #   }
-        #   ... other fields ...
-        # }
+        # Update dataclass fields
+        self.config_data.logged_in = True
+        self.config_data.current_user = username or self.config_data.current_user
+        self.config_data.ai_families = self.local_settings.get("ai_families", {})
+        self.config_data.ai_selected_family = self.local_settings.get(
+            "ai_selected_family", ""
+        )
+        self.config_data.sender_email = self.local_settings.get("email_address", "")
+        self.config_data.sender_password = self.local_settings.get("email_password", "")
+        self.config_data.smtp_server = self.local_settings.get(
+            "smtp_server", "smtp.gmail.com"
+        )
+        self.config_data.smtp_port = self.local_settings.get("smtp_port", 465)
 
-        # Now build the final configuration
-        Config.CURRENT_LOGGED_IN = True
-        Config.CURRENT_USER = username or Config.CURRENT_USER
-        Config.AI_FAMILIES = self.local_settings.get("ai_families", {})
-        Config.AI_SELECTED_FAMILY = self.local_settings.get("ai_selected_family", "")
-        Config.SENDER_EMAIL = self.local_settings.get("email_address", "")
-        Config.SENDER_PASSWORD = self.local_settings.get("email_password", "")
-        Config.SMTP_SERVER = self.local_settings.get("smtp_server", "smtp.gmail.com")
-        Config.SMTP_PORT = self.local_settings.get("smtp_port", 465)
+        # Initialize AIManager with the newly loaded values
         AIManager().set_default_client(
-            Config.AI_SELECTED_FAMILY,
-            data=Config.AI_FAMILIES.get(Config.AI_SELECTED_FAMILY, {}),
+            self.config_data.ai_selected_family,
+            data=self.config_data.ai_families.get(
+                self.config_data.ai_selected_family, {}
+            ),
         )
         self.logger.info("Settings reloaded.")
 
-    def get_ai_families(self) -> list:
-        return Config.AI_FAMILIES
+    # ------------------------------------------------
+    # New recommended approach: Access to ConfigData
+    # ------------------------------------------------
+
+    def get_config_data(self) -> ConfigData:
+        """
+        Returns the ConfigData object that consolidates
+        all configuration fields.
+
+        This is the recommended interface going forward.
+        """
+        return self.config_data
+
+    # ------------------------------------------------
+    # Central Folders (server scenario)
+    # ------------------------------------------------
+
+    def get_central_db_dir(self) -> str:
+        """
+        Returns the db path to the central database (e.g., /var/lib/offermee/dbs).
+        """
+        path = os.path.join(self.get_central_data_dir(), "dbs")
+        if not os.path.exists(path=path):
+            os.makedirs(path)
+            logging.info(f"Created central db directory: {path}")
+        return path
+
+    def get_central_log_dir(self) -> str:
+        """
+        Returns the platform-specific site-wide log directory.
+        """
+        path = user_log_dir(appname=APP_NAME, appauthor=APP_AUTHOR)
+        if not os.path.exists(path=path):
+            os.makedirs(path)
+            logging.info(f"Created central log directory: {path}")
+        return path
+
+    def get_central_data_dir(self) -> str:
+        """
+        Returns the platform-specific site-wide data directory.
+        E.g. on Linux: /usr/local/share/OfferMee
+             on Windows: C:\\ProgramData\\OfferMee
+        """
+        path = site_data_dir(appname=APP_NAME, appauthor=APP_AUTHOR)
+        if not os.path.exists(path=path):
+            os.makedirs(path)
+            logging.info(f"Created central data directory: {path}")
+        return path
+
+    def get_central_config_dir(self) -> str:
+        """
+        Returns the platform-specific site-wide config directory.
+        E.g. on Linux: /etc/xdg/OfferMee
+             on Windows: C:\\ProgramData\\OfferMee\\Config
+        """
+        path = site_config_dir(appname=APP_NAME, appauthor=APP_AUTHOR)
+        if not os.path.exists(path=path):
+            os.makedirs(path)
+            logging.info(f"Created central config directory: {path}")
+        return path
+
+    def get_central_cache_folder(self) -> str:
+        """
+        Returns the platform-specific site-wide cache directory.
+        E.g. on Linux: /var/cache/OfferMee
+             on Windows: C:\\ProgramData\\OfferMee\\Cache
+        """
+        path = site_cache_dir(appname=APP_NAME, appauthor=APP_AUTHOR)
+        if not os.path.exists(path=path):
+            os.makedirs(path)
+            logging.info(f"Created central cache directory: {path}")
+        return path
+
+    # ------------------------------------------------
+    # User Folders (server scenario)
+    # ------------------------------------------------
+
+    def get_user_data_dir(self) -> str:
+        """
+        Returns a platform-specific directory path for OfferMee.
+        """
+        path = user_data_dir(appname=APP_NAME, appauthor=APP_AUTHOR)
+        if not os.path.exists(path=path):
+            os.makedirs(path)
+            logging.info(f"Created user data directory: {path}")
+        return path
+
+    def get_user_temp_dir(self) -> str:
+        """
+        Returns a platform-agnostic temporary directory path for OfferMee.
+        Since platformdirs does not provide a site_temp_dir, we can default
+        to the system temp folder (tempfile.gettempdir()).
+        E.g. on Linux: /tmp
+             on Windows: C:\\Users\\<User>\\AppData\\Local\\Temp
+        """
+        path = tempfile.gettempdir()
+        path = os.path.join(path, "OfferMee")
+        if not os.path.exists(path=path):
+            os.makedirs(path)
+            logging.info(f"Created user temp directory: {path}")
+        return path
+
+    def get_user_runtime_dir(self) -> str:
+        """
+        Returns a 'runtime' directory for the user.
+        """
+        path = user_runtime_dir(appname=APP_NAME, appauthor=APP_AUTHOR)
+        if not os.path.exists(path=path):
+            os.makedirs(path)
+            logging.info(f"Created user runtime directory: {path}")
+        return path
+
+    # ------------------------------------------------
+    # Old getters - (if needed, marked as deprecated)
+    # ------------------------------------------------
+
+    def get_ai_families(self) -> dict:
+        """
+        Deprecated. Use self.config_data.ai_families instead, or get_config_data().
+        """
+        return self.config_data.ai_families
 
     def get_ai_selected_family(self) -> str:
-        return Config.AI_SELECTED_FAMILY
+        """
+        Deprecated. Use self.config_data.ai_selected_family instead, or get_config_data().
+        """
+        return self.config_data.ai_selected_family
 
     def get_ai_family(self, family) -> dict:
-        return Config.AI_FAMILIES.get(family, {})
+        """
+        Deprecated. Use self.config_data.ai_families[family] or get_config_data().
+        """
+        return self.config_data.ai_families.get(family, {})
 
-    def get_ai_family_api_key(self, family) -> dict:
-        return Config.AI_FAMILIES.get(family, {}).get("api_key", "")
+    def get_ai_family_api_key(self, family) -> str:
+        """
+        Deprecated. Use self.config_data.ai_families[family]['api_key'] or get_config_data().
+        """
+        return self.config_data.ai_families.get(family, {}).get("api_key", "")
 
-    def get_ai_family_model(self, family) -> dict:
-        return Config.AI_FAMILIES.get(family, {}).get("model", "")
+    def get_ai_family_model(self, family) -> str:
+        """
+        Deprecated. Use self.config_data.ai_families[family]['model'] or get_config_data().
+        """
+        return self.config_data.ai_families.get(family, {}).get("model", "")
 
     def get_sender_email(self) -> str:
-        return Config.SENDER_EMAIL
+        """
+        Deprecated. Use self.config_data.sender_email instead, or get_config_data().
+        """
+        return self.config_data.sender_email
 
     def get_sender_password(self) -> str:
-        return Config.SENDER_PASSWORD
+        """
+        Deprecated. Use self.config_data.sender_password instead, or get_config_data().
+        """
+        return self.config_data.sender_password
 
     def get_smtp_server(self) -> str:
-        return Config.SMTP_SERVER
+        """
+        Deprecated. Use self.config_data.smtp_server instead, or get_config_data().
+        """
+        return self.config_data.smtp_server
 
     def get_smtp_port(self) -> int:
-        return Config.SMTP_PORT
+        """
+        Deprecated. Use self.config_data.smtp_port instead, or get_config_data().
+        """
+        return self.config_data.smtp_port
+
+    # ------------------------------------------------
+    # User and Settings
+    # ------------------------------------------------
 
     def get_current_user(self) -> str:
-        return Config.CURRENT_USER
+        """
+        Deprecated. Use self.config_data.current_user or get_config_data().
+        """
+        return self.config_data.current_user
 
     def is_logged_in(self) -> bool:
-        return Config.CURRENT_LOGGED_IN
+        """
+        Returns True if a valid user is logged in; Otherwise False.
+        """
+        return self.config_data.logged_in
 
     def get_local_settings(self) -> LocalSettings:
+        """
+        Returns the LocalSettings instance (if any).
+        """
         return self.local_settings
 
     def get_local_settings_to_dict(self) -> dict:
-        return self.local_settings.to_dict()
+        """
+        Returns the local settings as a dictionary,
+        or an empty dict if local_settings is None.
+        """
+        return self.local_settings.to_dict() if self.local_settings else {}
 
-    def get_name_from_local_settings(self):
-        local_settings = self.get_local_settings_to_dict()
-        return local_settings.get("first_name") + " " + local_settings.get("last_name")
+    def get_name_from_local_settings(self) -> str:
+        """
+        Retrieves first_name and last_name from local settings (if present).
+        """
+        settings_dict = self.get_local_settings_to_dict()
+        first_name = settings_dict.get("first_name", "")
+        last_name = settings_dict.get("last_name", "")
+        return f"{first_name} {last_name}".strip()
 
     def save_local_settings(self, settings: dict):
+        """
+        Saves new settings in local_settings (encrypted).
+
+        :param settings: Dict containing the new setting values.
+        :raises ValueError: if self.local_settings is None.
+        """
         if self.local_settings:
             self.local_settings.save_settings(new_settings=settings)
         else:
             self.logger.error(
-                "No LocalSettings instance available, check environment paths to OE_PUK and OE_PRK or log in first."
+                "No LocalSettings instance available. "
+                "Check environment paths to OE_PUK and OE_PRK or log in first."
             )
             raise ValueError("No LocalSettings instance available.")

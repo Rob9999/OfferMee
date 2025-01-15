@@ -1,11 +1,11 @@
 import unittest
-from offermee.database.models.base_project_model import BaseProjectModel
+from offermee.database.models.main_models import ProjectModel
 from offermee.matcher.price_matcher import PriceMatcher
 
 
 class TestPriceMatcher(unittest.TestCase):
     def setUp(self):
-        self.project = BaseProjectModel(hourly_rate=100.0)
+        self.project = ProjectModel(hourly_rate=100.0)
 
     def test_price_matcher_under(self):
         score = PriceMatcher.match_price(self.project, 90.0)

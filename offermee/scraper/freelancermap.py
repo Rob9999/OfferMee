@@ -3,12 +3,12 @@ from urllib.parse import urlparse
 from sqlalchemy.orm import sessionmaker
 
 from offermee.AI.project_processor import ProjectProcessor
+from offermee.database.facades.main_facades import ProjectFacade
 from offermee.database.transformers.project_model_transformer import json_to_db
 from offermee.htmls.save_utils import generate_filename_from_url, save_html
 from offermee.logger import CentralLogger
 from offermee.scraper.base_scraper import BaseScraper
 from offermee.database.database_manager import DatabaseManager
-from offermee.database.models.base_project_model import BaseProjectModel
 import requests
 from bs4 import BeautifulSoup, Tag
 import json
@@ -61,9 +61,6 @@ class FreelanceMapScraper(BaseScraper):
         super().__init__(self.BASE_URL)
         self.logger = CentralLogger.getLogger(__name__)
         self.project_processor = ProjectProcessor()
-        # Initialize database manager
-        self.db_manager = DatabaseManager()
-        self.Session = sessionmaker(bind=self.db_manager.engine)
 
     def map_params(self, contract_types, remote, countries):
         """
@@ -346,27 +343,18 @@ class FreelanceMapScraper(BaseScraper):
             self.logger.error(f"Analysis failed for project: {project['title']}")
             return
 
-        session = self.Session()
         try:
-            existing_project = (
-                session.query(BaseProjectModel)
-                .filter_by(original_link=project["link"])
-                .first()
-            )
+            existing_project = ProjectFacade.get_first_by(original_link=project["link"])
             if existing_project:
                 self.logger.info(f"Project already exists: {project['title']}")
                 return
             # enrich analysis
             self.logger.info(f"AI project analysis:\n{analysis}")
             new_project = json_to_db(analysis)
-            session.add(new_project)
-            session.commit()
+            ProjectFacade.create(new_project)
             self.logger.info(f"Project saved: {new_project.title}")
         except Exception as e:
-            session.rollback()
             self.logger.error(f"Error saving project: {e}")
-        finally:
-            session.close()
 
     def fetch_projects_paginated(
         self,

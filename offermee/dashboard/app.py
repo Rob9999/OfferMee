@@ -5,121 +5,127 @@ from offermee.dashboard.web_dashboard import is_logged_in
 st.set_page_config(page_title="OfferMee Dashboard", layout="wide")
 st.title("OfferMee - Dashboard")
 
-# Initialize session state for page selection
+# Initialize session state for page selection if not present
 if "page" not in st.session_state:
-    st.session_state.page = "Login"
+    st.session_state.page = None
 
-# Define possible pages when logged out
-LOGGED_OUT_PAGES = [
-    "Login",
-    "Sign Up",
-]
+# Define the navigation structure for logged in users
+NAV_STRUCTURE = {
+    "CV": {
+        "CV hochladen": "CV hochladen",
+        "CV bearbeiten": "CV bearbeiten",
+        "CV exportieren": "CV exportieren",
+        # ... additional CV-related pages
+    },
+    "Ausschreibungen": {
+        "Online finden": "Scraper",
+        "Manuelle Eingabe": "Manuelle Eingabe",
+        # ... additional Ausschreibungen-related pages
+    },
+    "Angebote": {
+        "Angebotsübersicht": "Standardangebotstemplate",
+        "Projektmatcher & Angebotserstellung": "Projektmatcher & Angebotserstellung",
+        "Angebotshistorie": "Angebotshistorie",
+        # ... additional Angebote-related pages
+    },
+    "Profil": {
+        "Settings": "Settings",
+        # ... additional Profile-related pages
+    },
+    "Logout": {"Logout": "Logout"},
+}
 
-# Define possible pages when logged in
-LOGGED_IN_PAGES = [
-    "CV hinterlegen",
-    "CV bearbeiten",
-    "CV exportieren",
-    "Standardangebotstemplate",
-    "Scraper",
-    "Projektsuche",
-    "Projektmatcher & Angebotserstellung",
-    "Angebotshistorie",
-    "Settings",
-    "Logout",
-]
+# Navigation structure for users who are not logged in
+LOGGED_OUT_PAGES = {
+    "": {
+        "Login": "Login",
+        "Sign Up": "Sign Up",
+    }
+}
 
 
-def set_valid_page(allowed_pages):
-    """
-    If st.session_state.page isn't in allowed_pages,
-    reset it to the first allowed page to avoid ValueError
-    in the st.sidebar.radio index argument.
-    """
-    if st.session_state.page not in allowed_pages:
-        st.session_state.page = allowed_pages[0]
+# Build a flat list of navigation options with category prefix
+def build_flat_navigation(navigation_dict):
+    options = []
+    page_mapping = {}
+    for category, pages in navigation_dict.items():
+        for page_label, page_key in pages.items():
+            # Create a combined label that includes the category
+            full_label = f"{category}: {page_label}"
+            options.append(full_label)
+            page_mapping[full_label] = page_key
+    return options, page_mapping
 
 
-# Check if someone is logged in
-if not is_logged_in():
-    # If not logged in, allow only the 'LOGGED_OUT_PAGES' set
-    set_valid_page(LOGGED_OUT_PAGES)
-
-    page = st.sidebar.radio(
-        "Gehe zu:",
-        LOGGED_OUT_PAGES,
-        index=LOGGED_OUT_PAGES.index(st.session_state.page),
-    )
-    st.session_state.page = page
-
-    if page == "Login":
+# Function to render pages based on the page key
+def render_page(page_key):
+    if page_key == "Login":
         from offermee.dashboard.pages.login import render as login_render
 
         login_render()
-
-    elif page == "Sign Up":
+    elif page_key == "Sign Up":
         from offermee.dashboard.pages.signup import render as signup_render
 
         signup_render()
-
-else:
-    # If someone is logged in, allow the 'LOGGED_IN_PAGES' set
-    set_valid_page(LOGGED_IN_PAGES)
-
-    page = st.sidebar.radio(
-        "Gehe zu:",
-        LOGGED_IN_PAGES,
-        index=LOGGED_IN_PAGES.index(st.session_state.page),
-    )
-    st.session_state.page = page
-
-    if page == "CV hinterlegen":
+    elif page_key == "CV hochladen":
         from offermee.dashboard.pages.cv_manager import render as cv_manager_render
 
         cv_manager_render()
-
-    if page == "CV bearbeiten":
+    elif page_key == "CV bearbeiten":
         from offermee.dashboard.pages.cv_edit import render as cv_edit_render
 
         cv_edit_render()
-
-    if page == "CV exportieren":
+    elif page_key == "CV exportieren":
         from offermee.dashboard.pages.cv_export import render as cv_export_render
 
         cv_export_render()
-
-    elif page == "Standardangebotstemplate":
+    elif page_key == "Standardangebotstemplate":
         from offermee.dashboard.pages.templates import render as templates_render
 
         templates_render()
-
-    elif page == "Scraper":
-        # Renamed import to match the label
+    elif page_key == "Scraper":
         from offermee.dashboard.pages.scraper import render as scraper_render
 
         scraper_render()
+    elif page_key == "Manuelle Eingabe":
+        from offermee.dashboard.pages.manual_input import render as manual_input_render
 
-    elif page == "Projektsuche":
-        from offermee.dashboard.pages.search import render as search_render
-
-        search_render()
-
-    elif page == "Projektmatcher & Angebotserstellung":
+        manual_input_render()
+    elif page_key == "Projektmatcher & Angebotserstellung":
         from offermee.dashboard.pages.matches import render as matches_render
 
         matches_render()
-
-    elif page == "Angebotshistorie":
+    elif page_key == "Angebotshistorie":
         from offermee.dashboard.pages.history import render as history_render
 
         history_render()
-
-    elif page == "Settings":
+    elif page_key == "Settings":
         from offermee.dashboard.pages.settings import render as settings_render
 
         settings_render()
-
-    elif page == "Logout":
+    elif page_key == "Logout":
         from offermee.dashboard.pages.logout import render as logout_render
 
         logout_render()
+    # ... add additional elif cases for other pages as needed
+
+
+# Sidebar navigation based on login status
+st.sidebar.header("Navigation")
+
+if not is_logged_in():
+    # For not logged in users, simple radio button navigation
+    not_logged_pages = list(LOGGED_OUT_PAGES[""].keys())
+    selected = st.sidebar.radio("Go to:", not_logged_pages)
+    st.session_state.page = LOGGED_OUT_PAGES[""][selected]
+else:
+    # Build flat navigation for logged in users
+    flat_options, flat_mapping = build_flat_navigation(NAV_STRUCTURE)
+    # Create a single radio widget for all options
+    selected_option = st.sidebar.radio("Go to:", flat_options)
+    # Update session state with the corresponding page key
+    st.session_state.page = flat_mapping[selected_option]
+
+# Render the selected page if one is chosen
+if st.session_state.page:
+    render_page(st.session_state.page)

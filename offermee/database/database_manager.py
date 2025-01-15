@@ -1,11 +1,15 @@
 import datetime
+import json
 import locale
+from typing import Any, Dict
 from dateutil import parser
 import os
 import logging
-from sqlalchemy import create_engine
+from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+from offermee.config import Config
+from offermee.database.transformers.to_json_schema import db_model_to_json_schema
 from offermee.logger import CentralLogger
 
 
@@ -14,7 +18,6 @@ DatabaseManager is a singleton class that manages the database connection and op
 Attributes:
     _instance (DatabaseManager): Singleton instance of the DatabaseManager.
     Base (declarative_base): SQLAlchemy base class for declarative class definitions.
-    db_dir (str): Directory where the database files are stored.
     db_selectable (dict): Dictionary mapping environment types to database names.
     db_selected (str): Currently selected database type.
 Methods:
@@ -33,7 +36,6 @@ Methods:
 class DatabaseManager:
     _instance = None
     Base = declarative_base()
-    db_dir = "dbs"
     db_selectable = {"TEST": "test_offermee", "PROD": "offermee"}
     db_selected = "TEST"
 
@@ -46,14 +48,14 @@ class DatabaseManager:
     def __init__(self, db_type="TEST", shall_overwrite=False):
         if not hasattr(self, "initialized"):  # Verhindert mehrfache Initialisierung
             self.logger = CentralLogger.getLogger(__name__)
-            self.db_type = DatabaseManager.set_default_db(db_type)
-            if shall_overwrite:
-                DatabaseManager._delete_database(db_type)
-            self.db_path = DatabaseManager.get_db_path(db_type)
-            self.engine = DatabaseManager._create_database(
-                self.db_path, create_all_tables=True
+            self.Session, self.engine, self.db_path = (
+                DatabaseManager._initialize_database(
+                    db_type=db_type,
+                    create_all_tables=True,  # create all tables (run a 'hello_all_new_tables = DatabaseManager(db_type=YOURCHOICE)', to get all new tables)
+                    shall_overwrite=shall_overwrite,
+                )
             )
-            self.Session = sessionmaker(bind=self.engine)
+            self.db_type = DatabaseManager.set_default_db(db_type)
             self.initialized = True  # Markiert als initialisiert
             self.logger.info(f"DatabaseManager initialized with db_type: {db_type}")
 
@@ -117,20 +119,23 @@ class DatabaseManager:
 
     @staticmethod
     def get_default_session() -> sessionmaker:
-        return DatabaseManager._initialize_database(
-            DatabaseManager.db_selected, shall_overwrite=False
-        )()
+        session, engine, db_path = DatabaseManager._initialize_database(
+            DatabaseManager.db_selected, create_all_tables=False, shall_overwrite=False
+        )
+        return session
 
     @staticmethod
     def get_db_path(db_type="TEST") -> str:
         db_type = DatabaseManager.validate_db_type(db_type)
-        if not os.path.exists(DatabaseManager.db_dir):
-            os.makedirs(DatabaseManager.db_dir)
-            logging.info(f"Created directory: {DatabaseManager.db_dir}")
-        return f"{DatabaseManager.db_dir}/{DatabaseManager.db_selectable[db_type]}.db"
+        db_dir = Config.get_instance().get_central_db_dir()
+        return f"{db_dir}/{DatabaseManager.db_selectable[db_type]}.db"
 
     @staticmethod
-    def _initialize_database(db_type="TEST", shall_overwrite=False) -> sessionmaker:
+    def _initialize_database(
+        db_type: str = "TEST",
+        create_all_tables: bool = False,
+        shall_overwrite: bool = False,
+    ) -> tuple[sessionmaker, Engine, str]:
         """
         Creates a new database or overwrites the existing one.
         :param db_type: Name of the database (default: TEST).
@@ -143,10 +148,43 @@ class DatabaseManager:
         if shall_overwrite:
             DatabaseManager._delete_database(db_type)
         db_path = DatabaseManager.get_db_path(db_type)
-        engine = DatabaseManager._create_database(db_path)
-        session = sessionmaker(bind=engine)
+        engine = DatabaseManager._create_database(
+            db_path, create_all_tables=create_all_tables
+        )
+        DatabaseManager._store_all_db_models_as_json_schema()
+        session = sessionmaker(bind=engine)()
         logging.info(f"Database {db_type} initialized at {db_path}")
-        return session
+        return session, engine, db_path
+
+    @staticmethod
+    def _store_all_db_models_as_json_schema():
+        storage_dir = os.path.normpath("../schemas/json/db")
+        os.makedirs(storage_dir, exist_ok=True)
+        logging.info(f"Storing all db models as json schema to '{storage_dir}' ...")
+        try:
+            # Iteriere über alle Mapper (Klassen), die in Base registriert sind
+            for mapper in DatabaseManager.Base.registry.mappers:
+                model_cls = mapper.class_
+
+                # Generiere ein JSON-Schema
+                schema_dict: Dict[str, Any] = db_model_to_json_schema(model=model_cls)
+
+                # JSON als String serialisieren
+                json_schema_str = json.dumps(schema_dict, indent=4)
+
+                # Dateiname = <ModelName>.schema.json
+                filename = f"{model_cls.__name__}.schema.json"
+                filepath = os.path.join(storage_dir, filename)
+
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write(json_schema_str)
+
+                logging.info(
+                    f"Created schema file for model {model_cls.__name__} -> {filepath}"
+                )
+
+        except Exception as e:
+            logging.error("Error storing all DB schemas", exc_info=True)
 
     @staticmethod
     def _delete_database(db_type: str):

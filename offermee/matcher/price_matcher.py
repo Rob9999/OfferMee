@@ -6,7 +6,7 @@ class PriceMatcher:
         Vergleicht den gewünschten Stundensatz des Freelancers mit dem maximalen Stundensatz des Projekts.
 
         Args:
-            project (BaseProjectModel): Das Projektmodell mit extrahierten Anforderungen.
+            project (ProjectModel): Das Projektmodell mit extrahierten Anforderungen.
             freelancer_desired_rate (float): Der gewünschte Stundensatz des Freelancers.
 
         Returns:
