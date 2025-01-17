@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "SchemaModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "name": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "schema_definition": {
+            "type": "string"
+        },
+        "created_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x00000157C5365BC0>"
+        },
+        "updated_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x00000157C5365D00>"
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "schema_definition"
+    ]
+}

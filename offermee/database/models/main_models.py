@@ -60,7 +60,7 @@ class DocumentRelatedType(PyEnum):
     INTERVIEW = "INTERVIEW"
     HISTORY = "HISTORY"
     TASK = "TASK"
-    WORK_PACKAGE = "WORK_PACKAGE"
+    WORKPACKAGE = "WORKPACKAGE"
     CERTIFICATE = "CERTIFICATE"
     GRADUATION = "GRADUATION"
 
@@ -375,7 +375,7 @@ class CVModel(Base):
     applicant_id = Column(Integer, ForeignKey("applicants.id"))
     name = Column(String, nullable=False)
     cv_raw_text = Column(Text, nullable=False)  # Raw text extracted from the document
-    cv_structured_text = Column(
+    cv_structured_data = Column(
         JSON, nullable=False
     )  # Structured representation of the document
     cv_schema_reference = Column(
@@ -632,12 +632,12 @@ class WorkPackageModel(Base):
     status = Column(Enum(TaskStatus), default=TaskStatus.OPEN)
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'WORK_PACKAGE', foreign(DocumentModel.related_id)  == WorkPackageModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'WORKPACKAGE', foreign(DocumentModel.related_id)  == WorkPackageModel.id)",
         viewonly=True,
     )
     histories = relationship(
         "HistoryModel",
-        primaryjoin="and_(HistoryModel.related_type == 'WORK_PACKAGE', foreign(HistoryModel.related_id) == WorkPackageModel.id)",
+        primaryjoin="and_(HistoryModel.related_type == 'WORKPACKAGE', foreign(HistoryModel.related_id) == WorkPackageModel.id)",
         viewonly=True,
     )
     project = relationship("ProjectModel", back_populates="workpackages")

@@ -1,9 +1,14 @@
+from typing import Any, Dict
 import streamlit as st
 from offermee.config import Config
+from offermee.dashboard.transformers.to_sreamlit import (
+    create_streamlit_form_from_json_schema,
+)
 from offermee.dashboard.web_dashboard import stop_if_not_logged_in
-from offermee.database.db_connection import connect_to_db, get_freelancer_by_name
-from offermee.database.models.cv_model import CVModel
-from offermee.database.models.freelancer_model import FreelancerModel
+from offermee.database.db_connection import connect_to_db
+from offermee.database.facades.main_facades import CVFacade, FreelancerFacade
+from offermee.schemas.json.schema_keys import SchemaKey
+from offermee.schemas.json.schema_loader import get_schema
 
 
 def render():
@@ -11,30 +16,29 @@ def render():
     stop_if_not_logged_in()
 
     config = Config.get_instance()
+    operator = config.get_current_user()
+    cv_schema = get_schema(SchemaKey.CV)
     cv_candiate = st.text_input(
         label="Candidate", value=config.get_name_from_local_settings()
     )
 
-    session = connect_to_db()
-    freelancer: FreelancerModel = get_freelancer_by_name(name=cv_candiate)
+    freelancer: Dict[str, Any] = FreelancerFacade.get_first_by(name=cv_candiate)
     if not freelancer:
         st.error("Kein CV hinterlegt")
         st.stop()
     freelancer_id = freelancer.id
-    cv = session.query(CVModel).filter_by(freelancer_id=freelancer_id).first()
+    cv: Dict[str, Any] = CVFacade.get_first_by(freelancer_id=freelancer_id)
 
     if cv:
-        structured_data = cv.structured_data
-        # Zeige Formulare zur Bearbeitung an, z.B. JSON-Editor oder spezifische Felder
-        st.text_area("Strukturierte CV-Daten", value=structured_data, height=300)
+        structured_data = cv.cv_structured_data
 
-        # Erlaubt Änderungen und Speichern
+        changed_data = create_streamlit_form_from_json_schema(
+            cv_schema, structured_data
+        )
+
+        # Ask to store changes
         if st.button("Speichern"):
-            # Aktualisiere die Daten in der DB
-            cv.structured_data = st.session_state["neue_daten"]  # Beispiel
-            session.commit()
+            CVFacade.update(cv.get("id"), changed_data, operator)
             st.success("CV-Daten aktualisiert!")
     else:
         st.info("Kein CV gefunden. Bitte lade zuerst deinen Lebenslauf hoch.")
-
-    session.close()

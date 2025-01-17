@@ -1,0 +1,51 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "FreelancerModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "name": {
+            "type": "string"
+        },
+        "website": {
+            "type": "string"
+        },
+        "capabilities_id": {
+            "type": "integer"
+        },
+        "role": {
+            "type": "string"
+        },
+        "availability": {
+            "type": "string"
+        },
+        "desired_rate_min": {
+            "type": "number"
+        },
+        "desired_rate_max": {
+            "type": "number"
+        },
+        "offer_template": {
+            "type": "string"
+        },
+        "created_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x00000157C53B09A0>"
+        },
+        "updated_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x00000157C53B0A40>"
+        },
+        "contact_id": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "website",
+        "role"
+    ]
+}

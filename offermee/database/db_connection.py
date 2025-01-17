@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 from offermee.database.database_manager import DatabaseManager
 from offermee.logger import CentralLogger
+from sqlalchemy.orm import Session
 
 db_logger = CentralLogger.getLogger("db")
 
@@ -15,7 +16,7 @@ def session_scope():
     Ensures that the session is committed on success,
     rolled back on error, and closed afterwards.
     """
-    session = connect_to_db()  # Open a new database session
+    session: Session = connect_to_db()  # Open a new database session
     try:
         yield session  # Provide the session to the context block
         session.commit()  # Commit changes if no exceptions occurred
@@ -27,7 +28,7 @@ def session_scope():
         session.close()  # Ensure the session is closed
 
 
-def connect_to_db():
+def connect_to_db() -> Session:
     """
     Get the default database session from the DatabaseManager.
     """

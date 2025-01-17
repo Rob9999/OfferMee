@@ -1,8 +1,14 @@
 import json
+import traceback
+from types import TracebackType
+from typing import Any, Dict, List
 import streamlit as st
 
 from offermee.config import Config
 from offermee.AI.cv_processor import CVProcessor
+from offermee.dashboard.transformers.to_sreamlit import (
+    create_streamlit_form_from_json_schema,
+)
 from offermee.dashboard.web_dashboard import log_error, log_info, stop_if_not_logged_in
 from offermee.database.facades.main_facades import (
     CVFacade,
@@ -12,12 +18,17 @@ from offermee.database.facades.main_facades import (
 from offermee.database.models.main_models import ContactRole
 import PyPDF2
 
+from offermee.schemas.json.schema_keys import SchemaKey
+from offermee.schemas.json.schema_loader import get_schema
+
 
 def render():
     st.header("Upload CV")
     stop_if_not_logged_in()
 
     config = Config.get_instance()
+    operator = config.get_current_user()
+    cv_schema = get_schema(SchemaKey.CV)
     cv_candiate = st.text_input(
         label="Candidate", value=config.get_name_from_local_settings()
     )
@@ -48,21 +59,24 @@ def render():
                 log_error(__name__, "Error during cv analysis.")
                 st.error("Fehler beim Analysieren des Lebenslaufs.")
                 return
-            st.write("Extrahierte Daten:", cv_structured_data)
-            uploaded_cv["cv_structured_data"] = cv_structured_data
+
+            st.write("Extrahierte Daten:")
+            final_cv_structured_data = create_streamlit_form_from_json_schema(
+                cv_schema, cv_structured_data
+            )
+            uploaded_cv["cv_structured_data"] = final_cv_structured_data
 
             # Get extracted person data
-            cv_person_data = cv_structured_data.get("person", {})
-            st.write("Extrahierte Personendaten:", cv_person_data)
-            uploaded_cv["cv_person_data"] = cv_person_data
-
+            cv_person_data = final_cv_structured_data.get("person", {})
             # Get person name
             cv_person_name = CVProcessor.get_person_name(
                 cv_person_data, max_firstnames=2
             )
-            st.write(cv_person_name)
+            st.write(f"CV candidate call name in offermee process: {cv_person_name}")
             cv_candiate = cv_person_name
             uploaded_cv["cv_person_name"] = cv_person_name
+            uploaded_cv["firstnames"] = " ".join(cv_person_data.get("firstnames"))
+            uploaded_cv["lastname"] = cv_person_data.get("lastname")
 
             # Get soft skills
             cv_soft_skills = CVProcessor.get_all_soft_skills(cv_structured_data)
@@ -103,51 +117,62 @@ def render():
                     uploaded_cv=uploaded_cv,
                     desired_rate_min=desired_rate_min,
                     desired_rate_max=desired_rate_max,
+                    operator=operator,
                 )
                 log_info(
                     __name__, f"Committed freelancer and cv of {cv_candiate} to db."
                 )
                 st.success("CV skills extracted and successfully saved!")
             except Exception as e:
-                log_error(__name__, f"Error saving CV: {e}")
+                traceback.print_exception(type(e), e, e.__traceback__)
+                log_error(
+                    __name__,
+                    f"Error saving CV: {e}",
+                )
                 st.error(f"Error saving CV: {e}")
             finally:
                 st.session_state["uploaded_cv"] = None
 
 
-def save_cv_logic(cv_candiate, uploaded_cv, desired_rate_min, desired_rate_max):
+def save_cv_logic(
+    cv_candiate: str,
+    uploaded_cv: Dict[str, Any],
+    desired_rate_min: float,
+    desired_rate_max: float,
+    operator: str,
+):
     log_info(__name__, "Saving processed cv...")
-    current_user = Config.get_instance().get_current_user()
-    freelancer = ReadFacade.get_freelancer_by_name(name=cv_candiate)
-    structured_data = uploaded_cv.get("cv_structured_data")
+    freelancer: Dict[str, Any] = ReadFacade.get_freelancer_by_name(name=cv_candiate)
+    structured_data: Dict[str, Any] = uploaded_cv.get("cv_structured_data")
     if not structured_data:
         raise ValueError("cv_structured_data is missing.")
-    contact = structured_data.get("contact")
+    contacts: List[Dict[str, Any]] = structured_data.get("contacts")
+    if not contacts or len(contacts) < 1:
+        raise ValueError("contacts is missing.")
+    contact_entry = contacts[0] if contacts[0] else {}  # take first contact
+    contact = contact_entry.get("contact")
     if not contact:
         raise ValueError("contact is missing.")
-    contact_contact = contact.get("contact")
-    if not contact_contact:
-        raise ValueError("contact.contact is missing.")
-    address = contact_contact.get("address")
+    address = contact.get("address")
     if not address:
         raise ValueError("address is missing.")
-    city = contact_contact.get("city")
+    city = contact.get("city")
     if not city:
         raise ValueError("city is missing.")
-    zip_code = contact_contact.get("zip-code")
+    zip_code = contact.get("zip-code")
     if not zip_code:
         raise ValueError("zip-code is missing.")
-    country = contact_contact.get("country")
+    country = contact.get("country")
     if not country:
         # raise ValueError("country is missing.")
         country = "Deutschland"
-    phone = contact_contact.get("phone")
+    phone = contact.get("phone")
     if not phone:
         raise ValueError("phone is missing.")
-    email = contact_contact.get("email")
+    email = contact.get("email")
     if not email:
         raise ValueError("email is missing.")
-    website = contact_contact.get("website")
+    website = contact.get("website")
     if not website:
         raise ValueError("website is missing.")
 
@@ -185,13 +210,12 @@ def save_cv_logic(cv_candiate, uploaded_cv, desired_rate_min, desired_rate_max):
                 },
             },
             "website": website,
-            "created_by": current_user,
         }
-        freelancer = FreelancerFacade.create(new_freelancer)
+        freelancer = FreelancerFacade.create(data=new_freelancer, created_by=operator)
     else:
         log_info(
             __name__,
-            f"Updating existing freelancer {freelancer.id} of {cv_candiate} to db.",
+            f"Updating existing freelancer {freelancer.get('id')} of {cv_candiate} to db.",
         )
         update_freelancer = {
             "name": cv_candiate,
@@ -218,10 +242,10 @@ def save_cv_logic(cv_candiate, uploaded_cv, desired_rate_min, desired_rate_max):
                 },
             },
             "website": website,
-            "created_by": current_user,
         }
-        FreelancerFacade.update(freelancer.get("id"), update_freelancer)
-
+        FreelancerFacade.update(
+            freelancer.get("id"), data=update_freelancer, updated_by=operator
+        )
         # CV
         cv = ReadFacade.get_cv_by_freelancer_id(freelancer.get("id"))
         if cv:
@@ -238,15 +262,13 @@ def save_cv_logic(cv_candiate, uploaded_cv, desired_rate_min, desired_rate_max):
                 "name": cv_candiate,
                 "cv_raw_text": uploaded_cv.get("cv_text"),
                 "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
-                "created_by": current_user,
             }
-            CVFacade.create(data=new_cv)
+            CVFacade.create(data=new_cv, created_by=operator)
         else:
             log_info(__name__, f"Updating cv of {cv_candiate} to db.")
             update_cv = {
                 "name": cv_candiate,
                 "cv_raw_text": uploaded_cv.get("cv_text"),
                 "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
-                "created_by": current_user,
             }
-            CVFacade.update(record_id=cv.get("id"), data=update_cv)
+            CVFacade.update(record_id=cv.get("id"), data=update_cv, updated_by=operator)

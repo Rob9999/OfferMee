@@ -1,0 +1,40 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ApplicantModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "name": {
+            "type": "string"
+        },
+        "capabilities_id": {
+            "type": "integer"
+        },
+        "role_interest": {
+            "type": "string"
+        },
+        "availability": {
+            "type": "string"
+        },
+        "salary_interest": {
+            "type": "string"
+        },
+        "created_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x00000157C53D9DA0>"
+        },
+        "updated_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x00000157C53D9E40>"
+        },
+        "contact_id": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "id",
+        "name"
+    ]
+}

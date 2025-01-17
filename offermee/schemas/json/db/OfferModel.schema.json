@@ -1,0 +1,57 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "OfferModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "project_id": {
+            "type": "integer"
+        },
+        "offer_number": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "DRAFT",
+                "SENT",
+                "FOLLOW_UP",
+                "FINALIZED"
+            ],
+            "default": "DRAFT",
+            "maxLength": 9
+        },
+        "offer_contact_person": {
+            "type": "string"
+        },
+        "offer_text": {
+            "type": "string"
+        },
+        "sent_date": {
+            "type": "string"
+        },
+        "last_follow_up_date": {
+            "type": "string"
+        },
+        "follow_up_count": {
+            "type": "integer",
+            "default": 0
+        },
+        "created_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x00000157C541B7E0>"
+        },
+        "updated_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x00000157C541B880>"
+        }
+    },
+    "required": [
+        "id",
+        "offer_number",
+        "offer_contact_person",
+        "follow_up_count"
+    ]
+}

@@ -45,42 +45,41 @@ class BaseFacade:
     DOCUMENT_TYPE = None  # z.B. "ADDRESS" oder DocumentRelatedType.ADDRESS.value
 
     @classmethod
-    def create(cls, data: Dict[str, Any]) -> Dict[str, Any]:
+    def create(
+        cls, data: Dict[str, Any], created_by: str = "system"
+    ) -> Optional[Dict[str, Any]]:
         """
         Nimmt ein Dict entgegen und legt einen neuen Datensatz an.
         Gibt den neu erzeugten Datensatz als Dict zurück.
         """
-        created_obj = cls.SERVICE.create(
+        return cls.SERVICE.create(
             data=data,
             documents=data.get("documents", None),
-            created_by=data.get("created_by", "system"),
+            created_by=created_by,
         )
-        return created_obj.to_dict()
 
     @classmethod
     def get_by_id(cls, record_id: int) -> Optional[Dict[str, Any]]:
         """
         Gibt den Freelancer als Dict zurück oder None, falls nicht gefunden.
         """
-        obj = cls.SERVICE.get_by_id(record_id)
-        if obj:
-            return obj.to_dict()
-        return None
+        return cls.SERVICE.get_by_id(record_id)
 
     @classmethod
     def get_all(cls, limit: int = 1000) -> List[Dict[str, Any]]:
         """
         Liste aller Freelancer (als Dict) zurückgeben, optional mit Limit.
         """
-        objects = cls.SERVICE.get_all(limit=limit)
-        return [o.to_dict() for o in objects]
+        return cls.SERVICE.get_all(limit=limit)
 
     @classmethod
-    def get_all_by(cls, pattern: Dict[str, Any], limit: int = 1000):
+    def get_all_by(
+        cls, pattern: Dict[str, Any], limit: int = 1000
+    ) -> List[Dict[str, Any]]:
         return cls.SERVICE.get_all_by(limit=limit, pattern=pattern)
 
     @classmethod
-    def get_first_by(cls, pattern: Dict[str, Any]):
+    def get_first_by(cls, pattern: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         return cls.SERVICE.get_first_by(pattern=pattern)
 
     @classmethod
@@ -88,27 +87,29 @@ class BaseFacade:
         cls,
         record_id: int,
         data: Dict[str, Any],
+        updated_by: str = "system",
     ) -> Optional[Dict[str, Any]]:
         """
         Aktualisiert einen Datensatz anhand seiner ID.
         Gibt das aktualisierte Objekt als Dict zurück oder None bei Nichtfinden.
         """
-        updated_obj = cls.SERVICE.update(
+        return cls.SERVICE.update(
             record_id=record_id,
             data=data,
             documents=data.get("documents", None),
-            created_by=data.get("updated_by", "system"),
+            updated_by=updated_by,
         )
-        if updated_obj:
-            return updated_obj.to_dict()
-        return None
 
     @classmethod
-    def delete(cls, record_id: int) -> bool:
+    def delete(
+        cls, record_id: int, deleted_by: str = "system"
+    ) -> bool:  # TODO soft_delete: bool = False,
         """
         Löscht einen Datensatz via Service. Gibt True/False zurück, je nach Erfolg.
         """
-        return cls.SERVICE.delete(record_id, created_by="system")
+        return cls.SERVICE.delete(
+            record_id, deleted_by=deleted_by
+        )  # TODO soft_delete=soft_delete,
 
 
 # ------------------------------------------------------------
@@ -210,8 +211,8 @@ class ContractFacade(BaseFacade):
 
 class WorkPackageFacade(BaseFacade):
     SERVICE = WorkPackageService
-    HISTORY_TYPE = "WORK_PACKAGE"
-    DOCUMENT_TYPE = "WORK_PACKAGE"
+    HISTORY_TYPE = "WORKPACKAGE"
+    DOCUMENT_TYPE = "WORKPACKAGE"
 
 
 class OfferFacade(BaseFacade):
@@ -238,20 +239,16 @@ class ReadFacade:
         """
         Liest alle Dokumente aus, die mit einer bestimmten Instanz verknüpft sind.
         """
-        documents = ReadService.get_documents_for(
+        return ReadService.get_documents_for(
             related_type=related_type, record_id=record_id
         )
-        return [d.to_dict() for d in documents]
 
     @staticmethod
     def get_history_for(hist_type: HistoryType, record_id: int) -> List[Dict[str, Any]]:
         """
         Liest alle History-Einträge aus, die mit einer bestimmten Instanz verknüpft sind.
         """
-        histories = ReadService.get_history_for(
-            hist_type=hist_type, record_id=record_id
-        )
-        return [r.to_dict() for r in histories]
+        return ReadService.get_history_for(hist_type=hist_type, record_id=record_id)
 
     @staticmethod
     def get_soft_skills(capabilities_id: int) -> List[Dict[str, Any]]:
@@ -261,47 +258,38 @@ class ReadFacade:
         Hinweis: In main_models.py verknüpfen wir CapabilitiesModel und SkillModel
         über die Tabelle `soft_skills`.
         """
-        soft_skills = ReadService.get_soft_skills(capabilities_id=capabilities_id)
-        return [r.to_dict() for r in soft_skills]
+        return ReadService.get_soft_skills(capabilities_id=capabilities_id)
 
     @staticmethod
     def get_tech_skills(capabilities_id: int) -> List[Dict[str, Any]]:
         """
         Analog zu get_soft_skills, nur für tech_skills.
         """
-        tech_skills = ReadService.get_tech_skills(capabilities_id=capabilities_id)
-        return [r.to_dict() for r in tech_skills]
+        return ReadService.get_tech_skills(capabilities_id=capabilities_id)
 
     @staticmethod
-    def get_freelancer_by_name(name: str) -> Dict[str, Any]:
+    def get_freelancer_by_name(name: str) -> Optional[Dict[str, Any]]:
         """
         Retrieve a FreelancerModel instance by name.
 
         If no session is provided, a new one is created for this query.
         """
-        freelancer = ReadService.get_freelancer_by_name(name=name)
-        if freelancer:
-            return freelancer.to_dict()
-        return None
+        return ReadService.get_freelancer_by_name(name=name)
 
     @staticmethod
-    def get_cv_by_freelancer_id(freelancer_id: int) -> Dict[str, Any]:
+    def get_cv_by_freelancer_id(freelancer_id: int) -> Optional[Dict[str, Any]]:
         """
         Retrieve a CVModel instance by freelancer_id.
 
         If no session is provided, a new one is created for this query.
         """
-        cv = ReadService.get_cv_by_freelancer_id(freelancer_id=freelancer_id)
-        if cv:
-            return cv.to_dict()
-        return None
+        return ReadService.get_cv_by_freelancer_id(freelancer_id=freelancer_id)
 
     @staticmethod
     def get_all_projects_from_db(
         project_status: ProjectStatus = ProjectStatus.NEW,
     ) -> List[Dict[str, Any]]:
-        projects = ReadService.get_all_projects_from_db(project_status=project_status)
-        return [r.to_dict() for r in projects]
+        return ReadService.get_all_projects_from_db(project_status=project_status)
 
     @staticmethod
     def load_cv_from_db(freelancer_id: int):
@@ -309,10 +297,10 @@ class ReadFacade:
         if not cv:
             return None
         try:
-            return json.loads(cv.structured_data)
+            return json.loads(cv.get("cv_structured_data"))
         except Exception as e1:
             try:
-                return json.loads(cv.structured_data.replace("'", '"'))
+                return json.loads(cv.get("cv_structured_data").replace("'", '"'))
             except Exception as e2:
                 facade_logger.error(
                     __name__,

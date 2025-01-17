@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ContractModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "project_id": {
+            "type": "integer"
+        },
+        "contract_date": {
+            "type": "string"
+        },
+        "signed_by_client": {
+            "type": "boolean",
+            "default": false
+        },
+        "signed_by_freelancer": {
+            "type": "boolean",
+            "default": false
+        }
+    },
+    "required": [
+        "id",
+        "contract_date"
+    ]
+}

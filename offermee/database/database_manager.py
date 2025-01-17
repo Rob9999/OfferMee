@@ -6,7 +6,7 @@ from dateutil import parser
 import os
 import logging
 from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
 from offermee.config import Config
 from offermee.database.transformers.to_json_schema import db_model_to_json_schema
@@ -118,7 +118,7 @@ class DatabaseManager:
         return db_type
 
     @staticmethod
-    def get_default_session() -> sessionmaker:
+    def get_default_session() -> Session:
         session, engine, db_path = DatabaseManager._initialize_database(
             DatabaseManager.db_selected, create_all_tables=False, shall_overwrite=False
         )
@@ -135,7 +135,7 @@ class DatabaseManager:
         db_type: str = "TEST",
         create_all_tables: bool = False,
         shall_overwrite: bool = False,
-    ) -> tuple[sessionmaker, Engine, str]:
+    ) -> tuple[Session, Engine, str]:
         """
         Creates a new database or overwrites the existing one.
         :param db_type: Name of the database (default: TEST).
@@ -151,15 +151,13 @@ class DatabaseManager:
         engine = DatabaseManager._create_database(
             db_path, create_all_tables=create_all_tables
         )
-        if create_all_tables:
-            DatabaseManager._store_all_db_models_as_json_schema()
-        session = sessionmaker(bind=engine)()
+        session: Session = sessionmaker(bind=engine)()
         logging.info(f"Database {db_type} initialized at {db_path}")
         return session, engine, db_path
 
     @staticmethod
     def _store_all_db_models_as_json_schema():
-        storage_dir = os.path.normpath("./schemas/json/db")
+        storage_dir = os.path.normpath("./offermee/schemas/json/db")
         os.makedirs(storage_dir, exist_ok=True)
         logging.info(f"Storing all db models as json schema to '{storage_dir}' ...")
         try:
@@ -205,7 +203,9 @@ class DatabaseManager:
     @staticmethod
     def _create_database(db_path: str, create_all_tables: bool = False):
         if os.path.exists(db_path) and not create_all_tables:
-            logging.info(f"Database already exists at {db_path}. Skipping creation.")
+            logging.info(
+                f"Database already exists at {db_path}. Skipping table creation."
+            )
             # Connect to the existing database
             engine = create_engine(f"sqlite:///{db_path}")
             return engine
@@ -218,4 +218,6 @@ class DatabaseManager:
         # create all tables
         DatabaseManager.Base.metadata.create_all(engine)
         logging.info(f"Database created at {db_path}")
+        # store all db tables as json schema
+        DatabaseManager._store_all_db_models_as_json_schema()
         return engine

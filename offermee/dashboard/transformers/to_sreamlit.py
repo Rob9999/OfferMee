@@ -1,6 +1,14 @@
 from typing import Any, Dict
 import streamlit as st
 
+key_number = 0
+
+
+def get_valid_next_key():
+    global key_number
+    key_number += 1
+    return f"key_{key_number}"
+
 
 def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> dict:
     """
@@ -18,14 +26,22 @@ def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> d
         dict: User input data.
     """
 
-    def clamp_value(value, min_value=None, max_value=None):
+    def clamp_value(
+        value,
+        min_value=None,
+        max_value=None,
+    ):
         if min_value is not None:
             value = max(value, min_value)
         if max_value is not None:
             value = min(value, max_value)
         return value
 
-    def render_field(field_name, field_def, current_value):
+    def render_field(
+        field_name,
+        field_def,
+        current_value,
+    ):
         field_type = field_def.get("type")
         if isinstance(field_type, list):
             field_type = field_type[
@@ -43,6 +59,7 @@ def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> d
                 current_value = enum_values[0]
             return st.selectbox(
                 label=f"{field_name}",
+                key=get_valid_next_key(),
                 options=enum_values,
                 index=enum_values.index(current_value),
                 help=description,
@@ -51,7 +68,10 @@ def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> d
         # Handle different field types
         if field_type == "string":
             return st.text_input(
-                label=f"{field_name}", value=current_value or "", help=description
+                label=f"{field_name}",
+                value=current_value or "",
+                key=get_valid_next_key(),
+                help=description,
             )
 
         elif field_type == "number":
@@ -59,6 +79,7 @@ def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> d
             current_value = clamp_value(current_value, minimum, maximum)
             return st.number_input(
                 label=f"{field_name}",
+                key=get_valid_next_key(),
                 value=current_value,
                 min_value=minimum,
                 max_value=maximum,
@@ -70,6 +91,7 @@ def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> d
             current_value = clamp_value(current_value, minimum, maximum)
             return st.number_input(
                 label=f"{field_name}",
+                key=get_valid_next_key(),
                 value=current_value,
                 min_value=minimum,
                 max_value=maximum,
@@ -79,29 +101,56 @@ def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> d
 
         elif field_type == "boolean":
             return st.checkbox(
-                label=f"{field_name}", value=bool(current_value), help=description
+                label=f"{field_name}",
+                key=get_valid_next_key(),
+                value=bool(current_value),
+                help=description,
             )
 
         elif field_type == "array":
             if not isinstance(current_value, list):
                 current_value = []
-            lines_text = "\n".join(str(x) for x in current_value)
-            new_val = st.text_area(
-                label=f"{field_name} (array, each line is one item)",
-                value=lines_text,
-                help=description,
-                height=100,
-            )
-            return [line.strip() for line in new_val.split("\n") if line.strip()]
+            items_def = field_def.get("items")
+            with st.container(
+                key=f"{field_name}_form_{get_valid_next_key()}", border=True
+            ):
+                st.write(
+                    f"### {field_name}",
+                    key=get_valid_next_key(),
+                )
+                ret_val = []
+                for current_val in current_value:
+                    if isinstance(current_val, dict) and "object" in items_def:
+                        ret_val.append(
+                            create_streamlit_form_from_json_schema(
+                                field_def, current_val
+                            )
+                        )
+                    else:
+                        ret_val.append(
+                            render_field(
+                                field_name,
+                                items_def,
+                                current_val,
+                            )
+                        )
+                return ret_val
 
         elif field_type == "object":
-            st.write(f"### {field_name}")
-            return create_streamlit_form_from_json_schema(field_def, current_value)
+            with st.container(
+                key=f"{field_name}_form_{get_valid_next_key()}", border=True
+            ):
+                # st.write(
+                #    f"### {field_name}",
+                #    key=get_valid_next_key(),
+                # )
+                return create_streamlit_form_from_json_schema(field_def, current_value)
 
         else:
             # Fallback for unknown types
             return st.text_input(
                 label=f"{field_name} (unhandled type: {field_type})",
+                key=get_valid_next_key(),
                 value=str(current_value or ""),
                 help=description,
             )
