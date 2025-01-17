@@ -13,7 +13,7 @@ def render():
     # Alle verfügbaren CV-Einträge abrufen
     cvs: List[Dict[str, Any]] = CVFacade.get_all()
 
-    if not cvs:
+    if len(cvs) < 1:
         st.info("Keine Lebensläufe in der Datenbank gefunden.")
         return
 
@@ -48,7 +48,7 @@ def render():
     # Knopf zum Exportieren
     if st.button("CV als PDF exportieren"):
         # Finde das ausgewählte CV-Modell
-        selected_cv: Dict[str, Any] = CVFacade.get_by_id(id=selected_cv_id)
+        selected_cv: Dict[str, Any] = CVFacade.get_by_id({"id": selected_cv_id})
         if not selected_cv:
             st.error("Gewählter Lebenslauf nicht gefunden.")
         else:

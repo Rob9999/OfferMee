@@ -76,7 +76,7 @@ class BaseFacade:
     def get_all_by(
         cls, pattern: Dict[str, Any], limit: int = 1000
     ) -> List[Dict[str, Any]]:
-        return cls.SERVICE.get_all_by(limit=limit, pattern=pattern)
+        return cls.SERVICE.get_all_by(pattern=pattern, limit=limit)
 
     @classmethod
     def get_first_by(cls, pattern: Dict[str, Any]) -> Optional[Dict[str, Any]]:

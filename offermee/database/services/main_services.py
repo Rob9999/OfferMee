@@ -307,7 +307,9 @@ class BaseService:
             return cls._expunge_all(all, session=session)
 
     @classmethod
-    def get_all_by(cls, limit: int = 1000, **pattern) -> List[Dict[str, Any]]:
+    def get_all_by(
+        cls, pattern: Dict[str, Any], limit: int = 1000
+    ) -> List[Dict[str, Any]]:
         with session_scope() as session:
             query = session.query(cls.MODEL)
 
@@ -319,7 +321,7 @@ class BaseService:
             return cls._expunge_all(all, session=session)
 
     @classmethod
-    def get_first_by(cls, **pattern) -> Optional[Dict[str, Any]]:
+    def get_first_by(cls, pattern: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         with session_scope() as session:
             query = session.query(cls.MODEL)
 

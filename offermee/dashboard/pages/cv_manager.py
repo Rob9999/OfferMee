@@ -43,6 +43,7 @@ def render():
             # Make a dict to store all uploaded cv data (including the cv processing outcome)
             uploaded_cv = {}
             uploaded_cv["uploaded_file"] = uploaded_file
+            uploaded_cv["cv_schema"] = cv_schema
 
             # PDF CV
             # Read all pdf text out
@@ -113,7 +114,7 @@ def render():
         ):
             try:
                 save_cv_logic(
-                    cv_candiate=cv_candiate,
+                    cv_candidate=cv_candiate,
                     uploaded_cv=uploaded_cv,
                     desired_rate_min=desired_rate_min,
                     desired_rate_max=desired_rate_max,
@@ -135,14 +136,14 @@ def render():
 
 
 def save_cv_logic(
-    cv_candiate: str,
+    cv_candidate: str,
     uploaded_cv: Dict[str, Any],
     desired_rate_min: float,
     desired_rate_max: float,
     operator: str,
 ):
     log_info(__name__, "Saving processed cv...")
-    freelancer: Dict[str, Any] = ReadFacade.get_freelancer_by_name(name=cv_candiate)
+    freelancer: Dict[str, Any] = ReadFacade.get_freelancer_by_name(name=cv_candidate)
     structured_data: Dict[str, Any] = uploaded_cv.get("cv_structured_data")
     if not structured_data:
         raise ValueError("cv_structured_data is missing.")
@@ -184,9 +185,9 @@ def save_cv_logic(
         return db_skills
 
     if not freelancer:
-        log_info(__name__, f"Adding new freelancer of {cv_candiate} to db...")
+        log_info(__name__, f"Adding new freelancer of {cv_candidate} to db...")
         new_freelancer = {
-            "name": cv_candiate,
+            "name": cv_candidate,
             "role": "DEVELOPER",
             "availability": "Sofort",
             "desired_rate_min": desired_rate_min,
@@ -215,10 +216,10 @@ def save_cv_logic(
     else:
         log_info(
             __name__,
-            f"Updating existing freelancer {freelancer.get('id')} of {cv_candiate} to db.",
+            f"Updating existing freelancer {freelancer.get('id')} of {cv_candidate} to db.",
         )
         update_freelancer = {
-            "name": cv_candiate,
+            "name": cv_candidate,
             "role": "DEVELOPER",
             "availability": "Sofort",
             "desired_rate_min": desired_rate_min,
@@ -256,19 +257,21 @@ def save_cv_logic(
                 f"No existing CV found for freelancer_id: {freelancer.get('id')}",
             )
         if not cv:
-            log_info(__name__, f"Adding new cv of {cv_candiate} to db...")
+            log_info(__name__, f"Adding new cv of {cv_candidate} to db...")
             new_cv = {
                 "freelancer_id": freelancer.get("id"),
-                "name": cv_candiate,
+                "name": cv_candidate,
                 "cv_raw_text": uploaded_cv.get("cv_text"),
                 "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
+                "cv_schema_reference": json.dumps(uploaded_cv.get("cv_schema")),
             }
             CVFacade.create(data=new_cv, created_by=operator)
         else:
-            log_info(__name__, f"Updating cv of {cv_candiate} to db.")
+            log_info(__name__, f"Updating cv of {cv_candidate} to db.")
             update_cv = {
-                "name": cv_candiate,
+                "name": cv_candidate,
                 "cv_raw_text": uploaded_cv.get("cv_text"),
                 "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
+                "cv_schema_reference": json.dumps(uploaded_cv.get("cv_schema")),
             }
             CVFacade.update(record_id=cv.get("id"), data=update_cv, updated_by=operator)

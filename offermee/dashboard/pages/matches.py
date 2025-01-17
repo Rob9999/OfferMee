@@ -22,6 +22,7 @@ def render():
     cv_candidate = st.text_input(
         label="Candidate", value=config.get_name_from_local_settings()
     )
+
     freelancer: Dict[str, Any] = FreelancerFacade.get_first_by({"name": cv_candidate})
     if freelancer is None:
         log_error(
@@ -30,7 +31,10 @@ def render():
         st.error(f"Unbekannter Freelancer {cv_candidate}, bitte zuerst CV hochladen!")
         st.stop()
 
-    freelancer_tech_skills = freelancer.get("capabilities", {}).get("tech_skills", [])
+    freelancer_tech_skills = freelancer.get(
+        "capabilities", {}
+    )  # .get("tech_skills", [])
+    st.write(f"freelancer_tech_skills:\n{freelancer_tech_skills}")
     freelancer_desired_rate = freelancer.get("desired_rate_min")
     st.session_state["freelancer"] = freelancer
     log_info(__name__, f"Freelancer {cv_candidate} is found")
@@ -63,7 +67,7 @@ def render():
             price_score = 0
         total_score = (match_score * 0.7) + (price_score * 0.3)  # Gewichtung anpassen
 
-        st.subheader(project.title)
+        st.subheader(project.get("title"))
         st.write(f"**Beschreibung:** {project.get('description')}")
         st.write(f"**Match Score:** {total_score:.2f}%")
         st.write(f"[Link zum Projekt]({project.get('original_link')})")
@@ -73,21 +77,21 @@ def render():
             for skill, details in skill_details.items():
                 if (
                     details["matched"]
-                    and project.must_haves
-                    and skill in project.must_haves.lower()
+                    and project.get("must_haves")
+                    and skill in project.get("must_haves").lower()
                 ):
                     st.write(f"- {skill} (Score: {details['score']})")
             st.write("**Nice-To-Have Skills:**")
             for skill, details in skill_details.items():
                 if (
                     details["matched"]
-                    and project.nice_to_haves
-                    and skill in project.nice_to_haves.lower()
+                    and project.get("nice_to_haves")
+                    and skill in project.get("nice_to_haves").lower()
                 ):
                     st.write(f"- {skill} (Score: {details['score']})")
             st.write(f"**Preis-Matching-Score:** {price_score:.2f}%")
 
-        if st.button(f"Angebot für {project.title} erstellen"):
+        if st.button(f"Angebot für {project.get('title')} erstellen"):
             if st.session_state and st.session_state.get("freelancer"):
                 freelancer = st.session_state["freelancer"]
             else:
