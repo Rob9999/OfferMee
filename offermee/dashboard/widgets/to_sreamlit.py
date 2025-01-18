@@ -1,16 +1,12 @@
 from typing import Any, Dict
 import streamlit as st
 
-key_number = 0
+from offermee.dashboard.widgets.uitls import get_valid_next_key
 
 
-def get_valid_next_key():
-    global key_number
-    key_number += 1
-    return f"key_{key_number}"
-
-
-def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> dict:
+def create_streamlit_edit_form_from_json_schema(
+    schema: dict, data: dict = None, outer_form_level: bool = True
+) -> tuple[Dict[str, Any], bool]:
     """
     Dynamically generates Streamlit input fields based on a JSON schema and returns user input data.
 
@@ -21,6 +17,7 @@ def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> d
     Args:
         schema (dict): JSON schema to create input fields from.
         data (dict): Optional default values for the fields.
+        outer_form_level (bool): Signals the out form level, that gets a submit button
 
     Returns:
         dict: User input data.
@@ -116,16 +113,12 @@ def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> d
             ):
                 st.write(
                     f"### {field_name}",
-                    key=get_valid_next_key(),
+                    # key=get_valid_next_key(),
                 )
                 ret_val = []
                 for current_val in current_value:
                     if isinstance(current_val, dict) and "object" in items_def:
-                        ret_val.append(
-                            create_streamlit_form_from_json_schema(
-                                field_def, current_val
-                            )
-                        )
+                        ret_val.append(nestable(field_def, current_val))
                     else:
                         ret_val.append(
                             render_field(
@@ -144,7 +137,7 @@ def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> d
                 #    f"### {field_name}",
                 #    key=get_valid_next_key(),
                 # )
-                return create_streamlit_form_from_json_schema(field_def, current_value)
+                return nestable(field_def, current_value)
 
         else:
             # Fallback for unknown types
@@ -155,22 +148,36 @@ def create_streamlit_form_from_json_schema(schema: dict, data: dict = None) -> d
                 help=description,
             )
 
-    # Initialize data if None
-    if data is None:
-        data = {}
+    def nestable(
+        schema: Dict[str, Any],
+        data: Dict[str, Any] = None,
+    ):
+        # Initialize data if None
+        if data is None:
+            data = {}
+        # Add title from schema if available
+        if "title" in schema:
+            st.title(schema["title"])
 
-    # Add title from schema if available
-    if "title" in schema:
-        st.title(schema["title"])
+        user_data = {}
+        properties = schema.get("properties", {})
 
-    user_data = {}
-    properties = schema.get("properties", {})
+        for field_name, field_def in properties.items():
+            current_value = data.get(field_name, field_def.get("default"))
+            user_data[field_name] = render_field(field_name, field_def, current_value)
 
-    for field_name, field_def in properties.items():
-        current_value = data.get(field_name, field_def.get("default"))
-        user_data[field_name] = render_field(field_name, field_def, current_value)
+        return user_data
 
-    return user_data
+    if outer_form_level:
+        with st.form(f"submit_{get_valid_next_key()}"):
+            data = nestable(schema=schema, data=data)
+            if st.form_submit_button("Submit"):
+                st.write("Thanks!")
+                return data, True
+            return data, False
+
+    else:
+        return nestable(schema=schema, data=data), True
 
 
 def create_search_widget_from_json_schema(

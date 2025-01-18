@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 import streamlit as st
 
-from offermee.dashboard.transformers.to_sreamlit import (
+from offermee.dashboard.widgets.to_sreamlit import (
     create_search_widget_from_json_schema,
     display_dict_as_widgets,
 )

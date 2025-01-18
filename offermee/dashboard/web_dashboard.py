@@ -8,14 +8,17 @@ web_logger = CentralLogger().getLogger(name="web")
 
 
 def get_logger():
+    global web_logger
     return web_logger
 
 
 def log_info(page_name: str, message: str):
+    global web_logger
     web_logger.info(f"{page_name} - {message}")
 
 
 def log_error(page_name: str, message: str):
+    global web_logger
     web_logger.error(f"{page_name} - {message}")
 
 

@@ -6,8 +6,8 @@ import streamlit as st
 
 from offermee.config import Config
 from offermee.AI.cv_processor import CVProcessor
-from offermee.dashboard.transformers.to_sreamlit import (
-    create_streamlit_form_from_json_schema,
+from offermee.dashboard.widgets.to_sreamlit import (
+    create_streamlit_edit_form_from_json_schema,
 )
 from offermee.dashboard.web_dashboard import log_error, log_info, stop_if_not_logged_in
 from offermee.database.facades.main_facades import (
@@ -62,7 +62,7 @@ def render():
                 return
 
             st.write("Extrahierte Daten:")
-            final_cv_structured_data = create_streamlit_form_from_json_schema(
+            final_cv_structured_data = create_streamlit_edit_form_from_json_schema(
                 cv_schema, cv_structured_data
             )
             uploaded_cv["cv_structured_data"] = final_cv_structured_data

@@ -11,8 +11,8 @@ from offermee.schemas.json.schema_loader import get_schema, validate_json
 from offermee.schemas.json.schema_keys import SchemaKey
 from offermee.database.db_connection import session_scope
 from offermee.database.transformers.project_model_transformer import json_to_db
-from offermee.dashboard.transformers.to_sreamlit import (
-    create_streamlit_form_from_json_schema,
+from offermee.dashboard.widgets.to_sreamlit import (
+    create_streamlit_edit_form_from_json_schema,
 )
 
 
@@ -93,7 +93,7 @@ def render():
 
     # --- Step 3: Validation form
     if st.session_state["analysis_done"]:
-        updated_data = create_streamlit_form_from_json_schema(
+        updated_data = create_streamlit_edit_form_from_json_schema(
             schema, st.session_state["project_form_data"]
         )
 

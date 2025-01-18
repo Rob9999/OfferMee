@@ -1,0 +1,79 @@
+# English translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-01-18 12:55+0100\n"
+"PO-Revision-Date: 2025-01-18 12:55+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.16.0\n"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:14
+msgid "CV Export"
+msgstr "CV Export"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:17
+msgid "Select CV to export"
+msgstr "Select CV to export"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:22
+msgid "Select export language:"
+msgstr "Select export language:"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:26
+msgid "Export CV as PDF"
+msgstr "Export CV as PDF"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:35
+msgid "CV was successfully exported: {}"
+msgstr "CV was successfully exported: {}"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:41
+msgid "Download PDF"
+msgstr "Download PDF"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:47
+msgid "An error occurred while exporting the CV."
+msgstr "An error occurred while exporting the CV."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:51
+msgid "An unexpected error occurred. Please try again."
+msgstr "An unexpected error occurred. Please try again."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:32
+msgid "An error occurred while retrieving the current user."
+msgstr "An error occurred while retrieving the current user."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:40
+msgid "An error occurred while fetching CVs from the database."
+msgstr "An error occurred while fetching CVs from the database."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:44
+msgid "No CVs found in the database. Please upload one first."
+msgstr "No CVs found in the database. Please upload one first."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:74
+msgid "Available CVs"
+msgstr "Available CVs"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:77
+msgid "Select a CV:"
+msgstr "Select a CV:"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:84
+msgid "An error occurred during the CV selection process."
+msgstr "An error occurred during the CV selection process."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:87
+msgid "OK"
+msgstr "OK"

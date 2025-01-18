@@ -12,3 +12,6 @@ PyPDF2
 pycryptodome
 streamlit-authenticator
 reportlab
+platformdirs
+babel
+polib

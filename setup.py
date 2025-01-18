@@ -19,5 +19,8 @@ setup(
         "pycryptodome",
         "streamlit-authenticator",
         "reportlab",
+        "platformdirs",
+        "babel",
+        "polib",
     ],
 )
