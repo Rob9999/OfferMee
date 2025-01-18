@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "InterviewModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "project_id": {
+            "type": "integer"
+        },
+        "date": {
+            "type": "string"
+        },
+        "interviewer": {
+            "type": "string"
+        },
+        "notes": {
+            "type": "string"
+        },
+        "rating": {
+            "type": "number"
+        }
+    },
+    "required": [
+        "id",
+        "date",
+        "interviewer"
+    ]
+}

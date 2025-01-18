@@ -4,7 +4,7 @@ from offermee.config import Config
 from offermee.users.credential_loader import load_credentials_from_db
 from offermee.logger import CentralLogger
 
-web_logger = CentralLogger().getLogger(name="web")
+web_logger = CentralLogger.getLogger(name="web")
 
 
 def get_logger():

@@ -17,7 +17,7 @@ _schemas = {
     SchemaKey.PROJECT: {"filename": JSON_SCHEMA_FILENAME_PROJECT, "value": None},
 }
 
-schema_logger = CentralLogger().getLogger(__name__)
+schema_logger = CentralLogger.getLogger(__name__)
 
 
 def get_schema(schema_key: SchemaKey):

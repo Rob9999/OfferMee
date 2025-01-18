@@ -1,4 +1,5 @@
-from typing import Any, Dict, Union
+import traceback
+from typing import Any, Dict, List, Optional, Union
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -8,30 +9,42 @@ from reportlab.lib.units import inch
 from offermee.logger import CentralLogger
 
 
-pdf_exporter_logger = CentralLogger().getLogger(__name__)
+pdf_exporter_logger = CentralLogger.getLogger(__name__)
 
 
-def export_cv_to_pdf(cv_data: Dict[str, Any], language="de") -> str:
+def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -> str:
+    if not name:
+        pdf_exporter_logger.error(
+            f"Argument Error: name:'{name}'. Unable to export cv to pdf."
+        )
+        return None
     if not cv_data:
         pdf_exporter_logger.error(
             f"Argument Error: cv_data:'{cv_data}'. Unable to export cv to pdf."
         )
         return None
+    pdf_filename = f"cv_{name}_{language}.pdf"
     try:
-        name = cv_data.get("name")
-        pdf_exporter_logger.info(__name__, f"Exporting CV for '{name}' to PDF...")
-        pdf_filename = f"cv_{name}_{language}.pdf"
+        pdf_exporter_logger.info(f"Exporting CV '{pdf_filename}' ...")
+        person: Dict[str, Any] = cv_data.get("person", {})
+        if not person:
+            raise ValueError("data corrupted: no 'person'")
+        firstnames = person.get("firstnames")
+        if not firstnames:
+            raise ValueError("data corrupted: no 'firstnames'")
         doc = SimpleDocTemplate(pdf_filename, pagesize=letter)
         styles = getSampleStyleSheet()
         elements = []
 
-        cv_strutured_data = cv_data.get("cv_structured_data")
         management_summary = None
-        person = cv_strutured_data.get("person", {}).get("person", {})
-        educations = cv_strutured_data.get("educations", [])
-        projects = cv_strutured_data.get("projects", [])
-        jobs = cv_strutured_data.get("jobs", [])
-        contact = cv_strutured_data.get("contact", {}).get("contact", {})
+        educations: List[Dict[str, Any]] = cv_data.get("educations")
+        projects: List[Dict[str, Any]] = cv_data.get("projects")
+        jobs: List[Dict[str, Any]] = cv_data.get("jobs")
+        contacts: List[Dict[str, Any]] = cv_data.get("contacts", [])
+        contact: Optional[Dict[str, Any]] = contacts[0] if contacts else None
+        contact: Optional[Dict[str, Any]] = (
+            contact.get("contact") if contact and contact.get("contact") else None
+        )
 
         # Management Summary
         if management_summary:
@@ -280,8 +293,9 @@ def export_cv_to_pdf(cv_data: Dict[str, Any], language="de") -> str:
         return pdf_filename
     except Exception as e:
         pdf_exporter_logger.error(
-            "Unable to export CV to PDF. CV data may be corrupted : {e}",
+            f"Unable to export CV to PDF. CV data may be corrupted : {e}"
         )
+        traceback.print_exception(type(e), e, e.__traceback__)
         return None
 
 

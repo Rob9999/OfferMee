@@ -1,0 +1,91 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ProjectModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "title": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "must_haves": {
+            "type": "string"
+        },
+        "nice_to_haves": {
+            "type": "string"
+        },
+        "tasks": {
+            "type": "string"
+        },
+        "responsibilities": {
+            "type": "string"
+        },
+        "hourly_rate": {
+            "type": "number"
+        },
+        "other_conditions": {
+            "type": "string"
+        },
+        "contact_person": {
+            "type": "string"
+        },
+        "provider": {
+            "type": "string"
+        },
+        "provider_link": {
+            "type": "string"
+        },
+        "start_date": {
+            "type": "string"
+        },
+        "end_date": {
+            "type": "string"
+        },
+        "duration": {
+            "type": "string"
+        },
+        "extension_option": {
+            "type": "string"
+        },
+        "original_link": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "NEW",
+                "OFFER_SENT",
+                "INTERVIEW",
+                "CONTRACT_SIGNED",
+                "IN_PROGRESS",
+                "COMPLETED",
+                "REJECTED"
+            ],
+            "default": "NEW",
+            "maxLength": 15
+        },
+        "created_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x0000017CE254D260>"
+        },
+        "updated_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x0000017CE254D300>"
+        },
+        "address_id": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "id",
+        "title",
+        "start_date"
+    ]
+}

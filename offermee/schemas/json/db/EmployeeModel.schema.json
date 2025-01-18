@@ -1,0 +1,42 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "EmployeeModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "name": {
+            "type": "string"
+        },
+        "capabilities_id": {
+            "type": "integer"
+        },
+        "role": {
+            "type": "string"
+        },
+        "start_date": {
+            "type": "string"
+        },
+        "end_date": {
+            "type": "string"
+        },
+        "created_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x0000017CE2528900>"
+        },
+        "updated_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x0000017CE25289A0>"
+        },
+        "contact_id": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "role",
+        "start_date"
+    ]
+}

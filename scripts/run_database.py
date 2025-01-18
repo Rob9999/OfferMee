@@ -5,8 +5,8 @@ from offermee.logger import CentralLogger
 
 def main():
     # select database type
-    db_manager = DatabaseManager("TEST", shall_overwrite=True)
-    logger = CentralLogger().getLogger(__name__)
+    db_manager = DatabaseManager.load_database("TEST", shall_overwrite=True)
+    logger = CentralLogger.getLogger(__name__)
 
     try:
         # Dummy-Daten einfügen

@@ -3,13 +3,11 @@ from offermee.dashboard.international import _T
 import streamlit as st
 from offermee.config import Config
 from offermee.dashboard.web_dashboard import log_info
-from offermee.dashboard.widgets.uitls import get_valid_next_key, log_error
+from offermee.dashboard.widgets.uitls import log_error
 from offermee.database.facades.main_facades import CVFacade
 
 
-def render_cv_selection_form(
-    label: str, pre_selected_candidate: Optional[str] = None
-) -> Optional[str]:
+def render_cv_selection_form(label: str, pre_selected_candidate: Optional[str] = None):
     """
     Renders a form for selecting a CV (Curriculum Vitae) with a pre-selected candidate option.
 
@@ -20,7 +18,9 @@ def render_cv_selection_form(
     Returns:
         Optional[str]: The ID of the selected CV, or None if no selection is made.
     """
-    with st.form(f"form_select_candidate_{get_valid_next_key()}"):
+    with st.form(
+        key=f"form_select_candidate_{label}"
+    ):  # do not use a method to generate the key, submit button will not --> bug in streamlit
         st.subheader(f"{label}")
 
         # If no pre-selected candidate is provided, retrieve the current user
@@ -31,7 +31,7 @@ def render_cv_selection_form(
             except Exception as e:
                 log_error("Failed to retrieve current user: {}", str(e))
                 st.error(_T("An error occurred while retrieving the current user."))
-                return None
+                st.stop()
 
         # Retrieve CVs from the database
         try:
@@ -39,11 +39,11 @@ def render_cv_selection_form(
         except Exception as e:
             log_error("Failed to fetch CVs from the database: {}", str(e))
             st.error(_T("An error occurred while fetching CVs from the database."))
-            return None
+            st.stop()
 
         if not cvs:
             st.info(_T("No CVs found in the database. Please upload one first."))
-            return None
+            st.stop()
 
         # Build a list of CV data for display
         cv_table_data = []
@@ -83,32 +83,15 @@ def render_cv_selection_form(
         except Exception as e:
             log_error("Error during CV selection process: {}", str(e))
             st.error(_T("An error occurred during the CV selection process."))
-            return None
+            st.stop()
 
-        def create_on_click_callable(
-            selected_cv_id: Optional[int], cvs: List[Dict[str, Any]]
-        ) -> Callable[[], None]:
-            """
-            Returns a callable function that, when invoked, sets session state values
-            based on the selected CV ID and list of CVs.
-            """
-
-            def on_click():
-                log_info(__name__, "on_click")
-                st.session_state["selected_cv_id"] = selected_cv_id
-                st.session_state["selected_cv"] = next(
-                    (cv for cv in cvs if cv.get("id") == selected_cv_id), None
-                )
-
-            return on_click
-
-        callable = create_on_click_callable(selected_cv_id=selected_cv_id, cvs=cvs)
         if st.form_submit_button(
-            _T("OK"), icon=":material/thumb_up:", on_click=callable
+            _T("OK"),
+            icon=":material/thumb_up:",
         ):
-            log_info(__name__, "submit button pressed")
+            log_info(__name__, f"Setting CV selection: CV#{selected_cv_id} ...")
             st.session_state["selected_cv_id"] = selected_cv_id
             st.session_state["selected_cv"] = next(
                 (cv for cv in cvs if cv.get("id") == selected_cv_id), None
             )
-            st.rerun()
+            log_info(__name__, f"CV selection done: CV#{selected_cv_id}")

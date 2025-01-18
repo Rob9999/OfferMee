@@ -7,7 +7,7 @@ key_number = 0
 def get_valid_next_key():
     global key_number
     key_number += 1
-    return f"_key_{key_number}"
+    return f"_{key_number}"
 
 
 widget_logger = CentralLogger.getLogger("widget")
