@@ -1,3 +1,7 @@
+## v0.0.1247 - 2025-01-21
+
+- chore: bump version to
+
 ## v0.0.1246 - 2025-01-21
 
 - chore: bump version to
