@@ -15,7 +15,6 @@ from offermee.dashboard.helpers.web_dashboard import (
     make_container_path,
     stop_if_not_logged_in,
 )
-from offermee.dashboard.widgets.uitls import get_or_create_session_container
 from offermee.database.facades.main_facades import CVFacade
 from offermee.utils.container import Container
 
