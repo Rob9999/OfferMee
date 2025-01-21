@@ -1,10 +1,10 @@
 from typing import Any, Dict, List
 import streamlit as st
-from offermee.dashboard.web_dashboard import stop_if_not_logged_in
+from offermee.dashboard.helpers.web_dashboard import stop_if_not_logged_in
 from offermee.database.facades.main_facades import FreelancerFacade
 
 
-def render():
+def templates_render():
     st.header("Standardangebotstemplate")
     stop_if_not_logged_in()
 

@@ -5,7 +5,7 @@ from offermee.dashboard.widgets.to_sreamlit import (
     create_search_widget_from_json_schema,
     display_dict_as_widgets,
 )
-from offermee.dashboard.web_dashboard import stop_if_not_logged_in
+from offermee.dashboard.helpers.web_dashboard import stop_if_not_logged_in
 from offermee.database.facades.main_facades import ProjectFacade
 from offermee.database.models.main_models import ProjectModel
 from offermee.database.transformers.to_json_schema import db_model_to_json_schema

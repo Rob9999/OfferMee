@@ -1,10 +1,10 @@
 import streamlit as st
 import os
 from offermee.config import Config
-from offermee.dashboard.web_dashboard import stop_if_not_logged_in
+from offermee.dashboard.helpers.web_dashboard import stop_if_not_logged_in
 
 
-def render():
+def settings_render():
     st.title("Einstellungen")
     stop_if_not_logged_in()
 

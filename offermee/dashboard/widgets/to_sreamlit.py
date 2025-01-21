@@ -2,8 +2,8 @@ import json
 from typing import Any, Callable, Dict, List, Optional
 import streamlit as st
 
-from offermee.dashboard.international import _T
-from offermee.dashboard.web_dashboard import log_debug, log_info
+from offermee.dashboard.helpers.international import _T
+from offermee.dashboard.helpers.web_dashboard import log_debug, log_info
 from offermee.schemas.json.schema_loader import validate_json
 from offermee.utils.container import Container
 

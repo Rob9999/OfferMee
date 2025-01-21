@@ -3,24 +3,33 @@ import os
 from typing import Any, Dict
 import streamlit as st
 from offermee.config import Config
-from offermee.dashboard.international import _T
+from offermee.dashboard.helpers.international import _T
 from offermee.dashboard.widgets.selectors import render_cv_selection_form
 from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
 )
-from offermee.dashboard.web_dashboard import log_error, log_info, stop_if_not_logged_in
+from offermee.dashboard.helpers.web_dashboard import (
+    get_app_container,
+    log_error,
+    log_info,
+    make_container_path,
+    stop_if_not_logged_in,
+)
 from offermee.dashboard.widgets.uitls import get_or_create_session_container
 from offermee.database.facades.main_facades import CVFacade
 from offermee.utils.container import Container
 
 
-def render():
+def cv_edit_render():
     st.header("CV bearbeiten")
     stop_if_not_logged_in()
 
-    container_label = "cv_container"
-    container: Container = get_or_create_session_container(
-        container_label=container_label
+    page_root = __name__
+    container: Container = get_app_container()
+    path_cv_structured_data = make_container_path(page_root, "cv_structured_data")
+    path_cv_schema = make_container_path(page_root, "cv_schema")
+    path_cv_edited_structure_data = make_container_path(
+        page_root, "cv_edited_structure_data"
     )
 
     # Render the CV selection form
@@ -31,26 +40,26 @@ def render():
     if selected_cv_id:
         cv: Dict[str, Any] = st.session_state.get("selected_cv")
         log_info(__name__, f"Selected CV#{selected_cv_id} to edit.")
-        if not container.get_value("cv_structured_data", None):
+        if not container.get_value(path_cv_structured_data, None):
             structured_data, cv_schema = get_cv_data_and_schema(cv)
             if structured_data is None or cv_schema is None:
                 st.info(
                     "CV nicht auswertbar. Bitte lade deinen Lebenslauf nochmals hoch."
                 )
                 st.stop()
-            container.set_value("cv_structured_data", structured_data)
-            container.set_value("cv_schema", cv_schema)
+            container.set_value(path_cv_structured_data, structured_data)
+            container.set_value(path_cv_schema, cv_schema)
             log_info(__name__, f"Set container data.")
 
         ready_edited = create_streamlit_edit_form_from_json_schema(
             container=container,
-            container_data_path="cv_structured_data",
-            container_schema_path="cv_schema",
-            container_edited_data_path="cv_edited_structure_data",
+            container_data_path=path_cv_structured_data,
+            container_schema_path=path_cv_schema,
+            container_edited_data_path=path_cv_edited_structure_data,
             label=_T("CV Edit"),
         )
         log_info(__name__, f"ready: {ready_edited}")
-        edited_cv = container.get_value("cv_edited_structure_data")
+        edited_cv = container.get_value(path_cv_edited_structure_data)
         if edited_cv:
             log_info(__name__, f"Processing edited cv data ...")
             container.dump(path=Config.get_instance().get_user_temp_dir())

@@ -2,7 +2,7 @@ import streamlit as st
 from offermee.users.user_management import register_user
 
 
-def render():
+def signup_render():
     st.title("Sign up")
 
     username = st.text_input("Username")

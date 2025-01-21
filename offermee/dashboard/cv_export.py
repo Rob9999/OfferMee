@@ -4,11 +4,11 @@ from typing import Any, Dict
 import streamlit as st
 from offermee.dashboard.widgets.selectors import render_cv_selection_form
 from offermee.exporter.pdf_exporter import export_cv_to_pdf
-from offermee.dashboard.international import _T
-from offermee.dashboard.web_dashboard import log_error, log_info
+from offermee.dashboard.helpers.international import _T
+from offermee.dashboard.helpers.web_dashboard import log_error, log_info
 
 
-def render():
+def cv_export_render():
     """
     Render the CV export page in the Streamlit dashboard.
     Allows users to select a CV, choose a language, and export it as a PDF.

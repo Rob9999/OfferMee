@@ -8,7 +8,11 @@ from offermee.AI.cv_processor import CVProcessor
 from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
 )
-from offermee.dashboard.web_dashboard import log_error, log_info, stop_if_not_logged_in
+from offermee.dashboard.helpers.web_dashboard import (
+    log_error,
+    log_info,
+    stop_if_not_logged_in,
+)
 from offermee.database.facades.main_facades import (
     CVFacade,
     FreelancerFacade,
@@ -19,11 +23,11 @@ import PyPDF2
 
 from offermee.schemas.json.schema_keys import SchemaKey
 from offermee.schemas.json.schema_loader import get_schema
-from offermee.dashboard.international import _T
+from offermee.dashboard.helpers.international import _T
 from offermee.utils.utils import safe_type
 
 
-def render() -> None:
+def cv_manager_render() -> None:
     """
     Rendert die 'Upload CV'-Page in der Streamlit-Anwendung.
     Ermöglicht das Hochladen einer PDF, das Auslesen mit AI,

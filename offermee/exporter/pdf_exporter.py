@@ -314,9 +314,9 @@ def _util_add_valid_paragraph(
 ):
     if not elements or not isinstance(elements, list):
         return
-    if not content or content is "" or content is None:
+    if not content or content == "" or content is None:
         return
-    if not label or label is "" or label is None:
+    if not label or label == "" or label is None:
         elements.append(Paragraph(f"{content}", style))
     else:
         elements.append(Paragraph(f"{label}: {content}", style))

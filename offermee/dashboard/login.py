@@ -1,12 +1,12 @@
 import streamlit as st
-from offermee.dashboard.web_dashboard import (
+from offermee.dashboard.helpers.web_dashboard import (
     get_authenticator,
     is_logged_in,
     set_logged_in,
 )
 
 
-def render():
+def login_render():
     st.title("Login")
 
     # 1) Authenticator abrufen

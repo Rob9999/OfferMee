@@ -1,7 +1,7 @@
 from typing import Any, Dict
 import streamlit as st
 
-from offermee.dashboard.international import _T
+from offermee.dashboard.helpers.international import _T
 
 
 def edit_freelancers_hourly_rate(

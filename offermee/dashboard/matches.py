@@ -2,7 +2,11 @@ import datetime
 from typing import Any, Dict, List
 import streamlit as st
 from offermee.config import Config
-from offermee.dashboard.web_dashboard import log_error, log_info, stop_if_not_logged_in
+from offermee.dashboard.helpers.web_dashboard import (
+    log_error,
+    log_info,
+    stop_if_not_logged_in,
+)
 from offermee.database.facades.main_facades import FreelancerFacade, ProjectFacade
 from offermee.database.models.main_models import ProjectStatus
 from offermee.matcher.skill_matcher import SkillMatcher
@@ -11,7 +15,7 @@ from offermee.offers.generator import OfferGenerator
 from offermee.offers.email_utils import EmailUtils
 
 
-def render():
+def matches_render():
     page_title = "Projektmatcher & Angebotserstellung"
     st.header(page_title)
     stop_if_not_logged_in()

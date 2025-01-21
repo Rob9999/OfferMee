@@ -70,9 +70,15 @@ def get_or_create_session_container(container_label: str) -> Optional[Container]
         return None
 
 
+def has_session_container(container_label: str) -> Optional[bool]:
+    if container_label in st.session_state:
+        return True
+    return False
+
+
 def del_session_container(container_label: str) -> Optional[bool]:
     try:
-        if container_label not in st.session_state:
+        if not has_session_container:
             log_warning(
                 f"Session container '{container_label}' is already deleted or was not created."
             )

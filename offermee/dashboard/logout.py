@@ -1,14 +1,14 @@
 import time
 import streamlit as st
 import os
-from offermee.dashboard.web_dashboard import (
+from offermee.dashboard.helpers.web_dashboard import (
     get_authenticator,
     is_logged_in,
     set_logged_in,
 )
 
 
-def render():
+def logout_render():
     st.title("Logout")
     # stop_if_not_logged_in()
     if is_logged_in():

@@ -4,7 +4,11 @@ import streamlit as st
 from jsonschema import ValidationError
 
 # Deine Projektspezifischen Importe
-from offermee.dashboard.web_dashboard import stop_if_not_logged_in, log_info, log_error
+from offermee.dashboard.helpers.web_dashboard import (
+    stop_if_not_logged_in,
+    log_info,
+    log_error,
+)
 from offermee.AI.project_processor import ProjectProcessor
 from offermee.database.facades.main_facades import ProjectFacade
 from offermee.schemas.json.schema_loader import get_schema, validate_json
@@ -13,10 +17,10 @@ from offermee.database.transformers.project_model_transformer import json_to_db
 from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
 )
-from offermee.dashboard.international import _T
+from offermee.dashboard.helpers.international import _T
 
 
-def render():
+def manual_input_render():
     """
     Streamlit page: multi-step input & validation flow.
 
