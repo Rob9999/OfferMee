@@ -354,6 +354,7 @@ class BaseService:
             # Update flat fields
             for k, v in flat_fields.items():
                 setattr(instance, k, v)
+                print(f"Set {k} to {v}")
             session.flush()
 
             # Process nested relationships (one-to-one assumed) for updates
@@ -452,7 +453,11 @@ class BaseService:
                     session.flush()
 
             # History and Documents handling as before
-            description = f"Updated {cls.MODEL.__name__} with ID={record_id}"
+            description = (
+                f"Updated {cls.MODEL.__name__} with ID={record_id}:"
+                f"\nFlat:\n{flat_fields}"
+                f"\nRelationships:\n{relationships_data}"
+            )
             _create_history_entry(
                 session,
                 cls.HISTORY_TYPE,

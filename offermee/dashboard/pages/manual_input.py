@@ -9,11 +9,11 @@ from offermee.AI.project_processor import ProjectProcessor
 from offermee.database.facades.main_facades import ProjectFacade
 from offermee.schemas.json.schema_loader import get_schema, validate_json
 from offermee.schemas.json.schema_keys import SchemaKey
-from offermee.database.db_connection import session_scope
 from offermee.database.transformers.project_model_transformer import json_to_db
 from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
 )
+from offermee.dashboard.international import _T
 
 
 def render():
@@ -93,13 +93,21 @@ def render():
 
     # --- Step 3: Validation form
     if st.session_state["analysis_done"]:
-        updated_data = create_streamlit_edit_form_from_json_schema(
-            schema, st.session_state["project_form_data"]
+        create_streamlit_edit_form_from_json_schema(
+            container_label="edited_project",
+            label=_T("Project Validate Extracted Data"),
+            schema=schema,
+            data=st.session_state["project_form_data"],
         )
 
         # If user modifies anything in the form => we must re-validate
-        if updated_data != st.session_state["project_form_data"]:
-            st.session_state["project_form_data"] = updated_data
+        if (
+            st.session_state.get("edited_project")
+            != st.session_state["project_form_data"]
+        ):
+            st.session_state["project_form_data"] = st.session_state.get[
+                "edited_project"
+            ]
             invalidate_validation()
 
         # --- Step 4: Validate Data

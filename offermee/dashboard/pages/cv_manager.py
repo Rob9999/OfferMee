@@ -19,172 +19,217 @@ import PyPDF2
 
 from offermee.schemas.json.schema_keys import SchemaKey
 from offermee.schemas.json.schema_loader import get_schema
+from offermee.dashboard.international import _T
+from offermee.utils.utils import safe_type
 
 
-def render():
-    st.header("Upload CV")
+def render() -> None:
+    """
+    Rendert die 'Upload CV'-Page in der Streamlit-Anwendung.
+    Ermöglicht das Hochladen einer PDF, das Auslesen mit AI,
+    das Bearbeiten der extrahierten Daten und das Speichern in der Datenbank.
+    """
+
+    st.header(_T("Upload CV"))
     stop_if_not_logged_in()
 
+    edit_cv_form_label = _T("CV Extracted Data")
     config = Config.get_instance()
     operator = config.get_current_user()
     cv_schema = get_schema(SchemaKey.CV)
-    cv_candiate = st.text_input(
-        label="Candidate", value=config.get_name_from_local_settings()
+
+    # Kandidatenname vorbelegen (falls in local_settings hinterlegt)
+    cv_candidate = st.text_input(
+        label=_T("Candidate"), value=config.get_name_from_local_settings()
     )
 
-    uploaded_file = st.file_uploader("Upload your resume (PDF):", type=["pdf"])
-    if uploaded_file is not None:
-        if (
-            not st.session_state.get("uploaded_cv")
-            or st.session_state["uploaded_cv"] is None
-        ):
-            log_info(__name__, f"Processing uploaded cv {uploaded_file.name} ...")
-            # Make a dict to store all uploaded cv data (including the cv processing outcome)
-            uploaded_cv = {}
-            uploaded_cv["uploaded_file"] = uploaded_file
-            uploaded_cv["cv_schema"] = cv_schema
+    # Upload-Feld für PDF
+    uploaded_file = st.file_uploader(_T("Upload your resume (PDF):"), type=["pdf"])
 
-            # PDF CV
-            # Read all pdf text out
+    # Nur dann ausführen, wenn eine neue Datei hochgeladen wurde
+    if (
+        uploaded_file
+        and st.session_state.get("uploaded_cv", {}).get("uploaded_file")
+        != uploaded_file
+    ):
+        # Workflow Section: Read out uploaded file and then process the data via AI
+        log_info(__name__, f"Processing uploaded CV {uploaded_file.name} ...")
+        uploaded_cv = {
+            "uploaded_file": uploaded_file,
+            "cv_schema": cv_schema,
+        }
+        st.session_state["uploaded_cv"] = uploaded_cv
+        st.session_state[f"edited_data_of_{edit_cv_form_label}"] = None
+
+        # PDF auslesen
+        try:
             reader = PyPDF2.PdfReader(uploaded_file)
             cv_text = ""
             for page in reader.pages:
                 cv_text += page.extract_text() or ""
             uploaded_cv["cv_text"] = cv_text
+        except Exception as e:
+            log_error(__name__, f"Error reading PDF: {e}")
+            st.error(_T("Error reading the PDF. Please try again."))
+            return
 
-            # Get CVProcessor and analyze cv text
-            cv_processor = CVProcessor()
-            cv_structured_data = cv_processor.analyze_cv(cv_text)
-            if not cv_structured_data:
-                log_error(__name__, "Error during cv analysis.")
-                st.error("Fehler beim Analysieren des Lebenslaufs.")
-                return
+        # AI-gestützte Analyse des ausgelesenen Textes
+        cv_processor = CVProcessor()
+        ai_processed_cv_structured_data = cv_processor.analyze_cv(cv_text)
+        if not ai_processed_cv_structured_data:
+            log_error(__name__, "Error during CV analysis.")
+            st.error(_T("Error analyzing the CV."))
+            return
+        uploaded_cv["cv_structured_data"] = ai_processed_cv_structured_data
 
-            st.write("Extrahierte Daten:")
-            final_cv_structured_data = create_streamlit_edit_form_from_json_schema(
-                cv_schema, cv_structured_data
-            )
-            uploaded_cv["cv_structured_data"] = final_cv_structured_data
-
-            # Get extracted person data
-            cv_person_data = final_cv_structured_data.get("person", {})
-            # Get person name
-            cv_person_name = CVProcessor.get_person_name(
-                cv_person_data, max_firstnames=2
-            )
-            st.write(f"CV candidate call name in offermee process: {cv_person_name}")
-            cv_candiate = cv_person_name
-            uploaded_cv["cv_person_name"] = cv_person_name
-            uploaded_cv["firstnames"] = " ".join(cv_person_data.get("firstnames"))
-            uploaded_cv["lastname"] = cv_person_data.get("lastname")
-
-            # Get soft skills
-            cv_soft_skills = CVProcessor.get_all_soft_skills(cv_structured_data)
-            uploaded_cv["cv_soft_skills"] = cv_soft_skills
-
-            # Get tech skills
-            cv_tech_skills = CVProcessor.get_all_tech_skills(cv_structured_data)
-            uploaded_cv["cv_tech_skills"] = cv_tech_skills
-
-            st.session_state["uploaded_cv"] = uploaded_cv
-            st.success(f"CV {uploaded_file.name} is processed!")
-            log_info(__name__, f"CV {uploaded_file.name} is processed!")
-
-        # Determine the desired hourly rate
-        desired_rate = st.slider(
-            "Desired hourly rate (€)",
-            min_value=0.0,
-            max_value=500.0,  # Example upper limit
-            value=(50.0, 150.0),  # Default range (min, max)
-            step=10.0,
+    # Only if file is uplaoded and AI processed cv data is available
+    if uploaded_file and st.session_state.get("uploaded_cv", {}).get(
+        "cv_structured_data"
+    ):
+        # Workflow Section: redit the Ai processed cv data
+        cv_structured_data = st.session_state.get("uploaded_cv", {}).get(
+            "cv_structured_data"
         )
+        if not cv_structured_data:
+            log_error(__name__, "Error during CV editing.")
+            st.error(_T("Error editing the CV."))
+            return
+        create_streamlit_edit_form_from_json_schema(
+            container_label="edited_cv_data",
+            label=edit_cv_form_label,
+            schema=cv_schema,
+            data=cv_structured_data,
+        )
+        edited_cv_data = st.session_state.get("edited_cv_data")
+        if edited_cv_data:
+            st.success(_T("Data Received"))
+            # st.rerun()
+        else:
+            st.write(_T("Waiting For Data ..."))
+            # st.stop()
 
-        # Split the tuple into separate variables if needed
-        desired_rate_min, desired_rate_max = desired_rate
+    # Nach dem Absenden im Formular (submit) liegen die bearbeiteten Daten in st.session_state
+    if st.session_state.get("edited_cv_data"):
+        uploaded_cv = st.session_state.get("uploaded_cv", {})
+        uploaded_cv["cv_structured_data"] = st.session_state["edited_cv_data"]
+        log_info(__name__, f"Preparing data of '{uploaded_file}' for saving ...")
 
+        # Personendaten extrahieren
+        cv_person_data: Dict[str, Any] = safe_type(
+            uploaded_cv["cv_structured_data"], dict, {}
+        ).get("person", {})
+        cv_person_name = CVProcessor.get_person_name(cv_person_data, max_firstnames=2)
         st.write(
-            f"Minimum hourly rate: {desired_rate_min} €, Maximum hourly rate: {desired_rate_max} €"
+            f"{_T('CV candidate call name in offermee process')}: {cv_person_name}"
         )
 
-        if (
-            (uploaded_cv := st.session_state.get("uploaded_cv", {}))
-            and uploaded_cv.get("cv_structured_data")
-            and st.button("Save")
-        ):
+        # Kandidatenname ggf. überschreiben
+        cv_candidate = cv_person_name
+        uploaded_cv["cv_person_name"] = cv_person_name
+        uploaded_cv["firstnames"] = " ".join(cv_person_data.get("firstnames", []))
+        uploaded_cv["lastname"] = cv_person_data.get("lastname", "")
+
+        # Skills ermitteln
+        cv_soft_skills = CVProcessor.get_all_soft_skills(
+            uploaded_cv["cv_structured_data"]
+        )
+        uploaded_cv["cv_soft_skills"] = cv_soft_skills
+        cv_tech_skills = CVProcessor.get_all_tech_skills(
+            uploaded_cv["cv_structured_data"]
+        )
+        uploaded_cv["cv_tech_skills"] = cv_tech_skills
+
+        st.session_state["uploaded_cv"] = uploaded_cv
+        st.success(f"{_T('CV')} {uploaded_file.name} {_T('is processed!')}")
+        log_info(__name__, f"CV {uploaded_file.name} is processed!")
+
+        # Button zum Speichern
+        if uploaded_cv.get("cv_structured_data") and st.button(_T("Save")):
             try:
                 save_cv_logic(
-                    cv_candidate=cv_candiate,
+                    cv_candidate=cv_candidate,
                     uploaded_cv=uploaded_cv,
-                    desired_rate_min=desired_rate_min,
-                    desired_rate_max=desired_rate_max,
                     operator=operator,
                 )
                 log_info(
-                    __name__, f"Committed freelancer and cv of {cv_candiate} to db."
+                    __name__, f"Committed freelancer and CV of {cv_candidate} to DB."
                 )
-                st.success("CV skills extracted and successfully saved!")
+                st.success(_T("CV skills extracted and successfully saved!"))
             except Exception as e:
                 traceback.print_exception(type(e), e, e.__traceback__)
-                log_error(
-                    __name__,
-                    f"Error saving CV: {e}",
-                )
-                st.error(f"Error saving CV: {e}")
+                log_error(__name__, f"Error saving CV: {e}")
+                st.error(f"{_T('Error saving CV')}: {e}")
             finally:
+                # Session nach dem Speichern zurücksetzen
                 st.session_state["uploaded_cv"] = None
 
 
 def save_cv_logic(
     cv_candidate: str,
     uploaded_cv: Dict[str, Any],
-    desired_rate_min: float,
-    desired_rate_max: float,
     operator: str,
-):
-    log_info(__name__, "Saving processed cv...")
+) -> None:
+    """
+    Erstellt oder aktualisiert einen Freelancer-Datensatz und den zugehörigen CV-Eintrag
+    in der Datenbank.
+    """
+    log_info(__name__, "Saving processed CV...")
+
     freelancer: Dict[str, Any] = ReadFacade.get_freelancer_by_name(name=cv_candidate)
+    desired_rate_min: float = uploaded_cv.get("desired_rate_min")
+    safe_type(desired_rate_min, float, None, True)
+    desired_rate_max: float = uploaded_cv.get("desired_rate_max")
+    safe_type(desired_rate_max, float, None, True)
     structured_data: Dict[str, Any] = uploaded_cv.get("cv_structured_data")
-    if not structured_data:
-        raise ValueError("cv_structured_data is missing.")
-    contacts: List[Dict[str, Any]] = structured_data.get("contacts")
-    if not contacts or len(contacts) < 1:
+    safe_type(structured_data, dict, None, True)
+
+    contacts: List[Dict[str, Any]] = structured_data.get("contacts", [])
+    if not contacts:
         raise ValueError("contacts is missing.")
-    contact_entry = contacts[0] if contacts[0] else {}  # take first contact
+
+    contact_entry = contacts[0] if contacts[0] else {}
     contact = contact_entry.get("contact")
     if not contact:
         raise ValueError("contact is missing.")
+
     address = contact.get("address")
     if not address:
         raise ValueError("address is missing.")
+
     city = contact.get("city")
     if not city:
         raise ValueError("city is missing.")
+
     zip_code = contact.get("zip-code")
     if not zip_code:
         raise ValueError("zip-code is missing.")
+
     country = contact.get("country")
     if not country:
-        # raise ValueError("country is missing.")
-        country = "Deutschland"
+        country = "Deutschland"  # Fallback
+
     phone = contact.get("phone")
     if not phone:
         raise ValueError("phone is missing.")
+
     email = contact.get("email")
     if not email:
         raise ValueError("email is missing.")
+
     website = contact.get("website")
     if not website:
         raise ValueError("website is missing.")
 
-    def skills_to_db(type: str, names: list[str]):
+    def skills_to_db(skill_type: str, names: List[str]) -> List[Dict[str, Any]]:
         db_skills = []
-        if names is not None:
+        if names:
             for name in names:
-                db_skills.append({"type": type, "name": name})
+                db_skills.append({"type": skill_type, "name": name})
         return db_skills
 
+    # Freelancer anlegen, falls nicht vorhanden
     if not freelancer:
-        log_info(__name__, f"Adding new freelancer of {cv_candidate} to db...")
+        log_info(__name__, f"Adding new freelancer {cv_candidate} to DB...")
         new_freelancer = {
             "name": cv_candidate,
             "role": "DEVELOPER",
@@ -215,7 +260,7 @@ def save_cv_logic(
     else:
         log_info(
             __name__,
-            f"Updating existing freelancer {freelancer.get('id')} of {cv_candidate} to db.",
+            f"Updating existing freelancer {freelancer.get('id')} of {cv_candidate} to DB.",
         )
         update_freelancer = {
             "name": cv_candidate,
@@ -246,31 +291,31 @@ def save_cv_logic(
         FreelancerFacade.update(
             freelancer.get("id"), data=update_freelancer, updated_by=operator
         )
-        # CV
-        cv = ReadFacade.get_cv_by_freelancer_id(freelancer.get("id"))
-        if cv:
-            log_info(__name__, f"Existing CV found with id: {cv.get('id')}")
-        else:
-            log_info(
-                __name__,
-                f"No existing CV found for freelancer_id: {freelancer.get('id')}",
-            )
-        if not cv:
-            log_info(__name__, f"Adding new cv of {cv_candidate} to db...")
-            new_cv = {
-                "freelancer_id": freelancer.get("id"),
-                "name": cv_candidate,
-                "cv_raw_text": uploaded_cv.get("cv_text"),
-                "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
-                "cv_schema_reference": json.dumps(uploaded_cv.get("cv_schema")),
-            }
-            CVFacade.create(data=new_cv, created_by=operator)
-        else:
-            log_info(__name__, f"Updating cv of {cv_candidate} to db.")
-            update_cv = {
-                "name": cv_candidate,
-                "cv_raw_text": uploaded_cv.get("cv_text"),
-                "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
-                "cv_schema_reference": json.dumps(uploaded_cv.get("cv_schema")),
-            }
-            CVFacade.update(record_id=cv.get("id"), data=update_cv, updated_by=operator)
+
+    # CV aktualisieren oder anlegen
+    cv = ReadFacade.get_cv_by_freelancer_id(freelancer.get("id"))
+    if cv:
+        log_info(__name__, f"Existing CV found with ID: {cv.get('id')}")
+        log_info(__name__, f"Updating CV of {cv_candidate} in DB.")
+        update_cv = {
+            "name": cv_candidate,
+            "cv_raw_text": uploaded_cv.get("cv_text"),
+            "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
+            "cv_schema_reference": json.dumps(uploaded_cv.get("cv_schema")),
+        }
+        CVFacade.update(record_id=cv.get("id"), data=update_cv, updated_by=operator)
+    else:
+        log_info(
+            __name__,
+            f"No existing CV found for freelancer_id: {freelancer.get('id')}, creating a new CV.",
+        )
+        new_cv = {
+            "freelancer_id": freelancer.get("id"),
+            "name": cv_candidate,
+            "cv_raw_text": uploaded_cv.get("cv_text"),
+            "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
+            "cv_schema_reference": json.dumps(uploaded_cv.get("cv_schema")),
+        }
+        CVFacade.create(data=new_cv, created_by=operator)
+
+    log_info(__name__, f"CV for {cv_candidate} has been saved successfully.")

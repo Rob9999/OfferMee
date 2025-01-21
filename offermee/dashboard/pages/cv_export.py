@@ -1,10 +1,8 @@
 import json
 import os
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict
 import streamlit as st
-from offermee.config import Config
 from offermee.dashboard.widgets.selectors import render_cv_selection_form
-from offermee.database.facades.main_facades import CVFacade
 from offermee.exporter.pdf_exporter import export_cv_to_pdf
 from offermee.dashboard.international import _T
 from offermee.dashboard.web_dashboard import log_error, log_info

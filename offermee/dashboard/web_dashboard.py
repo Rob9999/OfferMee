@@ -12,9 +12,19 @@ def get_logger():
     return web_logger
 
 
+def log_debug(page_name: str, message: str):
+    global web_logger
+    web_logger.debug(f"{page_name} - {message}")
+
+
 def log_info(page_name: str, message: str):
     global web_logger
     web_logger.info(f"{page_name} - {message}")
+
+
+def log_warning(page_name: str, message: str):
+    global web_logger
+    web_logger.warning(f"{page_name} - {message}")
 
 
 def log_error(page_name: str, message: str):

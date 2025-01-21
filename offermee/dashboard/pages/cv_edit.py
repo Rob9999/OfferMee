@@ -1,48 +1,71 @@
 import json
+import os
 from typing import Any, Dict
 import streamlit as st
 from offermee.config import Config
+from offermee.dashboard.international import _T
+from offermee.dashboard.widgets.selectors import render_cv_selection_form
 from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
 )
 from offermee.dashboard.web_dashboard import log_error, log_info, stop_if_not_logged_in
-from offermee.database.facades.main_facades import CVFacade, FreelancerFacade
+from offermee.dashboard.widgets.uitls import get_or_create_session_container
+from offermee.database.facades.main_facades import CVFacade
+from offermee.utils.container import Container
 
 
 def render():
     st.header("CV bearbeiten")
     stop_if_not_logged_in()
 
-    config = Config.get_instance()
-    operator = config.get_current_user()
-    cv_candiate = st.text_input(
-        label="Candidate", value=config.get_name_from_local_settings()
+    container_label = "cv_container"
+    container: Container = get_or_create_session_container(
+        container_label=container_label
     )
 
-    freelancer: Dict[str, Any] = FreelancerFacade.get_first_by({"name": cv_candiate})
-    if not freelancer:
-        st.error("Kein CV hinterlegt")
-        st.stop()
-    freelancer_id = freelancer.get("id")
-    cv: Dict[str, Any] = CVFacade.get_first_by({"freelancer_id": freelancer_id})
-    log_info(__name__, "Lade CV Daten...")
-    if cv:
-        structured_data, cv_schema = get_cv_data_and_schema(cv)
-        if structured_data is None or cv_schema is None:
-            st.info("CV nicht auswertbar. Bitte lade deinen Lebenslauf nochmals hoch.")
-            st.stop()
+    # Render the CV selection form
+    render_cv_selection_form(_T("Select CV to edit"))
 
-        changed_data, submitted = create_streamlit_edit_form_from_json_schema(
-            cv_schema, structured_data
+    # Retrieve the selected CV from session state
+    selected_cv_id = st.session_state.get("selected_cv_id")
+    if selected_cv_id:
+        cv: Dict[str, Any] = st.session_state.get("selected_cv")
+        log_info(__name__, f"Selected CV#{selected_cv_id} to edit.")
+        if not container.get_value("cv_structured_data", None):
+            structured_data, cv_schema = get_cv_data_and_schema(cv)
+            if structured_data is None or cv_schema is None:
+                st.info(
+                    "CV nicht auswertbar. Bitte lade deinen Lebenslauf nochmals hoch."
+                )
+                st.stop()
+            container.set_value("cv_structured_data", structured_data)
+            container.set_value("cv_schema", cv_schema)
+            log_info(__name__, f"Set container data.")
+
+        ready_edited = create_streamlit_edit_form_from_json_schema(
+            container=container,
+            container_data_path="cv_structured_data",
+            container_schema_path="cv_schema",
+            container_edited_data_path="cv_edited_structure_data",
+            label=_T("CV Edit"),
         )
-        log_info(__name__, f"CV Data Submitted? {submitted}:\n{changed_data}")
-        if submitted:
+        log_info(__name__, f"ready: {ready_edited}")
+        edited_cv = container.get_value("cv_edited_structure_data")
+        if edited_cv:
+            log_info(__name__, f"Processing edited cv data ...")
+            container.dump(path=Config.get_instance().get_user_temp_dir())
             # Ask to store changes
             if st.button("Speichern"):
-                CVFacade.update(cv.get("id"), changed_data, operator)
-                st.success("CV-Daten aktualisiert!")
-                if st.button("Weiter mit CV Export..."):
-                    st.rerun("cv bearbeiten")
+                log_info(__name__, f"Updating CV data ...")
+                CVFacade.update(
+                    cv.get("id"),
+                    {"cv_structured_data": json.dumps(edited_cv)},
+                    Config.get_instance().get_current_user(),
+                )
+                st.success(_T("CV Data upadated!"))
+                log_info(__name__, f"CV Data updated!")
+                if st.button(_T("Procceed with CV export...")):
+                    st.switch_page("pages/cv_export.py")
                 else:
                     st.stop()
     else:

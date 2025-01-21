@@ -41,11 +41,11 @@
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000017CE256FEC0>"
+            "default": "<function datetime.utcnow at 0x0000020974EDD4E0>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000017CE256FF60>"
+            "default": "<function datetime.utcnow at 0x0000020974EDD580>"
         }
     },
     "required": [

@@ -1,3 +1,4 @@
+import os
 import traceback
 from typing import Any, Dict, List, Optional, Union
 from reportlab.lib.pagesizes import letter
@@ -6,6 +7,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 
+from offermee.config import Config
 from offermee.logger import CentralLogger
 
 
@@ -23,7 +25,9 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
             f"Argument Error: cv_data:'{cv_data}'. Unable to export cv to pdf."
         )
         return None
-    pdf_filename = f"cv_{name}_{language}.pdf"
+    pdf_filename = os.path.join(
+        Config.get_instance().get_user_temp_dir(), f"cv_{name}_{language}.pdf"
+    )
     try:
         pdf_exporter_logger.info(f"Exporting CV '{pdf_filename}' ...")
         person: Dict[str, Any] = cv_data.get("person", {})

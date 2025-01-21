@@ -1,12 +1,21 @@
-from typing import Any, Dict
+import json
+from typing import Any, Callable, Dict, List, Optional
 import streamlit as st
 
-from offermee.dashboard.widgets.uitls import get_valid_next_key
+from offermee.dashboard.international import _T
+from offermee.dashboard.web_dashboard import log_debug, log_info
+from offermee.schemas.json.schema_loader import validate_json
+from offermee.utils.container import Container
 
 
 def create_streamlit_edit_form_from_json_schema(
-    schema: dict, data: dict = None, outer_form_level: bool = True
-) -> tuple[Dict[str, Any], bool]:
+    container: Container,
+    container_data_path: str = "data",
+    container_schema_path: str = "schema",
+    container_edited_data_path: str = "edited_data",
+    label: str = "Your Form",
+    outer_form_level: bool = True,
+) -> bool:
     """
     Dynamically generates Streamlit input fields based on a JSON schema and returns user input data.
 
@@ -16,12 +25,31 @@ def create_streamlit_edit_form_from_json_schema(
 
     Args:
         schema (dict): JSON schema to create input fields from.
-        data (dict): Optional default values for the fields.
         outer_form_level (bool): Signals the out form level, that gets a submit button
 
+    container:
+        in (dict):  st.session_state[container_label]: The data to view and edit.
+        out (dict): st.session_state[container_label]: The currently edited data.
+
     Returns:
-        dict: User input data.
+        True if Ok button is pressed; Otherwise False
     """
+
+    def validate_json_data(data: Dict[str, Any], schema: Dict[str, Any]) -> bool:
+        """
+        Validates JSON schema and JSON data against a JSON schema to ensure it is compatible with the Streamlit form generator.
+
+        Args:
+            data (Dict[str, Any]): The JSON data to validate.
+            schema (Dict[str, Any]): The JSON schema to validate against.
+
+        Returns:
+            bool: True if the data is valid, False otherwise.
+        """
+        log_info(__name__, "Validate JSON data ...")
+        validate_json(json_data=json.dumps(data), schema=schema)
+        log_info(__name__, "Validate JSON data done.")
+        return True
 
     def clamp_value(
         value,
@@ -34,10 +62,39 @@ def create_streamlit_edit_form_from_json_schema(
             value = min(value, max_value)
         return value
 
+    def create_callable(
+        container: Container = None,
+        path_name: str = None,
+    ) -> Callable[[], None]:
+        """
+        Returns a callable function that, when invoked, sets container value according to the path in to the container.
+        """
+
+        def on_click():
+            for key in st.session_state.keys():
+                if key.startswith(path_name):
+                    container.set_value(key, st.session_state.get(key))
+                    # log_debug(
+                    #    __name__,
+                    #    f"set_value('{key}',{st.session_state.get(key)})",
+                    # )
+                else:
+                    log_debug(
+                        __name__,
+                        f"on_click --> st.session_state.get('{key}'): {st.session_state.get(key)}",
+                    )
+            # validate_json_data(
+            #    container.get_value(path_name),
+            #    container.get_value(container_schema_path),
+            # )
+
+        return on_click
+
     def render_field(
-        field_name,
-        field_def,
-        current_value,
+        current_edited_data_path: str,
+        field_name: str,
+        field_def: Dict[str, Any],
+        current_value: Any,
     ):
         field_type = field_def.get("type")
         if isinstance(field_type, list):
@@ -49,14 +106,20 @@ def create_streamlit_edit_form_from_json_schema(
         enum_values = field_def.get("enum")
         minimum = field_def.get("minimum")
         maximum = field_def.get("maximum")
+        if field_name.startswith("["):
+            current_edited_data_path += f"{field_name}"
+            label_name = field_name[1:-1]  # remove brackets
+        else:
+            current_edited_data_path += "." + f"{field_name}"
+            label_name = field_name
 
         # Handle enums
         if enum_values:
             if current_value not in enum_values:
                 current_value = enum_values[0]
             return st.selectbox(
-                label=f"{field_name}",
-                key=get_valid_next_key(),
+                label=label_name,
+                key=current_edited_data_path,
                 options=enum_values,
                 index=enum_values.index(current_value),
                 help=description,
@@ -65,9 +128,9 @@ def create_streamlit_edit_form_from_json_schema(
         # Handle different field types
         if field_type == "string":
             return st.text_input(
-                label=f"{field_name}",
+                label=label_name,
                 value=current_value or "",
-                key=get_valid_next_key(),
+                key=current_edited_data_path,
                 help=description,
             )
 
@@ -75,8 +138,8 @@ def create_streamlit_edit_form_from_json_schema(
             current_value = float(current_value) if current_value is not None else 0.0
             current_value = clamp_value(current_value, minimum, maximum)
             return st.number_input(
-                label=f"{field_name}",
-                key=get_valid_next_key(),
+                label=label_name,
+                key=current_edited_data_path,
                 value=current_value,
                 min_value=minimum,
                 max_value=maximum,
@@ -87,8 +150,8 @@ def create_streamlit_edit_form_from_json_schema(
             current_value = int(current_value) if current_value is not None else 0
             current_value = clamp_value(current_value, minimum, maximum)
             return st.number_input(
-                label=f"{field_name}",
-                key=get_valid_next_key(),
+                label=label_name,
+                key=current_edited_data_path,
                 value=current_value,
                 min_value=minimum,
                 max_value=maximum,
@@ -98,8 +161,8 @@ def create_streamlit_edit_form_from_json_schema(
 
         elif field_type == "boolean":
             return st.checkbox(
-                label=f"{field_name}",
-                key=get_valid_next_key(),
+                label=label_name,
+                key=current_edited_data_path,
                 value=bool(current_value),
                 help=description,
             )
@@ -108,47 +171,59 @@ def create_streamlit_edit_form_from_json_schema(
             if not isinstance(current_value, list):
                 current_value = []
             items_def = field_def.get("items")
-            with st.container(
-                key=f"{field_name}_form_{get_valid_next_key()}", border=True
-            ):
+            with st.container(key=current_edited_data_path, border=True):
                 st.write(
-                    f"### {field_name}",
+                    f"### {label_name}",
                     # key=get_valid_next_key(),
                 )
+
                 ret_val = []
+                index: int = 0
                 for current_val in current_value:
-                    if isinstance(current_val, dict) and "object" in items_def:
-                        ret_val.append(nestable(field_def, current_val))
+                    if isinstance(current_val, dict):
+                        ret_val.append(
+                            nestable(
+                                current_edited_data_path=current_edited_data_path
+                                + f"[{index}]",
+                                schema=items_def,
+                                data=current_val,
+                            )
+                        )
                     else:
                         ret_val.append(
                             render_field(
-                                field_name,
-                                items_def,
-                                current_val,
+                                current_edited_data_path=current_edited_data_path,
+                                field_name=f"[{index}]",
+                                field_def=items_def,
+                                current_value=current_val,
                             )
                         )
+                    index += 1
                 return ret_val
 
         elif field_type == "object":
-            with st.container(
-                key=f"{field_name}_form_{get_valid_next_key()}", border=True
-            ):
+            with st.container(key=current_edited_data_path, border=True):
                 # st.write(
                 #    f"### {field_name}",
-                #    key=get_valid_next_key(),
+                #
                 # )
-                return nestable(field_def, current_value)
+                return nestable(
+                    current_edited_data_path=current_edited_data_path,
+                    schema=field_def,
+                    data=current_value,
+                )
 
         else:
             # Fallback for unknown types
             return st.text_input(
-                label=f"{field_name} (unhandled type: {field_type})",
-                key=get_valid_next_key(),
+                label=f"{label_name} (unhandled type: {field_type})",
+                key=current_edited_data_path,
                 value=str(current_value or ""),
                 help=description,
             )
 
     def nestable(
+        current_edited_data_path: str,
         schema: Dict[str, Any],
         data: Dict[str, Any] = None,
     ):
@@ -164,20 +239,59 @@ def create_streamlit_edit_form_from_json_schema(
 
         for field_name, field_def in properties.items():
             current_value = data.get(field_name, field_def.get("default"))
-            user_data[field_name] = render_field(field_name, field_def, current_value)
+            user_data[field_name] = render_field(
+                current_edited_data_path=current_edited_data_path,
+                field_name=field_name,
+                field_def=field_def,
+                current_value=current_value,
+            )
 
         return user_data
 
+    log_info(__name__, f"Show edit form of '{label}'")
+    st.markdown(f"**{label}**")
+    schema = container.get_value(container_schema_path)
+    data = container.get_value(container_data_path)
+    # validate_json_data(data, schema)
+    current_edited_data_path = container_edited_data_path
     if outer_form_level:
-        with st.form(f"submit_{get_valid_next_key()}"):
-            data = nestable(schema=schema, data=data)
-            if st.form_submit_button("Submit"):
-                st.write("Thanks!")
-                return data, True
-            return data, False
-
+        with st.form(key=f"{current_edited_data_path}"):
+            nestable(
+                current_edited_data_path=current_edited_data_path,
+                schema=schema,
+                data=data,
+            )
+            if st.form_submit_button(
+                _T("OK"),
+                icon=":material/thumb_up:",
+                on_click=create_callable(
+                    container=container,
+                    path_name=current_edited_data_path,
+                ),
+            ):
+                log_info(
+                    __name__, f"Editing data of '{container_edited_data_path}' is done."
+                )
+                return True
+        return False
     else:
-        return nestable(schema=schema, data=data), True
+        nestable(
+            current_edited_data_path=current_edited_data_path, schema=schema, data=data
+        )
+        if st.button(
+            _T("OK"),
+            icon=":material/thumb_up:",
+            key=current_edited_data_path,
+            on_click=create_callable(
+                container=container,
+                path_name=current_edited_data_path,
+            ),
+        ):
+            log_info(
+                __name__, f"Editing data of '{container_edited_data_path}' is done."
+            )
+            return True
+        return False
 
 
 def create_search_widget_from_json_schema(
