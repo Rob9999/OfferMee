@@ -40,38 +40,32 @@ jobs:
       - name: Determine new version
         id: determine_new_version
         run: |
-          # Hier sammeln wir alle Commit Messages aus dem aktuellen Push
-          # GITHUB_SHA = letzter Commit, GITHUB_REF = Branch-Name
-          # Tipp: Um wirklich nur die "neuen" Commits zu bekommen, kann man den Merge-Commit-Bereich prüfen.
-          # Für ein Minimalbeispiel nehmen wir hier einfach alle Commits zwischen HEAD und HEAD~... 
-          COMMITS="$(git log --pretty=format:%B ${{ github.event.before }}..${{ github.event.after }})"
+          # Get the commits from the last push
+          COMMITS="$(git log --pretty=format:%B HEAD~1..HEAD)"
           echo "Commit Messages:"
           echo "$COMMITS"
-
+      
           CURRENT_VERSION="${{ steps.get_version.outputs.current_version }}"
           MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
           MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
           PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
-
-          # Prüfe, ob in den Commits das Tag <major_release></major_release> vorkommt
+      
+          # Check for major release tag
           if echo "$COMMITS" | grep -q "<major_release></major_release>"; then
-            # Major-Version erhöhen
             MAJOR=$((MAJOR + 1))
             MINOR=0
             PATCH=0
             RELEASE_TYPE="(MAJOR)"
           else
-            # Patch-Version erhöhen (kannst du natürlich auf MINOR-Logik erweitern)
             PATCH=$((PATCH + 1))
             RELEASE_TYPE="(PATCH)"
           fi
-
+      
           NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-          echo "Neue Version: $NEW_VERSION $RELEASE_TYPE"
+          echo "New version: $NEW_VERSION $RELEASE_TYPE"
           echo "::set-output name=new_version::$NEW_VERSION"
           
-          # Alle Commit Messages als Release Notes sammeln
-          # (Alternativ könntest du hier filtern, oder nur Nachrichten ab dem letzten Tag, etc.)
+          # Collect commit messages as release notes
           echo "::set-output name=release_notes::$COMMITS"
 
       - name: Update VERSIONS.md
