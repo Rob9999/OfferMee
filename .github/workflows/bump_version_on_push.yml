@@ -24,6 +24,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Check if commit is from GitHub Actions
+        id: check_commit
+        run: |
+          if [[ "$(git log -1 --pretty=%B)" == *"chore: bump version to"* ]]; then
+            echo "Commit is from GitHub Actions, exiting..."
+            exit 0
+          fi
+
       - name: Stop if last commit is from GitHub Actions (avoid infinite loop)
         run: |
           # Holt die E-Mail-Adresse des letzten Commits
