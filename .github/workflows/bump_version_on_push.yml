@@ -24,15 +24,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Check if commit is from GitHub Actions
-        id: check_commit
-        run: |
-          if [[ "$(git log -1 --pretty=%B)" == *"chore: bump version to"* ]]; then
-            echo "Commit is from GitHub Actions, exiting..."
-            exit 0
-          fi
-
       - name: Stop if last commit is from GitHub Actions (avoid infinite loop)
+        id: check_who_commits
         run: |
           # Holt die E-Mail-Adresse des letzten Commits
           LAST_COMMIT_AUTHOR_EMAIL="$(git log -1 --pretty=format:'%ae')"
@@ -40,12 +33,20 @@ jobs:
           # Ist diese E-Mail == GitHub Actions? Dann Abbruch
           if [ "$LAST_COMMIT_AUTHOR_EMAIL" = "41898282+github-actions[bot]@users.noreply.github.com" ]; then
             echo "Commit was made by GitHub Action, skipping..."
+            echo "::set-output name=skip::true"
             exit 0
+          el
+            echo "Commit was made by $LAST_COMMIT_AUTHOR_EMAIL ..."
+            echo "::set-output name=skip::false"
           fi
 
       - name: Get current version
         id: get_version
         run: |
+          if steps::check_who_commits::skip == true
+            echo "Is a rebumping, skip ..."
+            exit 0
+          fi
           # Versuche die Zeile zu finden, die mit '## v' beginnt, z.B. "## v1.2.3 - 2025-01-21"
           CURRENT_VERSION="$(grep -m1 '^## v' VERSIONS.md | sed -E 's/^## v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')"
           
@@ -60,6 +61,11 @@ jobs:
       - name: Determine new version
         id: determine_new_version
         run: |
+          if steps::check_who_commits::skip == true
+            echo "Is a rebumping, skip ..."
+            exit 0
+          fi
+        
           # Wenn HEAD~1 existiert (also es gibt mindestens einen Vorgänger-Commit):
           if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
             # Commit-Messages seit dem letzten Commit
@@ -100,6 +106,11 @@ jobs:
       - name: Update VERSIONS.md with new version
         id: update_versions_md
         run: |
+          if steps::check_who_commits::skip == true
+            echo "Is a rebumping, skip ..."
+            exit 0
+          fi
+        
           NEW_VERSION="${{ steps.determine_new_version.outputs.new_version }}"
           RELEASE_NOTES="${{ steps.determine_new_version.outputs.release_notes }}"
 
@@ -123,6 +134,11 @@ jobs:
 
       - name: (Optional) Update README.md
         run: |
+          if steps::check_who_commits::skip == true
+            echo "Is a rebumping, skip ..."
+            exit 0
+          fi
+        
           NEW_VERSION="${{ steps.determine_new_version.outputs.new_version }}"
           # Zeile "## Version 0.0.1" ersetzen durch z.B. "## Version 1.2.3"
           sed -i "s|^## Version .*|## Version ${NEW_VERSION}|" README.md
@@ -133,11 +149,21 @@ jobs:
 
       - name: Commit changes
         run: |
+          if steps::check_who_commits::skip == true
+            echo "Is a rebumping, skip ..."
+            exit 0
+          fi
+        
           NEW_VERSION="${{ steps.determine_new_version.outputs.new_version }}"
           git add .
           git commit -m "chore: bump version to ${NEW_VERSION}"
 
       - name: Push changes
         run: |
+          if steps::check_who_commits::skip == true
+            echo "Is a rebumping, skip ..."
+            exit 0
+          fi
+
           # Push auf main (oder ggf. ein anderer Branch)
           git push origin main
