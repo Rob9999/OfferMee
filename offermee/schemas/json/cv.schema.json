@@ -3,244 +3,24 @@
 	"title": "Lebenslauf",
 	"type": "object",
 	"properties": {
-		"projects": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"project": {
-						"type": "object",
-						"properties": {
-							"title": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"start": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"end": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"person-days": {
-								"type": "number"
-							},
-							"industry": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"firm": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"result": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"tasks": {
-								"type": "array",
-								"items": {
-									"type": [
-										"string",
-										"null"
-									]
-								}
-							},
-							"soft-skills": {
-								"type": "array",
-								"items": {
-									"type": [
-										"string",
-										"null"
-									]
-								}
-							},
-							"tech-skills": {
-								"type": "array",
-								"items": {
-									"type": [
-										"string",
-										"null"
-									]
-								}
-							},
-							"responsibilities": {
-								"type": "array",
-								"items": {
-									"type": [
-										"string",
-										"null"
-									]
-								}
-							}
-						},
-						"required": [
-							"title",
-							"start",
-							"end",
-							"person-days",
-							"industry",
-							"firm",
-							"result",
-							"tasks",
-							"soft-skills",
-							"tech-skills",
-							"responsibilities"
-						]
-					}
-				},
-				"required": [
-					"project"
-				]
-			}
+		"management-summary": {
+			"description": "A short summary of the person",
+			"type": [
+				"string",
+				"null"
+			]
 		},
-		"jobs": {
+		"metrics": {
+			"description": "Metrics such as technical skills, soft skills, domain knowledge, protocols, languages, or other capabilities.",
 			"type": "array",
 			"items": {
 				"type": "object",
 				"properties": {
-					"job": {
+					"metric": {
 						"type": "object",
 						"properties": {
-							"title": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"start": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"end": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"person-days": {
-								"type": "number"
-							},
-							"industry": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"firm": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"result": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"tasks": {
-								"type": "array",
-								"items": {
-									"type": [
-										"string",
-										"null"
-									]
-								}
-							},
-							"soft-skills": {
-								"type": "array",
-								"items": {
-									"type": [
-										"string",
-										"null"
-									]
-								}
-							},
-							"tech-skills": {
-								"type": "array",
-								"items": {
-									"type": [
-										"string",
-										"null"
-									]
-								}
-							},
-							"responsibilities": {
-								"type": "array",
-								"items": {
-									"type": [
-										"string",
-										"null"
-									]
-								}
-							}
-						},
-						"required": [
-							"title",
-							"start",
-							"end",
-							"person-days",
-							"industry",
-							"firm",
-							"result",
-							"tasks",
-							"soft-skills",
-							"tech-skills",
-							"responsibilities"
-						]
-					}
-				},
-				"required": [
-					"job"
-				]
-			}
-		},
-		"educations": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"education": {
-						"type": "object",
-						"properties": {
-							"title": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"start": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"end": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"person-days": {
-								"type": "number"
-							},
-							"facility": {
+							"category": {
+								"description": "Category of the metric (e.g., technical skills, soft skills, domain knowledge, protocols, languages). Will be the title of the section.",
 								"type": [
 									"string",
 									"null"
@@ -250,249 +30,612 @@
 								"type": [
 									"string",
 									"null"
-								]
+								],
+								"enum": [
+									"Tech-Skills",
+									"Soft-Skills",
+									"Domain-Knowledge",
+									"Protocols",
+									"Languages",
+									"Other",
+									null
+								],
+								"description": "Type of the metric (e.g., technical skills, soft skills, domain knowledge, protocols, languages, other)."
 							},
-							"grade": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"topics": {
+							"details": {
+								"description": "Details of the metric, including ratings and duration.",
 								"type": "array",
 								"items": {
-									"type": [
-										"string",
-										"null"
+									"type": "object",
+									"properties": {
+										"skill": {
+											"description": "Name of the skill or protocol or knowledge or language.",
+											"type": [
+												"string",
+												"null"
+											]
+										},
+										"level": {
+											"description": "Competency rating on a scale from 1 to 10.",
+											"type": "number"
+										},
+										"month": {
+											"description": "Experience duration in months.",
+											"type": "number"
+										},
+										"description": {
+											"description": "Additional description or context about the skill.",
+											"type": [
+												"string",
+												"null"
+											]
+										}
+									},
+									"required": [
+										"skill",
+										"level"
 									]
 								}
 							}
 						},
 						"required": [
-							"title",
-							"start",
-							"end",
-							"person-days",
-							"facility",
+							"category",
 							"type",
-							"grade",
-							"topics"
-						]
-					}
-				},
-				"required": [
-					"education"
-				]
-			}
-		},
-		"person": {
-			"type": "object",
-			"properties": {
-				"firstnames": {
-					"type": "array",
-					"items": {
-						"type": [
-							"string",
-							"null"
-						]
-					}
-				},
-				"lastname": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"birth": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"birth-place": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"address": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"city": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"zip-code": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"country": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"phone": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"email": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"linkedin": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"xing": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"github": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"website": {
-					"type": [
-						"string",
-						"null"
-					]
-				},
-				"languages": {
-					"type": "array",
-					"items": {
-						"type": [
-							"string",
-							"null"
+							"details"
 						]
 					}
 				}
 			},
-			"required": [
-				"firstnames",
-				"lastname",
-				"birth",
-				"birth-place",
-				"address",
-				"city",
-				"zip-code",
-				"country",
-				"phone",
-				"email",
-				"linkedin",
-				"xing",
-				"github",
-				"website",
-				"languages"
-			]
-		},
-		"contacts": {
-			"type": "array",
-			"items": {
+			"projects": {
+				"description": "Projects",
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"project": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"start": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"end": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"person-days": {
+									"type": "number"
+								},
+								"industry": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"firm": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"result": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"tasks": {
+									"type": "array",
+									"items": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								},
+								"soft-skills": {
+									"type": "array",
+									"items": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								},
+								"tech-skills": {
+									"type": "array",
+									"items": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								},
+								"responsibilities": {
+									"type": "array",
+									"items": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								}
+							},
+							"required": [
+								"title",
+								"start",
+								"end",
+								"person-days",
+								"industry",
+								"firm",
+								"result",
+								"tasks",
+								"soft-skills",
+								"tech-skills",
+								"responsibilities"
+							]
+						}
+					},
+					"required": [
+						"project"
+					]
+				}
+			},
+			"jobs": {
+				"description": "Jobs",
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"job": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"start": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"end": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"person-days": {
+									"type": "number"
+								},
+								"industry": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"firm": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"result": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"tasks": {
+									"type": "array",
+									"items": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								},
+								"soft-skills": {
+									"type": "array",
+									"items": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								},
+								"tech-skills": {
+									"type": "array",
+									"items": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								},
+								"responsibilities": {
+									"type": "array",
+									"items": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								}
+							},
+							"required": [
+								"title",
+								"start",
+								"end",
+								"person-days",
+								"industry",
+								"firm",
+								"result",
+								"tasks",
+								"soft-skills",
+								"tech-skills",
+								"responsibilities"
+							]
+						}
+					},
+					"required": [
+						"job"
+					]
+				}
+			},
+			"educations": {
+				"description": "Educations",
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"education": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"start": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"end": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"person-days": {
+									"type": "number"
+								},
+								"facility": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"type": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"grade": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"topics": {
+									"type": "array",
+									"items": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								}
+							},
+							"required": [
+								"title",
+								"start",
+								"end",
+								"person-days",
+								"facility",
+								"type",
+								"grade",
+								"topics"
+							]
+						}
+					},
+					"required": [
+						"education"
+					]
+				}
+			},
+			"certificates": {
+				"description": "Certificates and other qualifications",
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"certificate": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"date": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"facility": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"grade": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"topics": {
+									"type": "array",
+									"items": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								}
+							},
+							"required": [
+								"title"
+							]
+						}
+					},
+					"required": [
+						"certificate"
+					]
+				}
+			},
+			"person": {
+				"description": "Personal data",
 				"type": "object",
 				"properties": {
-					"contact": {
-						"type": "object",
-						"properties": {
-							"address": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"city": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"zip-code": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"country": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"phone": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"email": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"linkedin": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"xing": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"github": {
-								"type": [
-									"string",
-									"null"
-								]
-							},
-							"website": {
-								"type": [
-									"string",
-									"null"
-								]
-							}
-						},
-						"required": [
-							"address",
-							"city",
-							"zip-code",
-							"country",
-							"phone",
-							"email",
-							"linkedin",
-							"xing",
-							"github",
-							"website"
+					"firstnames": {
+						"type": "array",
+						"items": {
+							"type": [
+								"string",
+								"null"
+							]
+						}
+					},
+					"lastname": {
+						"type": [
+							"string",
+							"null"
 						]
+					},
+					"birth": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"birth-place": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"address": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"city": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"zip-code": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"country": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"phone": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"email": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"linkedin": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"xing": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"github": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"website": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"languages": {
+						"type": "array",
+						"items": {
+							"type": [
+								"string",
+								"null"
+							]
+						}
 					}
 				},
 				"required": [
-					"contact"
+					"firstnames",
+					"lastname",
+					"birth",
+					"birth-place",
+					"address",
+					"city",
+					"zip-code",
+					"country",
+					"phone",
+					"email",
+					"linkedin",
+					"xing",
+					"github",
+					"website",
+					"languages"
 				]
+			},
+			"contacts": {
+				"description": "Contacts",
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"contact": {
+							"type": "object",
+							"properties": {
+								"address": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"city": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"zip-code": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"country": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"phone": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"email": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"linkedin": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"xing": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"github": {
+									"type": [
+										"string",
+										"null"
+									]
+								},
+								"website": {
+									"type": [
+										"string",
+										"null"
+									]
+								}
+							},
+							"required": [
+								"address",
+								"city",
+								"zip-code",
+								"country",
+								"phone",
+								"email",
+								"linkedin",
+								"xing",
+								"github",
+								"website"
+							]
+						}
+					},
+					"required": [
+						"contact"
+					]
+				}
 			}
 		}
 	},
 	"required": [
+		"management-summary",
 		"projects",
 		"jobs",
 		"educations",

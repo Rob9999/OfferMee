@@ -1,3 +1,5 @@
+from datetime import date
+import os
 import google.generativeai as genai
 from offermee.AI.llm_client import LLMClient
 
@@ -30,6 +32,21 @@ class GenAIClient(LLMClient):
                     }
                 ]
             )
+            debug = False
+            if debug:
+                if response.candidates:
+                    self.logger.debug("Received candidates:")
+                    for candidate in response.candidates:
+                        self.logger.debug(candidate)
+                # dump to disk
+                dump_path = os.path.join(
+                    os.path.expanduser("~"),
+                    "offermeedumps",
+                    f"response_raw_{date.today().isoformat()}.json",
+                )
+                with open(dump_path, "w") as f:
+                    f.write(str(response))
+                self.logger.debug(f"Response dumped to '{dump_path}'")
             json_string = response.candidates[0].content.parts[0].text
             # self.logger.debug("Received JSON:\n" + json_string)
             # Remove the preceding and trailing markdown formatting

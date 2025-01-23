@@ -12,9 +12,8 @@ def create_streamlit_edit_form_from_json_schema(
     container: Container,
     container_data_path: str = "data",
     container_schema_path: str = "schema",
-    container_edited_data_path: str = "edited_data",
+    container_control_path: str = "control",
     label: str = "Your Form",
-    outer_form_level: bool = True,
 ) -> bool:
     """
     Dynamically generates Streamlit input fields based on a JSON schema and returns user input data.
@@ -62,31 +61,85 @@ def create_streamlit_edit_form_from_json_schema(
             value = min(value, max_value)
         return value
 
+    def set_changed(container: Container = container) -> bool:
+        """User has changed the data."""
+        container.set_value(
+            container_control_path,
+            {
+                "changed": True,
+            },
+        )
+        # if changed unset wantstore, because the user needs to admit explicitly saving the changes
+        set_wantstore(container=container, wantstore=False)
+        log_info(__name__, f"set_changed(True): {container_control_path}")
+        return True
+
+    def set_wantstore(container: Container = container, wantstore: bool = True) -> bool:
+        """User admits explicitly to save changes."""
+        container.set_value(
+            container_control_path,
+            {
+                "wantstore": wantstore,
+            },
+        )
+        log_info(__name__, f"set_wantstore({wantstore}): {container_control_path}")
+        return True
+
+    def save_all_values(
+        container: Container = container,
+        path_name: str = container_data_path,
+        control_path: str = container_control_path,
+    ) -> bool:
+        try:
+            if not container:
+                raise ValueError("Container is None.")
+            log_info(
+                __name__,
+                f"Saving all values of '{path_name}' into container '{container.get_name()}' ...",
+            )
+            for key in st.session_state.keys():
+                if key.startswith(path_name):
+                    container.set_value(key, st.session_state.get(key))
+                    # log_debug(
+                    #    __name__, f"set_value('{key}',{st.session_state.get(key)})"
+                    # )
+                elif key.startswith(control_path):
+                    container.set_value(key, st.session_state.get(key))
+                    log_debug(
+                        __name__, f"set_value('{key}',{st.session_state.get(key)})"
+                    )
+                else:
+                    # log_debug(
+                    #    __name__,
+                    #    f"on_click --> st.session_state.get('{key}'): {st.session_state.get(key)}",
+                    # )
+                    pass
+            log_info(
+                __name__,
+                f"Saved all values of '{path_name}' into container '{container.get_name()}'.",
+            )
+            # validate_json_data(
+            #    container.get_value(path_name),
+            #    container.get_value(container_schema_path),
+            # )
+            return True
+        except Exception as e:
+            log_info(__name__, f"Error while saving values of '{path_name}': {e}")
+            return False
+
     def create_callable(
         container: Container = None,
         path_name: str = None,
+        control_path: str = None,
     ) -> Callable[[], None]:
         """
         Returns a callable function that, when invoked, sets container value according to the path in to the container.
         """
 
         def on_click():
-            for key in st.session_state.keys():
-                if key.startswith(path_name):
-                    container.set_value(key, st.session_state.get(key))
-                    # log_debug(
-                    #    __name__,
-                    #    f"set_value('{key}',{st.session_state.get(key)})",
-                    # )
-                else:
-                    log_debug(
-                        __name__,
-                        f"on_click --> st.session_state.get('{key}'): {st.session_state.get(key)}",
-                    )
-            # validate_json_data(
-            #    container.get_value(path_name),
-            #    container.get_value(container_schema_path),
-            # )
+            save_all_values(
+                container=container, path_name=path_name, control_path=control_path
+            )
 
         return on_click
 
@@ -96,6 +149,23 @@ def create_streamlit_edit_form_from_json_schema(
         field_def: Dict[str, Any],
         current_value: Any,
     ):
+        def default_value_for(item_schema):
+            # Erzeugen Sie basierend auf dem Typ im Schema einen sinnvollen Standardwert
+            t = item_schema.get("type")
+            if t == "string":
+                return ""
+            elif t == "number":
+                return 0.0
+            elif t == "integer":
+                return 0
+            elif t == "boolean":
+                return False
+            elif t == "object":
+                return {}
+            elif t == "array":
+                return []
+            return None
+
         field_type = field_def.get("type")
         if isinstance(field_type, list):
             field_type = field_type[
@@ -171,35 +241,105 @@ def create_streamlit_edit_form_from_json_schema(
             if not isinstance(current_value, list):
                 current_value = []
             items_def = field_def.get("items")
-            with st.container(key=current_edited_data_path, border=True):
-                st.write(
-                    f"### {label_name}",
-                    # key=get_valid_next_key(),
-                )
 
-                ret_val = []
-                index: int = 0
-                for current_val in current_value:
-                    if isinstance(current_val, dict):
-                        ret_val.append(
-                            nestable(
-                                current_edited_data_path=current_edited_data_path
-                                + f"[{index}]",
-                                schema=items_def,
-                                data=current_val,
-                            )
+            with st.container(key=current_edited_data_path, border=True):
+                st.write(f"### {label_name}")
+
+                updated_list = []
+                index = 0
+                if len(current_value) == 0:
+                    # show button to insert first entry
+                    if st.button(
+                        "➕", key=f"add_first_{index}_{current_edited_data_path}"
+                    ):
+                        save_all_values()
+                        set_changed()
+                        # insert an array
+                        container.set_value(
+                            path_name=current_edited_data_path, value=[]
                         )
-                    else:
-                        ret_val.append(
-                            render_field(
-                                current_edited_data_path=current_edited_data_path,
-                                field_name=f"[{index}]",
-                                field_def=items_def,
-                                current_value=current_val,
-                            )
+                        # insert array's first entry, a default value
+                        container.insert(
+                            path_name=current_edited_data_path,
+                            index=index,
+                            value=default_value_for(items_def),
                         )
-                    index += 1
-                return ret_val
+                        # return current_value
+                        st.rerun(scope="app")
+                else:
+                    while index < len(current_value):
+                        current_val = current_value[index]
+
+                        # Layout mit Buttons und Feld
+                        col1, col2, col3, col4 = st.columns([1, 20, 1, 1])
+                        with col1:
+                            # Button zum Einfügen eines neuen Elements oben
+                            if st.button(
+                                "➕↑",
+                                key=f"add_up_{index}_entry_in_{current_edited_data_path}",
+                            ):
+                                # Füge ein neues Standard-Element vor dem aktuellen hinzu
+                                save_all_values()
+                                set_changed()
+                                container.insert(
+                                    path_name=current_edited_data_path,
+                                    index=index,
+                                    value=default_value_for(items_def),
+                                )
+                                # return current_value
+                                st.rerun()
+
+                        with col2:
+                            # Render des aktuellen Listeneintrags
+                            if isinstance(current_val, dict):
+                                rendered_value = nestable(
+                                    current_edited_data_path=f"{current_edited_data_path}[{index}]",
+                                    schema=items_def,
+                                    data=current_val,
+                                )
+                            else:
+                                rendered_value = render_field(
+                                    current_edited_data_path=current_edited_data_path,
+                                    field_name=f"[{index}]",
+                                    field_def=items_def,
+                                    current_value=current_val,
+                                )
+                            updated_list.append(rendered_value)
+
+                        with col3:
+                            # Button zum Einfügen eines neuen Elements unten
+                            if st.button(
+                                "➕↓",
+                                key=f"add_down_{index}_entry_in_{current_edited_data_path}",
+                            ):
+                                save_all_values()
+                                set_changed()
+                                container.insert(
+                                    path_name=current_edited_data_path,
+                                    index=index + 1,
+                                    value=default_value_for(items_def),
+                                )
+                                # return current_value
+                                st.rerun()
+
+                        with col4:
+                            # Button zum Entfernen des aktuellen Elements
+                            if st.button(
+                                "➖",
+                                key=f"remove_{index}_entry_of_{current_edited_data_path}",
+                            ):
+                                save_all_values()
+                                set_changed()
+                                container.pop(
+                                    path_name=current_edited_data_path, index=index
+                                )
+                                # return current_value
+                                st.rerun()
+
+                        index += 1
+
+                    # Nach der Iteration die aktualisierte Liste zurückgeben
+                    return updated_list
 
         elif field_type == "object":
             with st.container(key=current_edited_data_path, border=True):
@@ -253,45 +393,20 @@ def create_streamlit_edit_form_from_json_schema(
     schema = container.get_value(container_schema_path)
     data = container.get_value(container_data_path)
     # validate_json_data(data, schema)
-    current_edited_data_path = container_edited_data_path
-    if outer_form_level:
-        with st.form(key=f"{current_edited_data_path}"):
-            nestable(
-                current_edited_data_path=current_edited_data_path,
-                schema=schema,
-                data=data,
-            )
-            if st.form_submit_button(
-                _T("OK"),
-                icon=":material/thumb_up:",
-                on_click=create_callable(
-                    container=container,
-                    path_name=current_edited_data_path,
-                ),
-            ):
-                log_info(
-                    __name__, f"Editing data of '{container_edited_data_path}' is done."
-                )
-                return True
-        return False
-    else:
-        nestable(
-            current_edited_data_path=current_edited_data_path, schema=schema, data=data
-        )
-        if st.button(
-            _T("OK"),
-            icon=":material/thumb_up:",
-            key=current_edited_data_path,
-            on_click=create_callable(
-                container=container,
-                path_name=current_edited_data_path,
-            ),
-        ):
-            log_info(
-                __name__, f"Editing data of '{container_edited_data_path}' is done."
-            )
-            return True
-        return False
+    nestable(current_edited_data_path=container_data_path, schema=schema, data=data)
+    if st.button(
+        _T("OK"),
+        icon=":material/thumb_up:",
+        key=f"{container_control_path}.wantstore",
+        on_click=create_callable(
+            container=container,
+            path_name=container_data_path,
+            control_path=container_control_path,
+        ),
+    ):
+        log_info(__name__, f"Editing data of '{container_data_path}' is done.")
+        return True
+    return False
 
 
 def create_search_widget_from_json_schema(

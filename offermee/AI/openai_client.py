@@ -29,7 +29,7 @@ class OpenAIClient(LLMClient):
                     }
                 ],
                 temperature=0.2,
-                max_tokens=500,
+                max_tokens=1500,
             )
             # Return the response as a JSON string
             return response.model_dump_json()

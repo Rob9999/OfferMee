@@ -9,8 +9,10 @@ from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
 )
 from offermee.dashboard.helpers.web_dashboard import (
+    get_app_container,
     log_error,
     log_info,
+    make_container_path,
     stop_if_not_logged_in,
 )
 from offermee.database.facades.main_facades import (
@@ -24,6 +26,7 @@ import PyPDF2
 from offermee.schemas.json.schema_keys import SchemaKey
 from offermee.schemas.json.schema_loader import get_schema
 from offermee.dashboard.helpers.international import _T
+from offermee.utils.container import Container
 from offermee.utils.utils import safe_type
 
 
@@ -37,15 +40,37 @@ def cv_manager_render() -> None:
     st.header(_T("Upload CV"))
     stop_if_not_logged_in()
 
+    page_root = __name__
+    container: Container = get_app_container()
+    operator = Config.get_instance().get_current_user()
+
     edit_cv_form_label = _T("CV Extracted Data")
-    config = Config.get_instance()
-    operator = config.get_current_user()
-    cv_schema = get_schema(SchemaKey.CV)
 
     # Kandidatenname vorbelegen (falls in local_settings hinterlegt)
     cv_candidate = st.text_input(
-        label=_T("Candidate"), value=config.get_name_from_local_settings()
+        label=_T("Candidate"),
+        value=Config.get_instance().get_name_from_local_settings(),
     )
+
+    path_cv_upload_root = make_container_path(page_root, "cv_upload")
+    path_cv_upload_candidate = make_container_path(path_cv_upload_root, "cv_candidate")
+    path_cv_upload_schema = make_container_path(path_cv_upload_root, "cv_schema")
+    path_cv_upload_file = make_container_path(path_cv_upload_root, "cv_file")
+    path_cv_upload_text = make_container_path(path_cv_upload_root, "cv_text")
+    path_cv_edit_root = make_container_path(path_cv_upload_root, "cv_edit")
+    path_cv_edit_structured_data = make_container_path(
+        path_cv_edit_root, "cv_structured_data"
+    )
+    path_cv_edit_control = make_container_path(path_cv_edit_root, "control")
+
+    if not container.get_value(path_cv_upload_schema, None):
+        cv_schema = get_schema(SchemaKey.CV)
+        container.set_value(path_cv_upload_schema, cv_schema)
+        log_info(__name__, f"Set container cv schema data.")
+    else:
+        cv_schema = container.get_value(path_cv_upload_schema)
+
+    container.set_value(path_cv_upload_candidate, cv_candidate)
 
     # Upload-Feld für PDF
     uploaded_file = st.file_uploader(_T("Upload your resume (PDF):"), type=["pdf"])
@@ -53,17 +78,12 @@ def cv_manager_render() -> None:
     # Nur dann ausführen, wenn eine neue Datei hochgeladen wurde
     if (
         uploaded_file
-        and st.session_state.get("uploaded_cv", {}).get("uploaded_file")
-        != uploaded_file
+        and container.get_value(path_cv_upload_file, None) != uploaded_file
     ):
         # Workflow Section: Read out uploaded file and then process the data via AI
         log_info(__name__, f"Processing uploaded CV {uploaded_file.name} ...")
-        uploaded_cv = {
-            "uploaded_file": uploaded_file,
-            "cv_schema": cv_schema,
-        }
-        st.session_state["uploaded_cv"] = uploaded_cv
-        st.session_state[f"edited_data_of_{edit_cv_form_label}"] = None
+        container.set_value(path_cv_upload_file, uploaded_file)
+        container.set_value(path_cv_edit_structured_data, None)
 
         # PDF auslesen
         try:
@@ -71,7 +91,7 @@ def cv_manager_render() -> None:
             cv_text = ""
             for page in reader.pages:
                 cv_text += page.extract_text() or ""
-            uploaded_cv["cv_text"] = cv_text
+            container.set_value(path_cv_upload_text, cv_text)
         except Exception as e:
             log_error(__name__, f"Error reading PDF: {e}")
             st.error(_T("Error reading the PDF. Please try again."))
@@ -84,28 +104,22 @@ def cv_manager_render() -> None:
             log_error(__name__, "Error during CV analysis.")
             st.error(_T("Error analyzing the CV."))
             return
-        uploaded_cv["cv_structured_data"] = ai_processed_cv_structured_data
+        container.set_value(
+            path_cv_edit_structured_data, ai_processed_cv_structured_data
+        )
 
     # Only if file is uplaoded and AI processed cv data is available
-    if uploaded_file and st.session_state.get("uploaded_cv", {}).get(
-        "cv_structured_data"
-    ):
+    if uploaded_file and container.get_value(path_cv_edit_structured_data, None):
         # Workflow Section: redit the Ai processed cv data
-        cv_structured_data = st.session_state.get("uploaded_cv", {}).get(
-            "cv_structured_data"
-        )
-        if not cv_structured_data:
-            log_error(__name__, "Error during CV editing.")
-            st.error(_T("Error editing the CV."))
-            return
         create_streamlit_edit_form_from_json_schema(
-            container_label="edited_cv_data",
+            container=container,
+            container_data_path=path_cv_edit_structured_data,
+            container_schema_path=path_cv_upload_schema,
+            container_control_path=path_cv_edit_control,
             label=edit_cv_form_label,
-            schema=cv_schema,
-            data=cv_structured_data,
         )
-        edited_cv_data = st.session_state.get("edited_cv_data")
-        if edited_cv_data:
+        wantstore = container.get_value(path_cv_edit_control + ".wantstore", False)
+        if wantstore:
             st.success(_T("Data Received"))
             # st.rerun()
         else:
@@ -113,9 +127,13 @@ def cv_manager_render() -> None:
             # st.stop()
 
     # Nach dem Absenden im Formular (submit) liegen die bearbeiteten Daten in st.session_state
-    if st.session_state.get("edited_cv_data"):
-        uploaded_cv = st.session_state.get("uploaded_cv", {})
-        uploaded_cv["cv_structured_data"] = st.session_state["edited_cv_data"]
+    if container.get_value(path_cv_edit_structured_data, None) and container.get_value(
+        path_cv_edit_control + ".wantstore", False
+    ):
+        uploaded_cv = container.get_value(path_cv_upload_root, {})
+        uploaded_cv["cv_structured_data"] = container.get_value(
+            path_cv_edit_structured_data
+        )
         log_info(__name__, f"Preparing data of '{uploaded_file}' for saving ...")
 
         # Personendaten extrahieren
@@ -143,7 +161,6 @@ def cv_manager_render() -> None:
         )
         uploaded_cv["cv_tech_skills"] = cv_tech_skills
 
-        st.session_state["uploaded_cv"] = uploaded_cv
         st.success(f"{_T('CV')} {uploaded_file.name} {_T('is processed!')}")
         log_info(__name__, f"CV {uploaded_file.name} is processed!")
 

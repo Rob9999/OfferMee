@@ -1,6 +1,9 @@
 # offermee/cv_processor.py
+from datetime import date
 import json
+import os
 from offermee.AI.ai_manager import AIManager
+from offermee.config import Config
 from offermee.logger import CentralLogger
 from offermee.schemas.json.schema_keys import SchemaKey
 from offermee.schemas.json.schema_loader import get_schema
@@ -39,7 +42,14 @@ class CVProcessor:
 
         # Anfrage an das LLM senden
         response = ai_manager.extract_to_json(prompt)
-        # self.logger.debug(f"Response {response}")
+        # dump to disk
+        dump_path = os.path.join(
+            Config.get_instance().get_user_temp_dir(),
+            f"response_{date.today().isoformat()}.json",
+        )
+        with open(dump_path, "w") as f:
+            f.write(response)
+        self.logger.debug(f"Response dumped to '{dump_path}'")
         try:
             data = json.loads(response)
             self.logger.info("Parsed ai respone to JSON")

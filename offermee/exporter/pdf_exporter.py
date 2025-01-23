@@ -4,9 +4,12 @@ from typing import Any, Dict, List, Optional, Union
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
-
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.pdfmetrics import stringWidth
+from reportlab.pdfbase.ttfonts import TTFont
 from offermee.config import Config
 from offermee.logger import CentralLogger
 
@@ -37,10 +40,18 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
         if not firstnames:
             raise ValueError("data corrupted: no 'firstnames'")
         doc = SimpleDocTemplate(pdf_filename, pagesize=letter)
+        pdfmetrics.registerFont(TTFont("DejaVu", "DejaVuSans.ttf"))
         styles = getSampleStyleSheet()
+        paragraph_style = ParagraphStyle(
+            name="Wrapped",
+            fontName="DejaVu",  # Verwendung unserer TrueType-Schrift
+            fontSize=10,
+            leading=12,
+            wordWrap="CJK",
+        )
         elements = []
 
-        management_summary = None
+        management_summary = cv_data.get("management-summary")
         educations: List[Dict[str, Any]] = cv_data.get("educations")
         projects: List[Dict[str, Any]] = cv_data.get("projects")
         jobs: List[Dict[str, Any]] = cv_data.get("jobs")
@@ -61,11 +72,11 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
         if person:
             elements.append(Paragraph("<b>Persönliche Daten</b>", styles["Heading2"]))
             elements.append(Spacer(1, 0.2 * inch))
+            headers = [
+                "Name:",
+                f"{' '.join(person.get('firstnames', ['']))} {person.get('lastname', '')}",
+            ]
             personal_info = [
-                [
-                    "Name:",
-                    f"{' '.join(person.get('firstnames', ['']))} {person.get('lastname', '')}",
-                ],
                 ["Geburtsdatum:", person.get("birth", "")],
                 ["Geburtsort:", person.get("birth-place", "")],
                 [
@@ -90,7 +101,10 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
                 ("GRID", (0, 0), (-1, -1), 1, colors.black),
             ]
             table = _create_flexible_table(
-                personal_info, [2 * inch, 4.1 * inch], table_style
+                headers=headers,
+                data=personal_info,
+                style_commands=table_style,
+                paragraph_style=paragraph_style,
             )
             if table:
                 elements.append(table)
@@ -126,9 +140,104 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
                 topics = edu.get("topics", [])
                 if topics:
                     _util_add_valid_paragraph_list(
-                        elements, "Themen", topics, styles["Normal"], styles["Bullet"]
+                        elements, "", topics, styles["Normal"], styles["Bullet"]
                     )
                 elements.append(Spacer(1, 0.2 * inch))
+
+        # Skills
+        metrics: List[Dict[str, Any]] = cv_data.get("metrics", [])
+        if metrics:
+            # build metrics tables according to schema
+            to_table = True
+            if to_table:
+                for metric in metrics:
+                    metric_entry = metric.get("metric", {})
+                    metric_category = metric_entry.get("category")
+                    metric_type = metric_entry.get("type")
+                    metric_details: List[Dict[str, Any]] = metric_entry.get(
+                        "details", []
+                    )
+                    if not metric_category or not metric_details:
+                        continue
+
+                    # Überschrift
+                    elements.append(
+                        Paragraph(f"<b>{metric_category}</b>", styles["Heading2"])
+                    )
+                    elements.append(Spacer(1, 0.2 * inch))
+
+                    # Daten für die Tabelle sammeln
+                    metric_headers = ["Skill", "Level", "Monate", "Beschreibung"]
+                    metric_info = []
+                    for detail in metric_details:
+                        skill = detail.get("skill")
+                        level = detail.get("level")
+                        month = detail.get("month")
+                        description = detail.get("description")
+
+                        # Falls skill leer, Zeile überspringen
+                        if not skill:
+                            continue
+
+                        metric_info.append([skill, level, month, description])
+
+                    # Tabellen-Stile:
+                    #   - Gesamte Tabelle linksbündig
+                    #   - Erste Zeile fett (falls du Headings separat hast, müsstest du sie in `metric_info` einschleusen)
+                    #   - Linierung und Abstände nach Bedarf
+                    table_style = [
+                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+                    ]
+
+                    # Tabelle erzeugen
+                    table = _create_flexible_table(
+                        headers=metric_headers,
+                        data=metric_info,
+                        style_commands=table_style,
+                        paragraph_style=paragraph_style,
+                    )
+
+                    if table:
+                        elements.append(table)
+                        elements.append(Spacer(1, 0.5 * inch))
+            else:
+                for metric in metrics:
+                    # print(metric)
+                    metric_entry = metric.get("metric", {})
+                    metric_category = metric_entry.get("category")
+                    metric_details: List[Dict[str, Any]] = metric_entry.get(
+                        "details", []
+                    )
+                    if not metric_category or not metric_details:
+                        continue
+
+                elements.append(
+                    Paragraph(f"<b>{metric_category}</b>", styles["Heading2"])
+                )
+                elements.append(Spacer(1, 0.2 * inch))
+                # print(metric)
+                for detail in metric_details:
+                    skill = detail.get("skill")
+                    level = detail.get("level")
+                    month = detail.get("month")
+                    description = detail.get("description")
+                    print(skill, level, month, description)
+                    # if not skill or not level or not month:
+                    #    continue
+                    elements.append(Paragraph(f"<b>{skill}</b>", styles["Heading3"]))
+                    _util_add_valid_paragraph(
+                        elements, "Level", level, styles["Normal"]
+                    )
+                    _util_add_valid_paragraph(
+                        elements, "Monate", month, styles["Normal"]
+                    )
+                    _util_add_valid_paragraph(
+                        elements, "Beschreibung", description, styles["Normal"]
+                    )
+                    elements.append(Spacer(1, 0.2 * inch))
 
         # Projects
         if projects:
@@ -335,19 +444,126 @@ def _util_add_valid_paragraph_list(
         elements.append(Paragraph(f"{item}", bullet_style))
 
 
-def _create_flexible_table(cv_data: list, col_widths, style_commands):
+def remove_empty_columns(
+    headers: List[Any], data: List[List[Any]]
+) -> tuple[List[Any], List[List[Any]]]:
     """
-    Erstellt eine Tabelle aus 'cv_data', wobei Zeilen mit leeren oder null Inhalten ausgeschlossen werden.
-    :param cv_data: Liste von Zeilen, wobei jede Zeile eine Liste [Label, Inhalt] ist.
-    :param col_widths: Spaltenbreiten für die Tabelle.
-    :param style_commands: Stilbefehle für die Tabelle.
-    :return: reportlab.platypus.Table-Objekt oder None, falls keine gültigen Zeilen vorhanden sind.
+    Entfernt Spalten, die komplett leer sind (keine Werte).
+    'Leer' bedeutet hier None, leerer String oder leere Liste.
     """
-    # Filtere Zeilen, bei denen der Inhalt leer oder None ist
-    filtered_data = [row for row in cv_data if row[1] not in [None, "", []]]
+    if not data:
+        return data
+
+    # Maximale Anzahl Spalten in den Zeilen herausfinden
+    max_cols = max(len(row) for row in data)
+
+    # Herausfinden, welche Spalten beibehalten werden sollen
+    columns_to_keep = []
+    for col_index in range(max_cols):
+        # Wenn in *irgendeiner* Zeile etwas in dieser Spalte steht, behalten wir sie
+        # (vorausgesetzt die Zeile ist überhaupt lang genug).
+        keep_this_col = any(
+            len(row) > col_index and row[col_index] not in (None, "", [])
+            for row in data
+        )
+        if keep_this_col:
+            columns_to_keep.append(col_index)
+
+    # Neue Datenstruktur nur mit den beizubehaltenden Spalten
+    new_data = []
+    for row in data:
+        new_row = [row[i] for i in columns_to_keep if i < len(row)]
+        new_data.append(new_row)
+    if headers:
+        new_headers = [headers[i] for i in columns_to_keep if i < len(headers)]
+        return new_headers, new_data
+    return None, new_data
+
+
+def measure_column_widths(data: List[List[Any]]) -> List[int]:
+    if not data:
+        return []
+    max_cols = max(len(row) for row in data)
+    column_widths = [0] * max_cols
+    for row in data:
+        for col_index, cell in enumerate(row):
+            if cell is not None and cell != "" and cell != []:
+                column_widths[col_index] = max(column_widths[col_index], len(str(cell)))
+    return column_widths
+
+
+def arrange_column_widths(column_widths: List[int], max_width: int) -> List[int]:
+    if not column_widths:
+        return []
+    total_width = sum(column_widths)
+    if total_width <= max_width:
+        return column_widths
+    while total_width > max_width:
+        # Find the widest column
+        widest_col = column_widths.index(max(column_widths))
+        # Reduce the widest column by 1
+        column_widths[widest_col] -= 1
+        total_width -= 1
+    return column_widths
+
+
+def _create_flexible_table(
+    headers: List[str],
+    data: List[List[Any]],
+    style_commands: List[Any],
+    paragraph_style: ParagraphStyle,
+) -> Table:
+    """
+    Erstellt eine Tabelle aus 'cv_data'.
+    Leere Zeilen und Spalten werden entfernt.
+    """
+    # 1. Leere Zeilen filtern (zweites Element leer usw. – ggf. anpassen, falls mehr Spalten).
+    #    Falls du ALLE Spalten checken willst, müsstest du hier statt row[1] jede Spalte prüfen.
+    filtered_rows = [
+        row for row in data if any(cell not in [None, "", []] for cell in row)
+    ]
+    if not filtered_rows:
+        return None
+
+    # 2. Spalten filtern
+    filtered_headers, filtered_data = remove_empty_columns(
+        headers=headers, data=filtered_rows
+    )
     if not filtered_data:
         return None
 
+    if filtered_headers:
+        filtered_data.insert(0, filtered_headers)
+
+    # 3. UTF-32-Konvertierung (optional)
+    for row_index, row in enumerate(filtered_data):
+        for col_index in range(len(row)):
+            filtered_data[row_index][col_index] = row[col_index]
+
+    # 4. Wandeln in Paragraphs + Unicode-fähige Schrift
+    #    Damit erfolgt Zeilenumbruch automatisch.
+    for row_index, row in enumerate(filtered_data):
+        for col_index, cell_value in enumerate(row):
+            if cell_value is None:
+                cell_value = ""
+            # Wichtig: mit Paragraph kann ReportLab das Layout (Umbruch) steuern
+            filtered_data[row_index][col_index] = Paragraph(
+                str(cell_value), paragraph_style
+            )
+
+    # 4. Tabellenbreite berechnen (z. B. DIN A4, abzüglich 2 * 1 inch Rand => "available_width")
+    #    Du kannst auch doc.width verwenden, wenn du ein SimpleDocTemplate(...) hast.
+    PAGE_WIDTH, PAGE_HEIGHT = A4
+    left_margin = right_margin = inch
+    available_width = PAGE_WIDTH - left_margin - right_margin
+
+    # 5. Spaltenbreiten berechnen
+    col_widths = measure_column_widths(filtered_data)
+    print(col_widths)
+    col_widths = arrange_column_widths(col_widths, available_width)
+    print(col_widths)
+
+    # 4. Tabelle erstellen
     table = Table(filtered_data, colWidths=col_widths)
     table.setStyle(TableStyle(style_commands))
     return table

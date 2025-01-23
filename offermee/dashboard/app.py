@@ -8,6 +8,7 @@ from offermee.dashboard.manual_input import manual_input_render
 from offermee.dashboard.templates import templates_render
 from offermee.dashboard.matches import matches_render
 from offermee.dashboard.history import history_render
+from offermee.dashboard.data_import import data_imports_render
 from offermee.dashboard.settings import settings_render
 from offermee.dashboard.logout import logout_render
 from offermee.dashboard.signup import signup_render
@@ -40,6 +41,9 @@ LOGGED_IN_PAGES = {
             title=_T("Projektmatcher & Angebotserstellung"),
         ),
         st.Page(history_render, title=_T("Angebotshistorie")),
+    ],
+    _T("Imports / Exports"): [
+        st.Page(data_imports_render, title=_T("Data Imports")),
     ],
     _T("Profil"): [
         st.Page(settings_render, title=_T("Settings")),

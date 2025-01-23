@@ -25,17 +25,19 @@ def cv_edit_render():
 
     page_root = __name__
     container: Container = get_app_container()
-    path_cv_structured_data = make_container_path(page_root, "cv_structured_data")
-    path_cv_schema = make_container_path(page_root, "cv_schema")
-    path_cv_edited_structure_data = make_container_path(
-        page_root, "cv_edited_structure_data"
-    )
+    operator = Config.get_instance().get_current_user()
 
     # Render the CV selection form
     render_cv_selection_form(_T("Select CV to edit"))
 
     # Retrieve the selected CV from session state
     selected_cv_id = st.session_state.get("selected_cv_id")
+
+    path_cv_root = make_container_path(page_root, f"cv[{selected_cv_id}]")
+    path_cv_structured_data = make_container_path(path_cv_root, "cv_structured_data")
+    path_cv_schema = make_container_path(path_cv_root, "cv_schema")
+    path_cv_control = make_container_path(path_cv_root, "control")
+
     if selected_cv_id:
         cv: Dict[str, Any] = st.session_state.get("selected_cv")
         log_info(__name__, f"Selected CV#{selected_cv_id} to edit.")
@@ -54,12 +56,15 @@ def cv_edit_render():
             container=container,
             container_data_path=path_cv_structured_data,
             container_schema_path=path_cv_schema,
-            container_edited_data_path=path_cv_edited_structure_data,
+            container_control_path=path_cv_control,
             label=_T("CV Edit"),
         )
         log_info(__name__, f"ready: {ready_edited}")
-        edited_cv = container.get_value(path_cv_edited_structure_data)
-        if edited_cv:
+        edited_cv = container.get_value(path_cv_structured_data)
+        wants_to_store = container.get_value(path_cv_control, {}).get(
+            "wantstore", False
+        )
+        if edited_cv and wants_to_store:
             log_info(__name__, f"Processing edited cv data ...")
             container.dump(path=Config.get_instance().get_user_temp_dir())
             # Ask to store changes
@@ -68,7 +73,7 @@ def cv_edit_render():
                 CVFacade.update(
                     cv.get("id"),
                     {"cv_structured_data": json.dumps(edited_cv)},
-                    Config.get_instance().get_current_user(),
+                    operator,
                 )
                 st.success(_T("CV Data upadated!"))
                 log_info(__name__, f"CV Data updated!")

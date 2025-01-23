@@ -13,21 +13,25 @@ def render_cv_selection_form(label: str, pre_selected_candidate: Optional[str] =
 
     Args:
         label (str): The title of the form.
-        pre_selected_candidate (Optional[str]): The name of the pre-selected candidate.
+        pre_selected_candidate (Optional[str]): The name of the pre-selected candidate. Defaults to None. If None is provided, the current user's name will be used.
 
     Returns:
         Optional[str]: The ID of the selected CV, or None if no selection is made.
     """
+    log_info(
+        __name__,
+        f"Rendering CV selection form for '{label}' and pre_selected_candidate '{pre_selected_candidate}' ...",
+    )
     with st.form(
         key=f"form_select_candidate_{label}"
     ):  # do not use a method to generate the key, submit button will not --> bug in streamlit
         st.subheader(f"{label}")
 
-        # If no pre-selected candidate is provided, retrieve the current user
+        # If no pre-selected candidate is provided, retrieve the current user's name from the local settings
         if not pre_selected_candidate:
             try:
                 config: Config = Config.get_instance()
-                pre_selected_candidate = config.get_current_user()
+                pre_selected_candidate = config.get_name_from_local_settings()
             except Exception as e:
                 log_error("Failed to retrieve current user: {}", str(e))
                 st.error(_T("An error occurred while retrieving the current user."))
@@ -65,11 +69,9 @@ def render_cv_selection_form(label: str, pre_selected_candidate: Optional[str] =
         pre_selected_cv = next(
             (cv for cv in cv_table_data if cv["Name"] == pre_selected_candidate), None
         )
-        other_cvs = [cv for cv in cv_table_data if cv["Name"] != pre_selected_candidate]
-        sorted_cvs = [pre_selected_cv] + other_cvs if pre_selected_cv else other_cvs
 
         # Prepare options and set default selection
-        options = {cv["CV-ID"]: cv for cv in sorted_cvs}
+        options = {cv["CV-ID"]: cv for cv in cv_table_data}
         default_value = pre_selected_cv["CV-ID"] if pre_selected_cv else None
 
         st.markdown(f"**{_T('Available CVs')}**")
