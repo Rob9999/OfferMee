@@ -1,3 +1,7 @@
+## v0.0.6667 - 2025-01-23T20:30:12.748Z
+
+- Update bump_version_on_push.yml
+
 ## v0.0.6666 - 2025-01-23T20:28:47.462Z
 
 - Update bump_version_on_push.yml
