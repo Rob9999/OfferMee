@@ -90,13 +90,16 @@ jobs:
           echo "::set-output name=release_notes::$COMMITS"
 
       - name: Update VERSIONS.md with new version
+        id: update_versions_md
         run: |
           NEW_VERSION="${{ steps.determine_new_version.outputs.new_version }}"
           RELEASE_NOTES="${{ steps.determine_new_version.outputs.release_notes }}"
 
           # Erzeuge einen ISO8601 UTC-Zeitstempel (z.B. 2025-01-23T18:20:02.123Z)
           DATE="$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')"
-
+          # Date 
+          echo "::set-output name=new_date::$DATE"
+          
           # Schreibe einen neuen Abschnitt an den Anfang von VERSIONS.md
           {
             echo "## v${NEW_VERSION} - ${DATE}"
@@ -115,6 +118,7 @@ jobs:
           NEW_VERSION="${{ steps.determine_new_version.outputs.new_version }}"
           # Zeile "## Version 0.0.1" ersetzen durch z.B. "## Version 1.2.3"
           sed -i "s|^## Version .*|## Version ${NEW_VERSION}|" README.md
+          DATE=${{ steps.update_versions_md.outputs.new_date }}"
           # Zeile "**Date:** 2024-12-17" ersetzen durch z.B. "**Date:** 2025-01-23T18:20:02.123Z"
           sed -i "s|^\*\*Date:\*\* .*|**Date:** ${DATE}|" README.md         
           echo "README.md (falls Platzhalter vorhanden) aktualisiert."
