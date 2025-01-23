@@ -144,7 +144,7 @@ jobs:
           sed -i "s|^## Version .*|## Version ${NEW_VERSION}|" README.md
           DATE="${{ steps.update_versions_md.outputs.new_date }}"
           # Zeile "**Date:** 2024-12-17" ersetzen durch z.B. "**Date:** 2025-01-23T18:20:02.123Z"
-          sed -i "s|^- \*\*Date:\*\* .*|**Date:** ${DATE}|" README.md         
+          sed -i "s|^- \*\*Date:\*\* .*|- **Date:** ${DATE}|" README.md         
           echo "README.md (falls Platzhalter vorhanden) aktualisiert."
 
       - name: Commit changes
