@@ -1,3 +1,7 @@
+## v0.0.6351 - 2025-01-23T19:05:14.103Z
+
+- chore: bump version to 0.0.6350
+
 ## v0.0.6350 - 2025-01-23T19:05:00.600Z
 
 - Update bump_version_on_push.yml
