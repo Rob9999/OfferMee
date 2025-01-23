@@ -8,8 +8,8 @@ OfferMee – AI-powered project scout for freelancers. Automatically find projec
 
 
 ## Version 0.0.6377
-**Date:** 2025-01-23T19:09:25.807Z
-**Author:** Robert Alexander Massinger, Munich, Germany, https://github.com/Rob9999
+- **Date:** 2025-01-23T19:09:25.807Z
+- **Author:** Robert Alexander Massinger, Munich, Germany, https://github.com/Rob9999
 
 ---
 
