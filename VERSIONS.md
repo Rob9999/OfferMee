@@ -1,3 +1,7 @@
+## v0.0.5249 - 2025-01-23
+
+- chore: bump version to
+
 ## v0.0.5248 - 2025-01-23
 
 - Merge branch 'main' of https://github.com/Rob9999/OfferMee
