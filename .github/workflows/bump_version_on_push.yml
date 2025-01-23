@@ -43,7 +43,7 @@ jobs:
       - name: Get current version
         id: get_version
         run: |
-          if steps::check_who_commits::skip == true
+          if [ "${{ steps.check_who_commits.outputs.skip }}" == "true" ]; then
             echo "Is a rebumping, skip ..."
             exit 0
           fi
@@ -61,7 +61,7 @@ jobs:
       - name: Determine new version
         id: determine_new_version
         run: |
-          if steps::check_who_commits::skip == true
+          if [ "${{ steps.check_who_commits.outputs.skip }}" == "true" ]; then
             echo "Is a rebumping, skip ..."
             exit 0
           fi
@@ -106,7 +106,7 @@ jobs:
       - name: Update VERSIONS.md with new version
         id: update_versions_md
         run: |
-          if steps::check_who_commits::skip == true
+          if [ "${{ steps.check_who_commits.outputs.skip }}" == "true" ]; then
             echo "Is a rebumping, skip ..."
             exit 0
           fi
@@ -134,7 +134,7 @@ jobs:
 
       - name: (Optional) Update README.md
         run: |
-          if steps::check_who_commits::skip == true
+          if [ "${{ steps.check_who_commits.outputs.skip }}" == "true" ]; then
             echo "Is a rebumping, skip ..."
             exit 0
           fi
@@ -149,7 +149,7 @@ jobs:
 
       - name: Commit changes
         run: |
-          if steps::check_who_commits::skip == true
+          if [ "${{ steps.check_who_commits.outputs.skip }}" == "true" ]; then
             echo "Is a rebumping, skip ..."
             exit 0
           fi
@@ -160,7 +160,7 @@ jobs:
 
       - name: Push changes
         run: |
-          if steps::check_who_commits::skip == true
+          if [ "${{ steps.check_who_commits.outputs.skip }}" == "true" ]; then
             echo "Is a rebumping, skip ..."
             exit 0
           fi
