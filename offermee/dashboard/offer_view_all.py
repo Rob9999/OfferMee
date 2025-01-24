@@ -6,7 +6,7 @@ from offermee.database.facades.main_facades import OfferFacade
 # from offermee.database.models.main_models import OfferStatus
 
 
-def history_render():
+def offer_view_all_render():
     st.header("Offer History")
     stop_if_not_logged_in()
 

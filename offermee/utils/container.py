@@ -65,6 +65,64 @@ class Container:
         """Return a pretty-printed JSON representation of the container."""
         return json.dumps(self._data, indent=indent)
 
+    def exists(self, path_name: str) -> bool:
+        sentinel = object()
+        return self.get_value(path_name, default=sentinel) is not sentinel
+
+    def exists_and_is(self, path_name: str, typ: type) -> bool:
+        sentinel = object()
+        value = self.get_value(path_name, default=sentinel)
+        return value is not sentinel and isinstance(value, typ)
+
+    def make_paths(
+        self,
+        path_name: str,
+        typ: Union[type, Any] = dict,
+        exists_ok=False,
+        force_typ: bool = True,
+    ) -> str:
+        """
+        Creates a path with a specified type if it does not already exist.
+        Args:
+            path_name (str): The name of the path to create.
+            typ (Union[type, Any], optional): The type of the value to be set at the path. Defaults to dict.
+            exists_ok (bool, optional): If True, allows the path to exist without raising an error. Defaults to False.
+            force_typ (bool, optional): If True, forces the type of the value at the path to be the specified type. Defaults to True.
+        Returns:
+            str: The name of the path created or verified.
+        Raises:
+            ValueError: If the path already exists and `exists_ok` is False.
+            ValueError: If the path exists but has the wrong type and `force_typ` is False.
+        """
+        if isinstance(typ, type):
+            desired_value = typ()
+        else:
+            desired_value = typ
+
+        existing = self.exists(path_name=path_name)
+        if not existing:
+            # Pfad existiert noch nicht -> lege an
+            self.set_value(path_name, desired_value)
+        else:
+            # Pfad existiert bereits
+            if not exists_ok:
+                # Pfad darf nicht an dieser Stelle bereits existieren --> Fehler
+                raise ValueError(f"Path '{path_name}' already exists.")
+            else:
+                existing = self.exists_and_is(path_name, typ)
+                if existing:
+                    # Pfad existiert und Typ passt
+                    pass
+                elif force_typ:
+                    # Typ passt nicht --> überschreibe
+                    self.set_value(path_name, desired_value)
+                else:
+                    # Typ passt nicht --> Fehler
+                    raise ValueError(
+                        f"Path '{path_name}' exists but has wrong type: {type(self.set_value(path_name))} (expected {typ})."
+                    )
+        return path_name
+
     def set_value(self, path_name: str, value: Any) -> None:
         """
         Set the value at `path_name`, creating intermediate structures as needed.

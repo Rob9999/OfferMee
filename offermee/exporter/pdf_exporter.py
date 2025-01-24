@@ -18,6 +18,17 @@ pdf_exporter_logger = CentralLogger.getLogger(__name__)
 
 
 def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -> str:
+    """
+    Exports a CV to a PDF file.
+    Args:
+        name (str): The name of the person whose CV is being exported.
+        cv_data (Dict[str, Any]): The CV data containing personal information, education, skills, projects, jobs, and contact details.
+        language (str, optional): The language of the CV. Defaults to "de".
+    Returns:
+        str: The file path of the generated PDF if successful, otherwise None.
+    Raises:
+        ValueError: If the CV data is corrupted or missing required fields.
+    """
     if not name:
         pdf_exporter_logger.error(
             f"Argument Error: name:'{name}'. Unable to export cv to pdf."
@@ -44,7 +55,7 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
         styles = getSampleStyleSheet()
         paragraph_style = ParagraphStyle(
             name="Wrapped",
-            fontName="DejaVu",  # Verwendung unserer TrueType-Schrift
+            fontName="DejaVu",  # Use our TrueType font
             fontSize=10,
             leading=12,
             wordWrap="CJK",
@@ -70,26 +81,26 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
 
         # Personal cv_data
         if person:
-            elements.append(Paragraph("<b>Persönliche Daten</b>", styles["Heading2"]))
+            elements.append(Paragraph("<b>Personal Data</b>", styles["Heading2"]))
             elements.append(Spacer(1, 0.2 * inch))
             headers = [
                 "Name:",
                 f"{' '.join(person.get('firstnames', ['']))} {person.get('lastname', '')}",
             ]
             personal_info = [
-                ["Geburtsdatum:", person.get("birth", "")],
-                ["Geburtsort:", person.get("birth-place", "")],
+                ["Date of Birth:", person.get("birth", "")],
+                ["Place of Birth:", person.get("birth-place", "")],
                 [
-                    "Adresse:",
+                    "Address:",
                     f"{person.get('address', '')}, {person.get('zip-code', '')} {person.get('city', '')}, {person.get('country', '')}",
                 ],
-                ["Telefon:", person.get("phone", "")],
-                ["E-Mail:", person.get("email", "")],
+                ["Phone:", person.get("phone", "")],
+                ["Email:", person.get("email", "")],
                 ["LinkedIn:", person.get("linkedin", "")],
                 ["Xing:", person.get("xing", "")],
                 ["Github:", person.get("github", "")],
                 ["Website:", person.get("website", "")],
-                ["Sprachen:", ", ".join(person.get("languages", []))],
+                ["Languages:", ", ".join(person.get("languages", []))],
             ]
             table_style = [
                 ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
@@ -112,7 +123,7 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
 
         # Education
         if educations:
-            elements.append(Paragraph("<b>Ausbildung</b>", styles["Heading2"]))
+            elements.append(Paragraph("<b>Education</b>", styles["Heading2"]))
             elements.append(Spacer(1, 0.2 * inch))
             for education in educations:
                 edu = education.get("education", {})
@@ -124,18 +135,18 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
                 )
                 _util_add_valid_paragraph(
                     elements,
-                    "Personentage",
+                    "Person Days",
                     edu.get("person-days"),
                     styles["Normal"],
                 )
                 _util_add_valid_paragraph(
-                    elements, "Einrichtung", edu.get("facility"), styles["Normal"]
+                    elements, "Institution", edu.get("facility"), styles["Normal"]
                 )
                 _util_add_valid_paragraph(
-                    elements, "Art", edu.get("type"), styles["Normal"]
+                    elements, "Type", edu.get("type"), styles["Normal"]
                 )
                 _util_add_valid_paragraph(
-                    elements, "Abschluss", edu.get("grade"), styles["Normal"]
+                    elements, "Degree", edu.get("grade"), styles["Normal"]
                 )
                 topics = edu.get("topics", [])
                 if topics:
@@ -160,14 +171,14 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
                     if not metric_category or not metric_details:
                         continue
 
-                    # Überschrift
+                    # Heading
                     elements.append(
                         Paragraph(f"<b>{metric_category}</b>", styles["Heading2"])
                     )
                     elements.append(Spacer(1, 0.2 * inch))
 
-                    # Daten für die Tabelle sammeln
-                    metric_headers = ["Skill", "Level", "Monate", "Beschreibung"]
+                    # Collect data for the table
+                    metric_headers = ["Skill", "Level", "Months", "Description"]
                     metric_info = []
                     for detail in metric_details:
                         skill = detail.get("skill")
@@ -175,14 +186,14 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
                         month = detail.get("month")
                         description = detail.get("description")
 
-                        # Falls skill leer, Zeile überspringen
+                        # Skip row if skill is empty
                         if not skill:
                             continue
 
                         metric_info.append([skill, level, month, description])
 
-                    # Tabellen-Stile:
-                    #   - Gesamte Tabelle linksbündig
+                    # Table styles:
+                    #   - Entire table left-aligned
                     #   - Erste Zeile fett (falls du Headings separat hast, müsstest du sie in `metric_info` einschleusen)
                     #   - Linierung und Abstände nach Bedarf
                     table_style = [
@@ -492,18 +503,29 @@ def measure_column_widths(data: List[List[Any]]) -> List[int]:
     return column_widths
 
 
-def arrange_column_widths(column_widths: List[int], max_width: int) -> List[int]:
+def measure_column_widths_normalized(data: List[List[Any]]) -> List[float]:
+    col_widths = measure_column_widths(data=data)
+    col_width_sum = sum(col_widths)
+    col_widths_normalized = [
+        col_width_normalized * 100 / col_width_sum
+        for col_width_normalized in col_widths
+    ]
+    return col_widths_normalized
+
+
+def adjust_column_widths(
+    column_widths: List[int],
+    normalized_column_widths: List[float],
+    available_width: float,
+) -> List[int]:
     if not column_widths:
         return []
-    total_width = sum(column_widths)
-    if total_width <= max_width:
+    if not normalized_column_widths:
         return column_widths
-    while total_width > max_width:
-        # Find the widest column
-        widest_col = column_widths.index(max(column_widths))
-        # Reduce the widest column by 1
-        column_widths[widest_col] -= 1
-        total_width -= 1
+    if not available_width:
+        return column_widths
+    for i in range(len(column_widths)):
+        column_widths[i] = normalized_column_widths[i] * available_width / 100
     return column_widths
 
 
@@ -535,6 +557,9 @@ def _create_flexible_table(
     if filtered_headers:
         filtered_data.insert(0, filtered_headers)
 
+    # 2.1. Spaltenbreiten berechnen
+    col_text_widths_normalized = measure_column_widths_normalized(filtered_data)
+
     # 3. UTF-32-Konvertierung (optional)
     for row_index, row in enumerate(filtered_data):
         for col_index in range(len(row)):
@@ -557,11 +582,14 @@ def _create_flexible_table(
     left_margin = right_margin = inch
     available_width = PAGE_WIDTH - left_margin - right_margin
 
-    # 5. Spaltenbreiten berechnen
+    # 5. Final Spaltenbreiten berechnen
     col_widths = measure_column_widths(filtered_data)
-    print(col_widths)
-    col_widths = arrange_column_widths(col_widths, available_width)
-    print(col_widths)
+    # 3.1 Adjust column widths according the normalized text widths
+    col_widths = adjust_column_widths(
+        column_widths=col_widths,
+        normalized_column_widths=col_text_widths_normalized,
+        available_width=available_width,
+    )
 
     # 4. Tabelle erstellen
     table = Table(filtered_data, colWidths=col_widths)

@@ -1,24 +1,28 @@
 import streamlit as st
-import os
 from offermee.config import Config
-from offermee.dashboard.helpers.web_dashboard import stop_if_not_logged_in
+from offermee.dashboard.helpers.international import _T
+from offermee.dashboard.helpers.web_dashboard import (
+    log_debug,
+    log_info,
+    stop_if_not_logged_in,
+)
 
 
 def settings_render():
-    st.title("Einstellungen")
+    st.title(_T("Settings"))
     stop_if_not_logged_in()
 
     config = Config.get_instance()
 
-    # 1) Settings aktuell halten
+    # 1) Keep settings up to date
     config.reload_settings()
 
-    # 2) Aktuelle Werte lesen (gesamtes Dictionary aus der verschlüsselten .settings)
+    # 2) Read current values (entire dictionary from the encrypted .settings)
     current_data = config.get_local_settings_to_dict()
 
     # --- AI PROVIDERS ---
 
-    # Lade das Dictionary mit allen AI-Providern (falls nicht vorhanden, Defaults setzen)
+    # Load the dictionary with all AI providers (set defaults if not available)
     ai_families = current_data.get(
         "ai_families",
         {
@@ -27,105 +31,163 @@ def settings_render():
         },
     )
 
-    # Aktueller aktiver Provider
+    # Currently active provider
     ai_selected_family = current_data.get("ai_selected_family", "OpenAI")
 
-    st.subheader("KI-Einstellungen")
+    st.subheader(_T("AI Settings"))
 
-    # Nutzer wählt hier den aktiven Provider
+    # User selects the active provider here
     ai_selected_family = st.selectbox(
-        "Welcher AI Provider ist aktuell aktiv?",
+        _T("Which AI provider is currently active?"),
         ["OpenAI", "GenAI"],
         index=["OpenAI", "GenAI"].index(ai_selected_family),
-        # Vorsicht, IndexError vermeiden:
-        # ggf. try/except oder eine ordentliche fallback-Logik
+        # Be careful to avoid IndexError:
+        # possibly try/except or a proper fallback logic
     )
 
-    # --- Einstellungen für OpenAI ---
-    st.markdown("### OpenAI Settings")
+    # --- Settings for OpenAI ---
+    st.markdown(f"### {_T('OpenAI Settings')}")
     openai_api_key = st.text_input(
-        "OpenAI API-Key",
+        _T("OpenAI API Key"),
         value=ai_families["OpenAI"].get("api_key", ""),
         type="password",
     )
     openai_model = st.text_input(
-        "OpenAI Modell", value=ai_families["OpenAI"].get("model", "gpt-4")
+        _T("OpenAI Model"), value=ai_families["OpenAI"].get("model", "gpt-4")
     )
 
-    # --- Einstellungen für GenAI ---
-    st.markdown("### GenAI Settings")
+    # --- Settings for GenAI ---
+    st.markdown(f"### {_T('GenAI Settings')}")
     genai_api_key = st.text_input(
-        "GenAI API-Key", value=ai_families["GenAI"].get("api_key", ""), type="password"
+        _T("GenAI API Key"),
+        value=ai_families["GenAI"].get("api_key", ""),
+        type="password",
     )
     genai_model = st.text_input(
-        "GenAI Modell", value=ai_families["GenAI"].get("model", "gemini-1.5-flash")
+        _T("GenAI Model"), value=ai_families["GenAI"].get("model", "gemini-1.5-flash")
     )
 
-    # Änderungen direkt ins Dictionary übernehmen:
+    # Apply changes directly to the dictionary:
     ai_families["OpenAI"]["api_key"] = openai_api_key
     ai_families["OpenAI"]["model"] = openai_model
     ai_families["GenAI"]["api_key"] = genai_api_key
     ai_families["GenAI"]["model"] = genai_model
 
-    # --- E-Mail-Einstellungen ---
-    st.subheader("E-Mail-Einstellungen")
+    # --- Email Settings ---
+    st.subheader(_T("Email Settings"))
     email_address = st.text_input(
-        "E-Mail-Adresse", value=current_data.get("email_address", "")
+        _T("Email Address"),
+        value=current_data.get("email_address", ""),
+        placeholder="",
     )
     email_password = st.text_input(
-        "E-Mail-Passwort", value=current_data.get("email_password", ""), type="password"
+        _T("Email Password"),
+        value=current_data.get("email_password", ""),
+        placeholder="",
+        type="password",
     )
     smtp_server = st.text_input(
-        "SMTP-Server", value=current_data.get("smtp_server", "smtp.gmail.com")
+        _T("SMTP Server"),
+        value=current_data.get("smtp_server", ""),
+        placeholder="smtp.gmail.com",
     )
     smtp_port = st.number_input(
-        "SMTP-Port", value=int(current_data.get("smtp_port", 465))
+        _T("SMTP Port"), value=int(current_data.get("smtp_port", 465))
+    )
+    receiver_email = st.text_input(
+        _T("Receiver Email Address"),
+        value=current_data.get("receiver_email", ""),
+        placeholder="",
+    )
+    receiver_password = st.text_input(
+        _T("Receiver Email Password"),
+        value=current_data.get("receiver_password", ""),
+        placeholder="",
+        type="password",
+    )
+    receiver_server = st.text_input(
+        _T("Receiver Email Server"),
+        value=current_data.get("receiver_server", ""),
+        placeholder="smtp.gmail.com",
+    )
+    receiver_port = st.number_input(
+        _T("Receiver Email Port"), value=int(current_data.get("receiver_port", 993))
     )
 
-    # --- Personendaten (Wer?) ---
-    st.subheader("Personendaten (Wer?)")
-    first_name = st.text_input("Vorname(n)", value=current_data.get("first_name", ""))
-    last_name = st.text_input("Nachname", value=current_data.get("last_name", ""))
-    birth_date = st.text_input("Geburtsdatum", value=current_data.get("birth_date", ""))
-    birth_place = st.text_input("Geburtsort", value=current_data.get("birth_place", ""))
+    # --- RFP Settings ---
+    rfp_mailbox = st.text_input(
+        _T("RFP Mailbox"),
+        value=current_data.get("rfp_mailbox", ""),
+        placeholder="RFPs",
+    )
+    rfp_email_subject_filter = st.text_input(
+        _T("RFP Email Subject Filter"),
+        value=current_data.get("rfp_email_subject_filter", ""),
+        placeholder="RFP",
+    )
+    rfp_email_sender_filter = st.text_input(
+        _T("RFP Email Sender Filter"),
+        value=current_data.get("rfp_email_sender_filter", ""),
+        placeholder="partner@example.com",
+    )
 
-    # --- Adresse (Wo?) ---
-    st.subheader("Adresse (Wo?)")
-    street = st.text_input("Straße", value=current_data.get("street", ""))
-    zip_code = st.text_input("PLZ", value=current_data.get("zip_code", ""))
-    city = st.text_input("Stadt", value=current_data.get("city", ""))
-    country = st.text_input("Land", value=current_data.get("country", ""))
+    # --- Personal Data (Who?) ---
+    st.subheader(_T("Personal Data (Who?)"))
+    first_name = st.text_input(
+        _T("First Name(s)"), value=current_data.get("first_name", "")
+    )
+    last_name = st.text_input(_T("Last Name"), value=current_data.get("last_name", ""))
+    birth_date = st.text_input(
+        _T("Birth Date"), value=current_data.get("birth_date", "")
+    )
+    birth_place = st.text_input(
+        _T("Birth Place"), value=current_data.get("birth_place", "")
+    )
+
+    # --- Address (Where?) ---
+    st.subheader(_T("Address (Where?)"))
+    street = st.text_input(_T("Street"), value=current_data.get("street", ""))
+    zip_code = st.text_input(_T("ZIP Code"), value=current_data.get("zip_code", ""))
+    city = st.text_input(_T("City"), value=current_data.get("city", ""))
+    country = st.text_input(_T("Country"), value=current_data.get("country", ""))
 
     # --- Account ---
-    st.subheader("Account")
+    st.subheader(_T("Account"))
     account_name = st.text_input(
-        "Account-Name", value=current_data.get("account_name", "")
+        _T("Account Name"), value=current_data.get("account_name", "")
     )
     account_password = st.text_input(
-        "Account-Passwort",
+        _T("Account Password"),
         value=current_data.get("account_password", ""),
         type="password",
     )
 
-    # --- Sprache / Währung ---
-    st.subheader("Sprache / Währung")
+    # --- Language / Currency ---
+    st.subheader(_T("Language / Currency"))
     language = st.selectbox(
-        "Sprache",
+        _T("Language"),
         ["de", "en", "fr", "es"],
         index=0 if current_data.get("language", "de") == "de" else 1,
     )
-    currency = st.text_input("Währung", value=current_data.get("currency", "EUR"))
+    currency = st.text_input(_T("Currency"), value=current_data.get("currency", "EUR"))
 
-    # --- Speichern ---
-    if st.button("Speichern"):
-        # Alle Felder in new_settings sammeln
+    # --- Save ---
+    if st.button(_T("Save")):
+        # Collect all fields in new_settings
         new_settings = {
-            "ai_selected_family": ai_selected_family,  # aktiver Provider
-            "ai_families": ai_families,  # alle Provider-Daten
+            "ai_selected_family": ai_selected_family,  # active provider
+            "ai_families": ai_families,  # all provider data
             "email_address": email_address,
             "email_password": email_password,
             "smtp_server": smtp_server,
             "smtp_port": smtp_port,
+            "receiver_email": receiver_email,
+            "receiver_password": receiver_password,
+            "receiver_server": receiver_server,
+            "receiver_port": receiver_port,
+            "rfp_mailbox": rfp_mailbox,
+            "rfp_email_subject_filter": rfp_email_subject_filter,
+            "rfp_email_sender_filter": rfp_email_sender_filter,
             "first_name": first_name,
             "last_name": last_name,
             "birth_date": birth_date,
@@ -140,7 +202,10 @@ def settings_render():
             "currency": currency,
         }
 
-        # In local_settings speichern (wird verschlüsselt)
+        # Save to local_settings (will be encrypted)
         config.save_local_settings(new_settings)
+        log_debug(
+            __name__, f"Settings successfully saved and encrypted:\n {new_settings}"
+        )
 
-        st.success("Einstellungen erfolgreich gespeichert und verschlüsselt.")
+        st.success(_T("Settings successfully saved and encrypted."))

@@ -63,7 +63,7 @@ def get_app_name() -> str:
     return g_app_name
 
 
-def make_container_path(*args):
+def join_container_path(*args):
     return ".".join(args)
 
 

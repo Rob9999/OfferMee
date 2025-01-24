@@ -392,6 +392,14 @@ def create_streamlit_edit_form_from_json_schema(
     st.markdown(f"**{label}**")
     schema = container.get_value(container_schema_path)
     data = container.get_value(container_data_path)
+    if schema is None:
+        raise ValueError(
+            f"Schema  is None: container '{container.get_name()}' path '{container_schema_path}'."
+        )
+    if data is None:
+        raise ValueError(
+            f"Data is None: container '{container.get_name()}' path '{container_data_path}'."
+        )
     # validate_json_data(data, schema)
     nestable(current_edited_data_path=container_data_path, schema=schema, data=data)
     if st.button(

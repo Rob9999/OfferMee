@@ -12,7 +12,7 @@ from offermee.dashboard.helpers.web_dashboard import (
     get_app_container,
     log_error,
     log_info,
-    make_container_path,
+    join_container_path,
     stop_if_not_logged_in,
 )
 from offermee.database.facades.main_facades import CVFacade
@@ -33,10 +33,10 @@ def cv_edit_render():
     # Retrieve the selected CV from session state
     selected_cv_id = st.session_state.get("selected_cv_id")
 
-    path_cv_root = make_container_path(page_root, f"cv[{selected_cv_id}]")
-    path_cv_structured_data = make_container_path(path_cv_root, "cv_structured_data")
-    path_cv_schema = make_container_path(path_cv_root, "cv_schema")
-    path_cv_control = make_container_path(path_cv_root, "control")
+    path_cv_root = join_container_path(page_root, f"cv[{selected_cv_id}]")
+    path_cv_structured_data = join_container_path(path_cv_root, "cv_structured_data")
+    path_cv_schema = join_container_path(path_cv_root, "cv_schema")
+    path_cv_control = join_container_path(path_cv_root, "control")
 
     if selected_cv_id:
         cv: Dict[str, Any] = st.session_state.get("selected_cv")

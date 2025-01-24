@@ -41,6 +41,44 @@ class ConfigData:
     smtp_server: str = "smtp.gmail.com"
     smtp_port: int = 465
 
+    receiver_email: str = None
+    receiver_password: str = None
+    receiver_server: str = "imap.gmail.com"
+    receiver_port: int = 993
+
+    rfp_mailbox = "RFPs"
+    rfp_email_subject_filter = "RFP"
+    rfp_email_sender_filter = "partner@example.com"
+
+    def __init__(self):
+        self.clear()
+
+    def __reset__(self):
+        """
+        Resets the configuration fields.
+        """
+        self.logged_in = False
+        self.current_user = None
+        self.ai_families = {}
+        self.ai_selected_family = None
+        self.sender_email = None
+        self.sender_password = None
+        self.smtp_server = "smtp.gmail.com"
+        self.smtp_port = 465
+        self.receiver_email = None
+        self.receiver_password = None
+        self.receiver_server = "imap.gmail.com"
+        self.receiver_port = 993
+        self.rfp_mailbox = "RFPs"
+        self.rfp_email_subject_filter = "RFP"
+        self.rfp_email_sender_filter = ""
+
+    def clear(self):
+        """
+        Clears the configuration fields.
+        """
+        self.__reset__()
+
 
 class Config:
     """
@@ -99,14 +137,7 @@ class Config:
         self.local_settings = None
 
         # Reset dataclass fields
-        self.config_data.logged_in = False
-        self.config_data.current_user = None
-        self.config_data.ai_families.clear()
-        self.config_data.ai_selected_family = None
-        self.config_data.sender_email = None
-        self.config_data.sender_password = None
-        self.config_data.smtp_server = "smtp.gmail.com"
-        self.config_data.smtp_port = 465
+        self.config_data.clear
 
         AIManager().set_default_client()
         self.logger.info("Config reset.")
@@ -164,9 +195,24 @@ class Config:
         self.config_data.sender_email = self.local_settings.get("email_address", "")
         self.config_data.sender_password = self.local_settings.get("email_password", "")
         self.config_data.smtp_server = self.local_settings.get(
-            "smtp_server", "smtp.gmail.com"
+            "smtp_server", ""  # smtp.gmail.com"
         )
         self.config_data.smtp_port = self.local_settings.get("smtp_port", 465)
+        self.config_data.receiver_email = self.local_settings.get("receiver_email", "")
+        self.config_data.receiver_password = self.local_settings.get(
+            "receiver_password", ""
+        )
+        self.config_data.receiver_server = self.local_settings.get(
+            "receiver_server", ""  # "imap.gmail.com"
+        )
+        self.config_data.receiver_port = self.local_settings.get("receiver_port", 993)
+        self.config_data.rfp_mailbox = self.local_settings.get("rfp_mailbox", "RFPs")
+        self.config_data.rfp_email_subject_filter = self.local_settings.get(
+            "rfp_email_subject_filter", "RFP"
+        )
+        self.config_data.rfp_email_sender_filter = self.local_settings.get(
+            "rfp_email_sender_filter", ""
+        )
 
         # Initialize AIManager with the newly loaded values
         AIManager().set_default_client(

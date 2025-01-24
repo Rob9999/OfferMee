@@ -1,4 +1,5 @@
 import streamlit as st
+from offermee.dashboard.helpers.international import _T
 from offermee.dashboard.helpers.web_dashboard import log_info
 from offermee.database.db_connection import connect_to_db
 from offermee.enums.contract_types import ContractType
@@ -7,8 +8,8 @@ from offermee.enums.sites import Site
 from offermee.scraper.freelancermap import FreelanceMapScraper
 
 
-def scraper_render():
-    st.header("Project Search Settings")
+def rfp_scrap_online_render():
+    st.header(_T("Scrap Requests For Proposal (RFPs) Online"))
 
     # Platform selection
     platforms = ["FreelancerMap"]  # Add more platforms later

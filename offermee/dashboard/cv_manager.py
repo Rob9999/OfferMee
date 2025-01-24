@@ -12,7 +12,7 @@ from offermee.dashboard.helpers.web_dashboard import (
     get_app_container,
     log_error,
     log_info,
-    make_container_path,
+    join_container_path,
     stop_if_not_logged_in,
 )
 from offermee.database.facades.main_facades import (
@@ -52,16 +52,16 @@ def cv_manager_render() -> None:
         value=Config.get_instance().get_name_from_local_settings(),
     )
 
-    path_cv_upload_root = make_container_path(page_root, "cv_upload")
-    path_cv_upload_candidate = make_container_path(path_cv_upload_root, "cv_candidate")
-    path_cv_upload_schema = make_container_path(path_cv_upload_root, "cv_schema")
-    path_cv_upload_file = make_container_path(path_cv_upload_root, "cv_file")
-    path_cv_upload_text = make_container_path(path_cv_upload_root, "cv_text")
-    path_cv_edit_root = make_container_path(path_cv_upload_root, "cv_edit")
-    path_cv_edit_structured_data = make_container_path(
+    path_cv_upload_root = join_container_path(page_root, "cv_upload")
+    path_cv_upload_candidate = join_container_path(path_cv_upload_root, "cv_candidate")
+    path_cv_upload_schema = join_container_path(path_cv_upload_root, "cv_schema")
+    path_cv_upload_file = join_container_path(path_cv_upload_root, "cv_file")
+    path_cv_upload_text = join_container_path(path_cv_upload_root, "cv_text")
+    path_cv_edit_root = join_container_path(path_cv_upload_root, "cv_edit")
+    path_cv_edit_structured_data = join_container_path(
         path_cv_edit_root, "cv_structured_data"
     )
-    path_cv_edit_control = make_container_path(path_cv_edit_root, "control")
+    path_cv_edit_control = join_container_path(path_cv_edit_root, "control")
 
     if not container.get_value(path_cv_upload_schema, None):
         cv_schema = get_schema(SchemaKey.CV)

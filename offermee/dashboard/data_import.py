@@ -12,7 +12,7 @@ from offermee.dashboard.helpers.web_dashboard import (
     log_debug,
     log_error,
     log_info,
-    make_container_path,
+    join_container_path,
     stop_if_not_logged_in,
 )
 from offermee.utils.container import Container
@@ -30,8 +30,8 @@ def data_imports_render():
     container: Container = get_app_container()
     operator = Config.get_instance().get_current_user()
 
-    path_data_import_root = make_container_path(page_root, "data_import")
-    path_data_import_data = make_container_path(path_data_import_root, "data")
+    path_data_import_root = join_container_path(page_root, "data_import")
+    path_data_import_data = join_container_path(path_data_import_root, "data")
     data: Dict[str, Any] = container.get_value(path_data_import_data, {})
 
     # Upload-Feld für CV JSON und JSON schema
