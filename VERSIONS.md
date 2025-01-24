@@ -1,3 +1,7 @@
+## v0.0.6669 - 2025-01-23T20:52:52.899Z
+
+- cleaned up VERSION.md
+
 ## v0.0.6668 - 2025-01-23T20:31:19.984Z
 
 - Update README.md
