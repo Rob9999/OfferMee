@@ -261,11 +261,27 @@ class ReadFacade:
         return ReadService.get_soft_skills(capabilities_id=capabilities_id)
 
     @staticmethod
+    def get_soft_skills_list(capabilities_id: int) -> List[str]:
+        """
+        Gets a clean name list of all soft-skills.
+        """
+        soft_skills = ReadService.get_soft_skills(capabilities_id=capabilities_id)
+        return [skill.get("name") for skill in soft_skills if skill]
+
+    @staticmethod
     def get_tech_skills(capabilities_id: int) -> List[Dict[str, Any]]:
         """
         Analog zu get_soft_skills, nur für tech_skills.
         """
         return ReadService.get_tech_skills(capabilities_id=capabilities_id)
+
+    @staticmethod
+    def get_tech_skills_list(capabilities_id: int) -> List[str]:
+        """
+        Gets a clean name list of all tech-skills.
+        """
+        tech_skills = ReadService.get_tech_skills(capabilities_id=capabilities_id)
+        return [skill.get("name") for skill in tech_skills if skill]
 
     @staticmethod
     def get_freelancer_by_name(name: str) -> Optional[Dict[str, Any]]:

@@ -46,7 +46,7 @@ def rfp_scrap_from_email_render():
     # 3.1 Prüfe durch die ProjectFacade.get_first_by-Methode, ob das Projekt bereits in der Datenbank existiert. -->original_link, contact_person, contact_email
     # 3.2 Nehme nur die E-Mails, die noch nicht in der Datenbank existieren.
     # 4. Extrahiere den Text aus den E-Mails und gebe diese dem ProjektProcessor zu AI Analyse
-    # 4.1 Speicher alle Daten zur verifizierenden Abarbeitung durch den Anwender in dem rfp-Dictionary
+    # 4.1 Speichere alle Daten zur verifizierenden Abarbeitung durch den Anwender in dem rfp-Dictionary
     # 4.2 View the extracted data of each rfp in the user interface to let the user verify + save to db or discard each rfp --> Raw Text, Analyze with AI, Validate Data, Save to DB
 
 
@@ -54,7 +54,7 @@ def rfp_scrap_from_email_render():
         _type_: _description_
     """
 
-    st.header("Scrap Requests For Proposal (RFPs) from Email Account")
+    st.header(_T("Scrap Requests For Proposal (RFPs) from Email Account"))
     stop_if_not_logged_in()
 
     page_root = __name__
@@ -192,7 +192,7 @@ def rfp_scrap_from_email_render():
             st.write(f"### {_T('Email Subject')}: {raw_text_dict['subject']}")
             st.write(f"#### {_T('From')}: {raw_text_dict['from']}")
             st.html(raw_text_dict["body"])
-            if st.checkbox(_T("Discard Email / RFP !")):
+            if st.checkbox(_T("Discard Email / RFP !"), value=False):
                 st.warning(_T("RFP will be discarded."))
                 if st.button(_T("Press again to confirm discarding.")):
                     rfp["status"] = Status.DISCARDED
@@ -282,3 +282,5 @@ def rfp_scrap_from_email_render():
                         log_error(__name__, f"Error saving to DB: {e}")
                         st.error(f"Error while saving: {e}")
                         traceback.print_exception(type(e), e, e.__traceback__)
+                    if st.button(_T("Next")):
+                        st.rerun()

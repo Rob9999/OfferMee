@@ -20,7 +20,7 @@ from offermee.utils.container import Container
 
 
 def cv_edit_render():
-    st.header("CV bearbeiten")
+    st.header(_T("CV Edit"))
     stop_if_not_logged_in()
 
     page_root = __name__

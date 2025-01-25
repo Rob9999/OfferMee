@@ -46,8 +46,8 @@ class OfferGenerator:
 
         offer = template.render(
             contact_person=(
-                project.contact_person
-                if project.contact_person
+                project.get("contact_person")
+                if project.get("contact_person")
                 else "Mr./Ms."  # TODO FIX
             ),
             freelancer=freelancer,

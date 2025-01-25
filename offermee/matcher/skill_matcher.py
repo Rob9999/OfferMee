@@ -17,13 +17,16 @@ class SkillMatcher:
             dict: Detaillierte Matching-Scores für jede Fähigkeit.
         """
         must_haves = (
-            [skill.strip().lower() for skill in project.must_haves.split(",")]
-            if project.must_haves
+            [skill.strip().lower() for skill in project.get("must_haves").split(", ")]
+            if project.get("must_haves")
             else []
         )
         nice_to_haves = (
-            [skill.strip().lower() for skill in project.nice_to_haves.split(",")]
-            if project.nice_to_haves
+            [
+                skill.strip().lower()
+                for skill in project.get("nice_to_haves").split(", ")
+            ]
+            if project.get("nice_to_haves")
             else []
         )
 
