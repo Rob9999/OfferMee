@@ -1,3 +1,7 @@
+## v0.0.6670 - 2025-01-24T22:33:11.795Z
+
+- Merge branch 'main' of https://github.com/Rob9999/OfferMee
+
 ## v0.0.6669 - 2025-01-23T20:52:52.899Z
 
 - cleaned up VERSION.md
