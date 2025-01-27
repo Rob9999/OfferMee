@@ -1,3 +1,7 @@
+## v0.0.6673 - 2025-01-27T16:14:50.818Z
+
+- removed offer template file
+
 ## v0.0.6672 - 2025-01-27T15:11:43.147Z
 
 - refactored manual input, offer template, offer generator and offer matcher
