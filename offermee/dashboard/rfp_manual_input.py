@@ -16,13 +16,14 @@ from offermee.dashboard.helpers.web_dashboard import (
 )
 from offermee.AI.project_processor import ProjectProcessor
 from offermee.database.facades.main_facades import ProjectFacade
+from offermee.enums.process_status import Status
 from offermee.schemas.json.schema_loader import get_schema, validate_json
 from offermee.schemas.json.schema_keys import SchemaKey
 from offermee.database.transformers.project_model_transformer import json_to_db
 from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
 )
-from offermee.dashboard.helpers.international import _T
+from offermee.utils.international import _T
 from offermee.utils.container import Container
 
 
@@ -42,13 +43,6 @@ def rfp_manual_input_render():
         exists_ok=True,
         force_typ=True,
     )
-
-    class Status(Enum):
-        NEW = "new"
-        ANALYZED = "analyzed"
-        VALIDATED = "validated"
-        SAVED = "saved"
-        DISCARDED = "discarded"
 
     rfps: List[Dict[str, Any]] = container.get_value(path_rfps_root, [])
     # rfp = { "raw_text": "...", "schema": { ... }, "data": { ... }, "control": { ... }, "status": Status.NEW }
@@ -159,24 +153,34 @@ def rfp_manual_input_render():
 
         # --- Step 5: Save to DB (only if valid)
         if rfp["status"] == Status.VALIDATED:
-            if st.button("Save to DB"):
-                try:
-                    final_data = rfp["data"]
-                    original_link = final_data["project"].get("original-link")
-                    if original_link:
-                        existing = ProjectFacade.get_first_by(
-                            {"original_link": original_link}
-                        )
-                        if existing:
-                            st.warning(
-                                "A project with that 'original-link' already exists."
-                            )
-                            return
-                    # create and save
-                    new_project = json_to_db(final_data).to_dict()
-                    ProjectFacade.create(new_project, operator)
-                    rfps[rfp_index]["status"] = Status.SAVED
-                    st.success(f"Project '{new_project.title}' saved to DB.")
-                except Exception as e:
-                    log_error(__name__, f"Error saving to DB: {e}")
-                    st.error(f"Error while saving: {e}")
+            st.button(_T("Save"), on_click=save_to_db, args=(rfp, operator))
+
+
+def save_to_db(rfp_entry: Dict[str, Any], operator: str):
+    try:
+        if not rfp_entry:
+            raise ValueError("Missing RFP Entry")
+        if not operator:
+            raise ValueError("Missing Operator")
+        final_data: Dict[str, Any] = rfp_entry.get("data")
+        if not final_data:
+            raise ValueError("Missing RFP Data")
+        rfp: Dict[str, Any] = final_data.get("project")
+        if not rfp:
+            raise ValueError("Missing RFP")
+        original_link = rfp.get("original-link")
+        if not original_link:
+            raise ValueError("Missing RFP Original Link")
+        if original_link:
+            existing = ProjectFacade.get_first_by({"original_link": original_link})
+            if existing:
+                st.warning(_T("A project with that 'original-link' already exists."))
+                return
+        # create and save
+        new_project = json_to_db(final_data).to_dict()
+        ProjectFacade.create(new_project, operator)
+        rfp_entry["status"] = Status.SAVED
+        st.success(f"{_T('Saved RFP')}: '{rfp.get('title')}'.")
+    except Exception as e:
+        log_error(__name__, f"Error saving to DB: {e}")
+        st.error(f"{_T('Error while saving')}: {e}")

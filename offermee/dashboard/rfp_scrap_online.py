@@ -1,5 +1,5 @@
 import streamlit as st
-from offermee.dashboard.helpers.international import _T
+from offermee.utils.international import _T
 from offermee.dashboard.helpers.web_dashboard import log_info
 from offermee.database.db_connection import connect_to_db
 from offermee.enums.contract_types import ContractType

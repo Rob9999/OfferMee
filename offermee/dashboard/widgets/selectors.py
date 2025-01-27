@@ -1,5 +1,5 @@
 from typing import Any, Callable, Dict, List, Optional
-from offermee.dashboard.helpers.international import _T
+from offermee.utils.international import _T
 import streamlit as st
 from offermee.config import Config
 from offermee.dashboard.helpers.web_dashboard import log_info

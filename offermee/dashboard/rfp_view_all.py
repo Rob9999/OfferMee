@@ -13,7 +13,7 @@ from offermee.dashboard.helpers.web_dashboard import (
     stop_if_not_logged_in,
 )
 from offermee.database.facades.main_facades import ProjectFacade
-from offermee.dashboard.helpers.international import _T
+from offermee.utils.international import _T
 from offermee.utils.container import Container
 
 

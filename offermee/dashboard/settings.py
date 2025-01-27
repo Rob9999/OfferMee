@@ -1,6 +1,6 @@
 import streamlit as st
 from offermee.config import Config
-from offermee.dashboard.helpers.international import _T
+from offermee.utils.international import _T
 from offermee.dashboard.helpers.web_dashboard import (
     log_debug,
     log_info,

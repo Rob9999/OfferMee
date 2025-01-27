@@ -25,7 +25,7 @@ from offermee.database.transformers.project_model_transformer import json_to_db
 from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
 )
-from offermee.dashboard.helpers.international import _T
+from offermee.utils.international import _T
 from offermee.scraper.rfp_email_scraper import (
     connect_to_email,
     fetch_emails,

@@ -1,9 +1,9 @@
 from asyncio import sleep
 import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import streamlit as st
 from offermee.config import Config
-from offermee.dashboard.helpers.international import _T
+from offermee.utils.international import _T
 from offermee.dashboard.helpers.web_dashboard import (
     get_app_container,
     join_container_path,
@@ -29,7 +29,7 @@ from offermee.offers.email_utils import EmailUtils
 from offermee.utils.container import Container
 
 
-def matches_render():
+def offer_matcher_render():
     """
     1. Select a candidate (freelancer)
     2. Check all rfps that has no offer yet
@@ -38,7 +38,7 @@ def matches_render():
     4. Send the offer plus the cv to the customer
     5. Repeat as long as matching rfps are available, may select another freelancer
     """
-    page_title = _T("Projektmatcher & Angebotserstellung")
+    page_title = _T("Project Matcher & Offer Creation")
     st.header(page_title)
     stop_if_not_logged_in()
     log_info(__name__, "Visiting the side.")
@@ -147,35 +147,12 @@ def matches_render():
             None,
         )
         if freelancer_entry is None:
-            freelancer_entry = {
-                "data": FreelancerFacade.get_first_by(
-                    {"id": current_process.get("freelancer-id")}
-                ),
-                "cvs": CVFacade.get_all_by(
-                    {"freelancer_id": current_process.get("freelancer-id")}
-                ),
-            }
+            freelancer_entry = load_freelancer_data(
+                freelancer_entry=None,
+                freelancer_id=current_process.get("freelancer-id"),
+            )
             freelancers.append(freelancer_entry)
-        freelancer = freelancer_entry.get("data", None)
-        if freelancer:
-            capabilities_id = freelancer.get("capabilities_id")
-            if capabilities_id is not None and not freelancer.get("capabilities", {}):
-                # load capabilities
-                capabilities = CapabilitiesFacade.get_by_id(capabilities_id)
-                freelancer["capabilities"] = capabilities
-                # load tech-skills
-                capabilities["tech-skills"] = ReadFacade.get_tech_skills_list(
-                    capabilities_id=capabilities_id
-                )
-        else:
-            log_error(
-                __name__,
-                f"Unknwon freelancer #{current_process.get('freelancer-id')}. You may upload a CV first!",
-            )
-            st.error(
-                f"{_T('Unknown freelancer')} #{current_process.get('freelancer-id')}. {_T('You may upload a CV first!')}"
-            )
-            st.stop()
+        freelancer: Dict[str, Any] = freelancer_entry.get("data", None)
         # log_debug(__name__, f"Fetched Freelancer:\n{freelancer}")
         freelancer_tech_skills = " ,".join(
             freelancer.get("capabilities", {}).get("tech-skills", [])
@@ -191,6 +168,7 @@ def matches_render():
         for new_rfp_entry in new_rfps:
             new_rfp = new_rfp_entry.get("data")
             log_info(__name__, f"Matching project {new_rfp.get('title')}")
+            key_rpf = f"rfp#{new_rfp.get('id')}"
             match_score, skill_details = SkillMatcher.match_skills(
                 new_rfp, freelancer_tech_skills
             )
@@ -239,20 +217,49 @@ def matches_render():
                 current_process["rfp-id"] = new_rfp.get("id")
 
             if current_process.get("rfp-id") == new_rfp.get("id"):
+                key_rpf_offer = key_rpf + "_offer"
+                key_rpf_offer_freelancer = (
+                    key_rpf_offer + f"_freelancer#{freelancer.get('id')}"
+                )
                 path_offer_process = join_container_path(
                     path_current_process,
                     f"offer_process_freelancer-id#{freelancer.get('id')}_rfp-id#{new_rfp.get('id')}",
                 )
+                if freelancer_entry:
+                    st.button(
+                        _T("Reload Freelancer Data"),
+                        on_click=load_freelancer_data,
+                        args=(
+                            freelancer_entry,
+                            current_process.get("freelancer-id"),
+                            lambda: (container.set_value(path_offer_process, None)),
+                        ),
+                    )
                 path_hourly_rate_remote = join_container_path(
-                    path_offer_process, f"hourly_rate_remote"
+                    path_offer_process, "hourly_rate_remote"
                 )
                 path_hourly_rate_onsite = join_container_path(
-                    path_offer_process, f"hourly_rate_onsite"
+                    path_offer_process, "hourly_rate_onsite"
                 )
-                path_daily_rate_onsite = join_container_path(
-                    path_offer_process, f"daily_rate_onsite"
+                path_daily_flat_rate_onsite = join_container_path(
+                    path_offer_process, "daily_flat_rate_onsite"
                 )
-                with st.container(key=f"offer_for_rfp_{new_rfp.get('id')}"):
+                path_yearly_flat_rate_onsite = join_container_path(
+                    path_offer_process, "yearly_flat_rate_onsite"
+                )
+                path_offer_template = join_container_path(
+                    path_offer_process, "offer_template"
+                )
+                path_offer_content = join_container_path(
+                    path_offer_process, "offer_content"
+                )
+                path_offer_language = join_container_path(
+                    path_offer_process, "offer_language"
+                )
+                path_offer_currency = join_container_path(
+                    path_offer_process, "offer_currency"
+                )
+                with st.container(key=key_rpf_offer_freelancer + "_container"):
                     freelancer_desired_rate_min = freelancer.get("desired_rate_min")
                     st.markdown(
                         f"***{_T('Making Offer for RFP')}: {new_rfp.get('title')}***"
@@ -261,6 +268,7 @@ def matches_render():
                         path_hourly_rate_remote,
                         st.number_input(
                             f"{_T('Hourly Rate remote in')} {_T('€')} {_T('plus VAT')}: ({_T('min')}) {freelancer_desired_rate_min:.2f}",
+                            key=key_rpf_offer_freelancer + "_hourly_rate_remote",
                             min_value=container.get_value(
                                 path_hourly_rate_remote, freelancer_desired_rate_min
                             ),
@@ -271,6 +279,7 @@ def matches_render():
                         path_hourly_rate_onsite,
                         st.number_input(
                             f"{_T('Hourly Rate onsite in')} {_T('€')} {_T('plus VAT')}: ({_T('min')} + 20%) {(freelancer_desired_rate_min*1.2):.2f}",
+                            key=key_rpf_offer_freelancer + "_hourly_rate_onsite",
                             min_value=container.get_value(
                                 path_hourly_rate_onsite,
                                 freelancer_desired_rate_min * 1.2,
@@ -279,55 +288,177 @@ def matches_render():
                         ),
                     )
                     container.set_value(
-                        path_daily_rate_onsite,
+                        path_daily_flat_rate_onsite,
                         st.number_input(
                             f"{_T('Daily flat rate onsite throughout Germany (all-in) in')} {_T('€')} {_T('plus VAT')}: ({_T('min')} * 8h + 500 {_T('€')}) {(freelancer_desired_rate_min*8+500.00):.2f}",
+                            key=key_rpf_offer_freelancer + "_daily_flat_rate_onsite",
                             min_value=container.get_value(
-                                path_daily_rate_onsite,
+                                path_daily_flat_rate_onsite,
                                 freelancer_desired_rate_min * 8 + 500.00,
                             ),
                             format="%.2f",
                         ),
                     )
+                    container.set_value(
+                        path_yearly_flat_rate_onsite,
+                        st.number_input(
+                            f"{_T('Yearly flat rate onsite throughout Germany (all-in) in')} {_T('€')}: ({_T('min')} * 1680h {_T('€')}) {(freelancer_desired_rate_min*1680):.2f}",
+                            key=key_rpf_offer_freelancer + "_yearly_rate_onsite",
+                            min_value=container.get_value(
+                                path_yearly_flat_rate_onsite,
+                                freelancer_desired_rate_min * 1680,
+                            ),
+                            format="%.2f",
+                        ),
+                    )
+                    container.set_value(
+                        path_offer_language,
+                        st.select_slider(
+                            f"{_T('Offer Lanuage')}: ({_T('default')} {freelancer.get('prefered_language', 'de_DE')}",
+                            options=freelancer.get("languages", ["de_DE", "en_EN"]),
+                            value=container.get_value(path_offer_language, "de_DE"),
+                            key=key_rpf_offer_freelancer + "_offer_language",
+                        ),
+                    )
+                    container.set_value(
+                        path_offer_currency,
+                        st.select_slider(
+                            f"{_T('Offer Currency')}: ({_T('default')} {freelancer.get('prefered_currency', 'EUR')}",
+                            options=["EUR", "USD"],
+                            value=container.get_value(path_offer_currency, "EUR"),
+                            key=key_rpf_offer_freelancer + "_offer_currency",
+                        ),
+                    )
+                    container.set_value(
+                        path_offer_template,
+                        st.text_area(
+                            _T("Freelancer's Offer Template"),
+                            container.get_value(
+                                path_offer_template, freelancer.get("offer_template")
+                            ),
+                            height=600,
+                        ),
+                    )
+                    st.markdown("---")
+                    st.html(
+                        container.get_value(
+                            path_offer_template, _T("No offer template")
+                        )
+                    )
+                    st.markdown("---")
+
                     if st.button(_T("Apply")):
-                        offer_content = OfferGenerator().generate_offer(
-                            new_rfp,
-                            freelancer,
-                            {
-                                "hourly_rate_remote": container.get_value(
-                                    path_hourly_rate_remote, freelancer_desired_rate_min
+                        container.set_value(
+                            path_offer_content,
+                            OfferGenerator().generate_html_offer(
+                                html_template=container.get_value(
+                                    path_offer_template,
+                                    freelancer.get("offer_template"),
                                 ),
-                                "hourly_rate_onsite": container.get_value(
-                                    path_hourly_rate_onsite,
-                                    freelancer_desired_rate_min * 1.2,
+                                rfp=new_rfp,
+                                freelancer=freelancer,
+                                rates={
+                                    "hourly_rate_remote": container.get_value(
+                                        path_hourly_rate_remote,
+                                        freelancer_desired_rate_min,
+                                    ),
+                                    "hourly_rate_onsite": container.get_value(
+                                        path_hourly_rate_onsite,
+                                        freelancer_desired_rate_min * 1.2,
+                                    ),
+                                    "daily_flat_rate_onsite": container.get_value(
+                                        path_daily_flat_rate_onsite,
+                                        freelancer_desired_rate_min * 8 + 500.00,
+                                    ),
+                                    "yearly_flat_rate_onsite": container.get_value(
+                                        path_yearly_flat_rate_onsite,
+                                        freelancer_desired_rate * 1680,
+                                    ),
+                                },
+                                language=container.get_value(
+                                    path_offer_language,
+                                    freelancer.get("prefered_language"),
                                 ),
-                                "daily_rate_onsite_pauschal": container.get_value(
-                                    path_daily_rate_onsite,
-                                    freelancer_desired_rate_min * 8 + 500.00,
+                                currency=container.get_value(
+                                    path_offer_currency,
+                                    freelancer.get("prefered_currency"),
                                 ),
-                            },
+                            ),
                         )
-                        final_content = st.text_area(
-                            label=_T("Generated Offer"),
-                            value=offer_content,
-                            height=400,
-                        )
+                        st.markdown("---")
+                        st.markdown(f"*** {_T('FINAL OFFER')} ***")
+                        st.html(container.get_value(path_offer_content, _T("NO OFFER")))
+                        st.markdown("---")
+
                         log_info(__name__, f"Offering '{path_offer_process}' ...")
 
                         st.button(
                             label=_T("SEND"),
                             key=path_offer_process,
                             on_click=send_offer_callback,
-                            args=(new_rfp_entry, new_rfp, final_content),
+                            args=(
+                                new_rfp_entry,
+                                new_rfp,
+                                container.get_value(path_offer_content),
+                            ),
                         )
 
 
-def send_offer_callback(new_rfp_entry, new_rfp, final_content):
+def load_freelancer_data(
+    freelancer_entry: Optional[Dict[str, Any]],
+    freelancer_id: int,
+    callback: callable = None,
+):
+    log_info(__name__, f"Loading Freelancer #{freelancer_id} Data ...")
+    if freelancer_entry is None:
+        log_debug(__name__, "Is Freelancer Data First Time Loading ...")
+        freelancer_entry = {}
+    if not freelancer_id:
+        raise ValueError(f"Missing or Invalid Freelancer Id: #{freelancer_id}")
+    freelancer_entry["data"] = FreelancerFacade.get_first_by({"id": freelancer_id})
+    freelancer_entry["cvs"] = CVFacade.get_all_by({"freelancer_id": freelancer_id})
+    freelancer = freelancer_entry["data"]
+    if freelancer:
+        capabilities_id = freelancer.get("capabilities_id")
+        if capabilities_id is not None and not freelancer.get("capabilities", {}):
+            # load capabilities
+            capabilities = CapabilitiesFacade.get_by_id(capabilities_id)
+            freelancer["capabilities"] = capabilities
+            # load tech-skills
+            capabilities["tech-skills"] = ReadFacade.get_tech_skills_list(
+                capabilities_id=capabilities_id
+            )
+    else:
+        log_error(
+            __name__,
+            f"Unknwon Freelancer #{freelancer_id}. You may upload a CV first!",
+        )
+        st.error(
+            f"{_T('Unknown Freelancer')} #{freelancer_id}. {_T('You may upload a CV first!')}"
+        )
+        st.stop()
+    if callback:
+        log_info(__name__, "Processing Callback ...")
+        callback()
+        log_info(__name__, "Processed Callback.")
+    log_info(__name__, f"Loaded Freelancer #{freelancer_id} Data.")
+    return freelancer_entry
+
+
+def send_offer_callback(
+    new_rfp_entry: Dict[str, Any], new_rfp: Dict[str, Any], final_content: str
+):
     log_info(__name__, f"Generated offer: \n{final_content}")
 
+    if not new_rfp_entry:
+        raise ValueError("Missing RFP Entry")
+    if not new_rfp:
+        raise ValueError("Misssing RFP")
+    if not final_content:
+        raise ValueError("Missing FINAL OFFER")
     EmailUtils().send_email(
         new_rfp.get("contact_person"),
-        f"Angebot für {new_rfp.get('title')}",
+        f"{_T('Offer for RFP')}: {new_rfp.get('title')}",
         final_content,
         True,
     )

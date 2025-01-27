@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict
 import streamlit as st
 from offermee.config import Config
-from offermee.dashboard.helpers.international import _T
+from offermee.utils.international import _T
 from offermee.dashboard.widgets.selectors import render_cv_selection_form
 from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
@@ -20,7 +20,7 @@ from offermee.utils.container import Container
 
 
 def cv_edit_render():
-    st.header(_T("CV Edit"))
+    st.header(_T("Edit CV"))
     stop_if_not_logged_in()
 
     page_root = __name__

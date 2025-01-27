@@ -6,7 +6,7 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 from offermee.config import Config
 from offermee.dashboard.widgets.selectors import render_cv_selection_form
 from offermee.database.facades.main_facades import CVFacade, FreelancerFacade
-from offermee.dashboard.helpers.international import _T
+from offermee.utils.international import _T
 from offermee.dashboard.helpers.web_dashboard import (
     get_app_container,
     log_debug,

@@ -25,7 +25,7 @@ import PyPDF2
 
 from offermee.schemas.json.schema_keys import SchemaKey
 from offermee.schemas.json.schema_loader import get_schema
-from offermee.dashboard.helpers.international import _T
+from offermee.utils.international import _T
 from offermee.utils.container import Container
 from offermee.utils.utils import safe_type
 

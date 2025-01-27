@@ -1,58 +1,71 @@
 import datetime
 from typing import Any, Dict
-from jinja2 import Environment, FileSystemLoader
-import os
+from jinja2 import Environment, BaseLoader
+from babel import dates, numbers
 
 from offermee.logger import CentralLogger
+from offermee.utils.international import _T  # Übersetzungen einbinden
 
 
 class OfferGenerator:
     """
-    Generator for creating offer documents based on templates.
+    Generator for creating internationalized offer documents based on templates.
     """
 
-    def __init__(self, template_dir="templates"):
+    def __init__(self):
         """
-        Initializes the Jinja2 environment with the specified template directory.
-
-        Args:
-            template_dir (str): Directory where the templates are stored.
+        Initializes the OfferGenerator.
         """
         self.logger = CentralLogger.getLogger(__name__)
-        os.makedirs(template_dir, exist_ok=True)
-        self.env = Environment(loader=FileSystemLoader(template_dir))
-        self.template_name = "offer_template.html"  # HTML template for offers
+        self.env = Environment(loader=BaseLoader())  # Templates kommen als Strings
 
-    def generate_offer(
-        self, project: Dict[str, Any], freelancer: Dict[str, Any], rates: dict
-    ):
+    def generate_html_offer(
+        self,
+        html_template: str,
+        rfp: Dict[str, Any],
+        freelancer: Dict[str, Any],
+        rates: Dict[str, float],
+        language: str = "en",
+        currency: str = "USD",
+    ) -> str:
         """
-        Generates an offer based on the project and freelancer data.
+        Renders an internationalized HTML offer using the provided template and data.
 
-        Args:
-            project (Dict[str, Any]): The project model with extracted requirements.
-            freelancer (Dict[str, Any]): The freelancer model with skills and desired hourly rate.
-            rates: The offer rates dictionary containing hourly_rate_remote, hourly_rate_onsite and daily_rate_onsite_pauschal
-
-        Returns:
-            str: The generated offer as HTML text.
+        :param html_template: The HTML template as a string.
+        :param rfp: Dictionary containing project details (Request For Proposal).
+        :param freelancer: Dictionary containing freelancer details.
+        :param rates: Dictionary containing rate information as floats.
+        :param language: Language code for localization (e.g., "de", "en").
+        :param currency: Currency code for rates (e.g., "USD", "EUR").
+        :return: Rendered HTML string or None in case of an error.
         """
         try:
-            self.logger.info(f"Starting to generate offer ...")
-            template = self.env.get_template(self.template_name)
+            self.logger.info("Starting to generate offer...")
+            template = self.env.from_string(html_template)
         except Exception as e:
-            self.logger.error(f"Error loading the template: {e}")
+            self.logger.error(f"Error parsing the template: {e}")
             return None
 
-        offer = template.render(
-            contact_person=(
-                project.get("contact_person")
-                if project.get("contact_person")
-                else "Mr./Ms."  # TODO FIX
-            ),
-            freelancer=freelancer,
-            project=project,
-            rates=rates,
-            current_date=datetime.datetime.now().strftime("%d.%m.%Y"),
-        )
-        return offer
+        try:
+            # Lokalisierung vorbereiten
+            current_date = dates.format_date(
+                datetime.datetime.now(), format="long", locale=language
+            )
+            formatted_rates = {
+                key: numbers.format_currency(value, currency, locale=language)
+                for key, value in rates.items()
+            }
+
+            # Template rendern
+            offer = template.render(
+                contact_person=rfp.get("contact_person", _T("Mr./Ms.")),
+                freelancer=freelancer,
+                project=rfp,
+                rates=formatted_rates,
+                current_date=current_date,
+            )
+            self.logger.info("Offer successfully generated.")
+            return offer
+        except Exception as e:
+            self.logger.error(f"Error rendering the template: {e}")
+            return None
