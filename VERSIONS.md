@@ -1,3 +1,7 @@
+## v0.0.6672 - 2025-01-27T15:11:43.147Z
+
+- refactored manual input, offer template, offer generator and offer matcher
+
 ## v0.0.6671 - 2025-01-25T23:32:00.653Z
 
 - Merge branch 'main' of https://github.com/Rob9999/OfferMee
