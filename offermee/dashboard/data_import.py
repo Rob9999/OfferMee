@@ -4,8 +4,9 @@ from typing import Any, Dict, Optional
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 from offermee.config import Config
+from offermee.dashboard.widgets.db_utils import save_cv_to_db
 from offermee.dashboard.widgets.selectors import render_cv_selection_form
-from offermee.database.facades.main_facades import CVFacade, FreelancerFacade
+from offermee.database.facades.main_facades import FreelancerFacade
 from offermee.utils.international import _T
 from offermee.dashboard.helpers.web_dashboard import (
     get_app_container,
@@ -72,34 +73,34 @@ def data_imports_render():
                     if not freelancer:
                         st.warning(
                             _T(
-                                "The candidate is not in the database. Shall the candidate added to the freelancers."
+                                "The candidate is not in the database and would be added to the db as freelancer."
                             )
                         )
                     else:
                         st.success(_T("The candidate is in the database."))
                         data[key]["freelancer"] = freelancer
-                        data[key]["wantstore"] = st.checkbox(
-                            key=key, label=_T("Save to database"), value=False
-                        )
+                    data[key]["wantstore"] = st.checkbox(
+                        key=key, label=_T("Save to database"), value=False
+                    )
 
-                if data[key].get("type") and data[key].get("wantstore"):
-                    if st.button(_T("Save to database")):
-                        if data[key].get("type") == "CV":
-                            # get freelancer_id
-                            freelancer = data[key].get("freelancer")
-                            new_cv = {
-                                "freelancer_id": freelancer.get("id"),
+                if data[key].get("type") == "CV" and data[key].get("wantstore"):
+                    st.button(
+                        _T("Save"),
+                        on_click=save_cv_to_db,
+                        args=(
+                            cv_candidate,
+                            {
                                 "name": cv_candidate,
-                                "cv_raw_text": ("data import"),
-                                "cv_structured_data": json.dumps(data[key]["json"]),
-                                "cv_schema_reference": json.dumps(data[key]["schema"]),
-                            }
-                            CVFacade.create(new_cv, operator)
-                            # data.pop(key)
-                            log_info(__name__, f"CV Data '{key}' saved to database.")
-                # log_info(__name__, f"Viewing data '{key}'.")
-        # Redirect to CV edit page
-        st.rerun()
+                                "cv_raw_text": "data import",
+                                "cv_structured_data": data[key]["json"],
+                                "cv_schema_reference": data[key]["schema"],
+                            },
+                            operator,
+                        ),
+                    )
+                    # log_info(__name__, f"Viewing data '{key}'.")
+                    # Redirect to CV edit page
+                    st.rerun()
 
 
 def validate_and_get_json_and_schema(

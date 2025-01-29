@@ -18,13 +18,12 @@
                 "CV",
                 "PROJECT",
                 "INTERVIEW",
-                "HISTORY",
-                "TASK",
+                "COMPANY",
+                "EMPLOYEE",
                 "WORKPACKAGE",
-                "CERTIFICATE",
-                "GRADUATION"
+                "CAPABILITIES"
             ],
-            "maxLength": 11
+            "maxLength": 12
         },
         "related_id": {
             "type": "integer"
@@ -46,11 +45,11 @@
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023945D20AE0>"
+            "default": "<function datetime.utcnow at 0x0000027C2B917060>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023945D20B80>"
+            "default": "<function datetime.utcnow at 0x0000027C2B917100>"
         }
     },
     "required": [

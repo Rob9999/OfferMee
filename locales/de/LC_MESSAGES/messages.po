@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-01-18 12:55+0100\n"
-"PO-Revision-Date: 2025-01-18 12:55+0100\n"
+"POT-Creation-Date: 2025-01-27 18:50+0100\n"
+"PO-Revision-Date: 2025-01-27 18:50+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: de <LL@li.org>\n"
 "Language: de\n"
@@ -18,62 +18,609 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:14
-msgid "CV Export"
-msgstr "CV Export"
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:28
+msgid "CV"
+msgstr "CV"
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:17
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:31
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_manager.py:40
+msgid "Upload CV"
+msgstr "Upload CV"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:32
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_edit.py:23
+msgid "Edit CV"
+msgstr "Edit CV"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:33
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_export.py:16
+msgid "Export CV"
+msgstr "Export CV"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:35
+msgid "Requests For Proposal (RFPs)"
+msgstr "Requests For Proposal (RFPs)"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:36
+msgid "Find Online"
+msgstr "Find Online"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:37
+msgid "Manual Input"
+msgstr "Manual Input"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:38
+msgid "Find in Email"
+msgstr "Find in Email"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:39
+msgid "View All"
+msgstr "View All"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:41
+msgid "Offers"
+msgstr "Offers"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:42
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_templates.py:27
+msgid "Offer Templates"
+msgstr "Offer Templates"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:45
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:41
+msgid "Project Matcher & Offer Creation"
+msgstr "Project Matcher & Offer Creation"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:47
+msgid "Offer History"
+msgstr "Offer History"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:49
+msgid "Imports / Exports"
+msgstr "Imports / Exports"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:50
+msgid "Data Imports"
+msgstr "Data Imports"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:52
+msgid "Profile"
+msgstr "Profile"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:53
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:12
+msgid "Settings"
+msgstr "Settings"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:55
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:56
+msgid "Logout"
+msgstr "Logout"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:64
+msgid "Login"
+msgstr "Login"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/app.py:65
+msgid "Sign Up"
+msgstr "Sign Up"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_edit.py:31
+msgid "Select CV to edit"
+msgstr "Select CV to edit"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_edit.py:60
+msgid "CV Edit"
+msgstr "CV Edit"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_edit.py:78
+msgid "CV Data upadated!"
+msgstr "CV Data upadated!"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_edit.py:80
+msgid "Procceed with CV export..."
+msgstr "Procceed with CV export..."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_export.py:19
 msgid "Select CV to export"
 msgstr "Select CV to export"
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:22
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_export.py:28
 msgid "Select export language:"
 msgstr "Select export language:"
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:26
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_export.py:32
 msgid "Export CV as PDF"
 msgstr "Export CV as PDF"
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:35
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_export.py:43
 msgid "CV was successfully exported: {}"
 msgstr "CV was successfully exported: {}"
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:41
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_export.py:49
 msgid "Download PDF"
 msgstr "Download PDF"
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:47
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_export.py:55
 msgid "An error occurred while exporting the CV."
 msgstr "An error occurred while exporting the CV."
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/pages/cv_export.py:51
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_export.py:59
 msgid "An unexpected error occurred. Please try again."
 msgstr "An unexpected error occurred. Please try again."
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:32
-msgid "An error occurred while retrieving the current user."
-msgstr "An error occurred while retrieving the current user."
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_manager.py:47
+msgid "CV Extracted Data"
+msgstr "CV Extracted Data"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_manager.py:51
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/data_import.py:67
+msgid "Candidate"
+msgstr "Candidate"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_manager.py:76
+msgid "Upload your resume (PDF):"
+msgstr "Upload your resume (PDF):"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_manager.py:97
+msgid "Error reading the PDF. Please try again."
+msgstr "Error reading the PDF. Please try again."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_manager.py:105
+msgid "Error analyzing the CV."
+msgstr "Error analyzing the CV."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_manager.py:123
+msgid "Data Received"
+msgstr "Data Received"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_manager.py:126
+msgid "Waiting For Data ..."
+msgstr "Waiting For Data ..."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_manager.py:168
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_manual_input.py:156
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:175
+msgid "Save"
+msgstr "Save"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/cv_manager.py:178
+msgid "CV skills extracted and successfully saved!"
+msgstr "CV skills extracted and successfully saved!"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/data_import.py:26
+msgid "Data Import"
+msgstr "Data Import"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/data_import.py:40
+msgid ""
+"Upload your data as JSON and matching JSON schema (e.g. data.json, "
+"data.schema.json):"
+msgstr ""
+"Upload your data as JSON and matching JSON schema (e.g. data.json, "
+"data.schema.json):"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/data_import.py:74
+msgid ""
+"The candidate is not in the database. Shall the candidate added to the "
+"freelancers."
+msgstr ""
+"The candidate is not in the database. Shall the candidate added to the "
+"freelancers."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/data_import.py:79
+msgid "The candidate is in the database."
+msgstr "The candidate is in the database."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/data_import.py:82
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/data_import.py:86
+msgid "Save to database"
+msgstr "Save to database"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/data_import.py:111
+msgid ""
+"Please upload a JSON file containeing the data and its matching JSON schema "
+"file."
+msgstr ""
+"Please upload a JSON file containeing the data and its matching JSON schema "
+"file."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/data_import.py:122
+msgid "Please upload only JSON file and its matching JSON schema file."
+msgstr "Please upload only JSON file and its matching JSON schema file."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:114
+msgid "No new RFPs stored, let’s start scraping projects!"
+msgstr "No new RFPs stored, let’s start scraping projects!"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:134
+msgid "Select to write offer for"
+msgstr "Select to write offer for"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:194
+msgid "Details"
+msgstr "Details"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:230
+msgid "Reload Freelancer Data"
+msgstr "Reload Freelancer Data"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:335
+msgid "Freelancer's Offer Template"
+msgstr "Freelancer's Offer Template"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:345
+msgid "No offer template"
+msgstr "No offer template"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:350
+msgid "Apply"
+msgstr "Apply"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:390
+msgid "NO OFFER"
+msgstr "NO OFFER"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:396
+msgid "SEND"
+msgstr "SEND"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_matches.py:465
+msgid "Offer successfully sended!"
+msgstr "Offer successfully sended!"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/offer_templates.py:63
+msgid "Select to edit freelancer's offer template"
+msgstr "Select to edit freelancer's offer template"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_manual_input.py:92
+msgid ""
+"Paste the job description (if any):\n"
+"(Note: Press Ctrl+Enter or Cmd+Enter to submit the text.)"
+msgstr ""
+"Paste the job description (if any):\n"
+"(Note: Press Ctrl+Enter or Cmd+Enter to submit the text.)"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_manual_input.py:132
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_scrap_from_email.py:236
+msgid "Project Validate Extracted Data"
+msgstr "Project Validate Extracted Data"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_manual_input.py:177
+msgid "A project with that 'original-link' already exists."
+msgstr "A project with that 'original-link' already exists."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_scrap_from_email.py:57
+msgid "Scrap Requests For Proposal (RFPs) from Email Account"
+msgstr "Scrap Requests For Proposal (RFPs) from Email Account"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_scrap_from_email.py:96
+msgid "Since when to check for new RFPs from email account?"
+msgstr "Since when to check for new RFPs from email account?"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_scrap_from_email.py:101
+msgid "Scrap new RFPs from email account"
+msgstr "Scrap new RFPs from email account"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_scrap_from_email.py:195
+msgid "Discard Email / RFP !"
+msgstr "Discard Email / RFP !"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_scrap_from_email.py:196
+msgid "RFP will be discarded."
+msgstr "RFP will be discarded."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_scrap_from_email.py:197
+msgid "Press again to confirm discarding."
+msgstr "Press again to confirm discarding."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_scrap_from_email.py:209
+msgid "Analyze Raw Input (AI)"
+msgstr "Analyze Raw Input (AI)"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_scrap_from_email.py:285
+msgid "Next"
+msgstr "Next"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_scrap_online.py:12
+msgid "Scrap Requests For Proposal (RFPs) Online"
+msgstr "Scrap Requests For Proposal (RFPs) Online"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:35
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:63
+msgid "ID"
+msgstr "ID"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:36
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:64
+msgid "Title"
+msgstr "Title"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:37
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:65
+msgid "Description"
+msgstr "Description"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:38
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:66
+msgid "Location"
+msgstr "Location"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:39
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:67
+msgid "Must Haves"
+msgstr "Must Haves"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:40
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:68
+msgid "Nice to Haves"
+msgstr "Nice to Haves"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:41
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:69
+msgid "Tasks"
+msgstr "Tasks"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:42
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:70
+msgid "Responsibilities"
+msgstr "Responsibilities"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:43
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:71
+msgid "Hourly Rate"
+msgstr "Hourly Rate"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:44
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:72
+msgid "Other Conditions"
+msgstr "Other Conditions"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:45
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:73
+msgid "Contact Person"
+msgstr "Contact Person"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:46
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:74
+msgid "Provider"
+msgstr "Provider"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:47
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:75
+msgid "Provider Link"
+msgstr "Provider Link"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:48
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:76
+msgid "Start Date"
+msgstr "Start Date"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:49
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:77
+msgid "End Date"
+msgstr "End Date"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:50
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:78
+msgid "Duration"
+msgstr "Duration"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:51
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:79
+msgid "Extension Option"
+msgstr "Extension Option"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:52
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:80
+msgid "Original Link"
+msgstr "Original Link"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:53
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:81
+msgid "Status"
+msgstr "Status"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:54
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:82
+msgid "Created At"
+msgstr "Created At"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:55
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:83
+msgid "Updated At"
+msgstr "Updated At"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/rfp_view_all.py:95
+msgid "No Requests For Proposal found."
+msgstr "No Requests For Proposal found."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:37
+msgid "AI Settings"
+msgstr "AI Settings"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:41
+msgid "Which AI provider is currently active?"
+msgstr "Which AI provider is currently active?"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:51
+msgid "OpenAI API Key"
+msgstr "OpenAI API Key"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:56
+msgid "OpenAI Model"
+msgstr "OpenAI Model"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:62
+msgid "GenAI API Key"
+msgstr "GenAI API Key"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:67
+msgid "GenAI Model"
+msgstr "GenAI Model"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:77
+msgid "Email Settings"
+msgstr "Email Settings"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:79
+msgid "Email Address"
+msgstr "Email Address"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:84
+msgid "Email Password"
+msgstr "Email Password"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:90
+msgid "SMTP Server"
+msgstr "SMTP Server"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:95
+msgid "SMTP Port"
+msgstr "SMTP Port"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:98
+msgid "Receiver Email Address"
+msgstr "Receiver Email Address"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:103
+msgid "Receiver Email Password"
+msgstr "Receiver Email Password"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:109
+msgid "Receiver Email Server"
+msgstr "Receiver Email Server"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:114
+msgid "Receiver Email Port"
+msgstr "Receiver Email Port"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:119
+msgid "RFP Mailbox"
+msgstr "RFP Mailbox"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:124
+msgid "RFP Email Subject Filter"
+msgstr "RFP Email Subject Filter"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:129
+msgid "RFP Email Sender Filter"
+msgstr "RFP Email Sender Filter"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:135
+msgid "Personal Data (Who?)"
+msgstr "Personal Data (Who?)"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:137
+msgid "First Name(s)"
+msgstr "First Name(s)"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:139
+msgid "Last Name"
+msgstr "Last Name"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:141
+msgid "Birth Date"
+msgstr "Birth Date"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:144
+msgid "Birth Place"
+msgstr "Birth Place"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:148
+msgid "Address (Where?)"
+msgstr "Address (Where?)"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:149
+msgid "Street"
+msgstr "Street"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:150
+msgid "ZIP Code"
+msgstr "ZIP Code"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:151
+msgid "City"
+msgstr "City"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:152
+msgid "Country"
+msgstr "Country"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:155
+msgid "Account"
+msgstr "Account"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:157
+msgid "Account Name"
+msgstr "Account Name"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:160
+msgid "Account Password"
+msgstr "Account Password"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:166
+msgid "Language / Currency"
+msgstr "Language / Currency"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:168
+msgid "Language"
+msgstr "Language"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:172
+msgid "Currency"
+msgstr "Currency"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/settings.py:211
+msgid "Settings successfully saved and encrypted."
+msgstr "Settings successfully saved and encrypted."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/freelancers.py:35
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:97
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:202
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/to_sreamlit.py:406
+msgid "OK"
+msgstr "OK"
 
 #: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:40
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:140
+msgid ""
+"An error occurred while retrieving the current user's local settings name."
+msgstr ""
+"An error occurred while retrieving the current user's local settings name."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:51
 msgid "An error occurred while fetching CVs from the database."
 msgstr "An error occurred while fetching CVs from the database."
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:44
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:55
 msgid "No CVs found in the database. Please upload one first."
 msgstr "No CVs found in the database. Please upload one first."
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:74
-msgid "Available CVs"
-msgstr "Available CVs"
-
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:77
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:86
 msgid "Select a CV:"
 msgstr "Select a CV:"
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:84
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:93
 msgid "An error occurred during the CV selection process."
 msgstr "An error occurred during the CV selection process."
 
-#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:87
-msgid "OK"
-msgstr "OK"
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:152
+msgid "An error occurred while fetching freelancers from the database."
+msgstr "An error occurred while fetching freelancers from the database."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:157
+msgid "No freelancers found in the database. Please upload CV first."
+msgstr "No freelancers found in the database. Please upload CV first."
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:191
+msgid "Select a Freelancer:"
+msgstr "Select a Freelancer:"
+
+#: D:/AI/NuAI/OfferMee/offermee/dashboard/widgets/selectors.py:198
+msgid "An error occurred during the freelancer selection process."
+msgstr "An error occurred during the freelancer selection process."
+
+#: D:/AI/NuAI/OfferMee/offermee/offers/generator.py:61
+msgid "Mr./Ms."
+msgstr "Mr./Ms."

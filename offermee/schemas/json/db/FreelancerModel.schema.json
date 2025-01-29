@@ -30,13 +30,19 @@
         "offer_template": {
             "type": "string"
         },
+        "preferred_language": {
+            "type": "string"
+        },
+        "preferred_currency": {
+            "type": "string"
+        },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023945D52520>"
+            "default": "<function datetime.utcnow at 0x0000027C2B95C860>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023945D525C0>"
+            "default": "<function datetime.utcnow at 0x0000027C2B95C900>"
         },
         "contact_id": {
             "type": "integer"

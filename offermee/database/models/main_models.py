@@ -58,11 +58,10 @@ class DocumentRelatedType(PyEnum):
     CV = "CV"
     PROJECT = "PROJECT"
     INTERVIEW = "INTERVIEW"
-    HISTORY = "HISTORY"
-    TASK = "TASK"
+    COMPANY = "COMPANY"
+    EMPLOYEE = "EMPLOYEE"
     WORKPACKAGE = "WORKPACKAGE"
-    CERTIFICATE = "CERTIFICATE"
-    GRADUATION = "GRADUATION"
+    CAPABILITIES = "CAPABILITIES"
 
 
 class ContactRole(PyEnum):
@@ -222,11 +221,6 @@ class HistoryModel(Base):
     event_date = Column(DateTime, nullable=False)
     created_by = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    documents = relationship(
-        "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'HISTORY', foreign(DocumentModel.related_id)  == HistoryModel.id)",
-        viewonly=True,
-    )
 
     def to_dict(self):
         return {
@@ -296,14 +290,9 @@ class CapabilitiesModel(Base):
         String, nullable=True
     )  # Comma separated classification (recommendation)
 
-    certificate_documents = relationship(
+    documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'CERTIFICATE', foreign(DocumentModel.related_id)  == CapabilitiesModel.id)",
-        viewonly=True,
-    )
-    graduation_documents = relationship(
-        "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'GRADUATION', foreign(DocumentModel.related_id)  == CapabilitiesModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'CAPABILITIES', foreign(DocumentModel.related_id)  == CapabilitiesModel.id)",
         viewonly=True,
     )
     histories = relationship(
@@ -339,6 +328,8 @@ class FreelancerModel(Base):
     desired_rate_min = Column(Float, nullable=True)
     desired_rate_max = Column(Float, nullable=True)
     offer_template = Column(Text, nullable=True)
+    preferred_language = Column(String, nullable=True)
+    preferred_currency = Column(String, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -20,7 +20,7 @@ from offermee.database.facades.main_facades import (
     ProjectFacade,
     ReadFacade,
 )
-from offermee.database.models.main_models import ProjectStatus
+from offermee.database.models.main_models import OfferStatus, ProjectStatus
 from offermee.enums.process_status import Status
 from offermee.matcher.skill_matcher import SkillMatcher
 from offermee.matcher.price_matcher import PriceMatcher
@@ -314,7 +314,7 @@ def offer_matcher_render():
                     container.set_value(
                         path_offer_language,
                         st.select_slider(
-                            f"{_T('Offer Lanuage')}: ({_T('default')} {freelancer.get('prefered_language', 'de_DE')}",
+                            f"{_T('Offer Lanuage')}: ({_T('default')} {freelancer.get('preferred_language', 'de_DE')}",
                             options=freelancer.get("languages", ["de_DE", "en_EN"]),
                             value=container.get_value(path_offer_language, "de_DE"),
                             key=key_rpf_offer_freelancer + "_offer_language",
@@ -323,7 +323,7 @@ def offer_matcher_render():
                     container.set_value(
                         path_offer_currency,
                         st.select_slider(
-                            f"{_T('Offer Currency')}: ({_T('default')} {freelancer.get('prefered_currency', 'EUR')}",
+                            f"{_T('Offer Currency')}: ({_T('default')} {freelancer.get('preferred_currency', 'EUR')}",
                             options=["EUR", "USD"],
                             value=container.get_value(path_offer_currency, "EUR"),
                             key=key_rpf_offer_freelancer + "_offer_currency",
@@ -377,11 +377,11 @@ def offer_matcher_render():
                                 },
                                 language=container.get_value(
                                     path_offer_language,
-                                    freelancer.get("prefered_language"),
+                                    freelancer.get("preferred_language"),
                                 ),
                                 currency=container.get_value(
                                     path_offer_currency,
-                                    freelancer.get("prefered_currency"),
+                                    freelancer.get("preferred_currency"),
                                 ),
                             ),
                         )
@@ -466,9 +466,16 @@ def send_offer_callback(
 
     # Daten updaten:
     new_rfp["status"] = ProjectStatus.IN_PROGRESS
-    new_rfp["offer_written"] = True
-    new_rfp["offer"] = final_content
-    new_rfp["sent"] = datetime.datetime.now()
+    new_rfp["offers"] = {
+        "project_id": new_rfp.get("id"),
+        "offer_number": datetime.date.today().isoformat(),
+        "status": OfferStatus.SENT,
+        "offer_contact_person": new_rfp.get("contact_person"),
+        "offer_text": final_content,
+        "sent_date": datetime.datetime.now(),
+    }
     ProjectFacade.update(new_rfp.get("id"), new_rfp)
+    new_rfp_entry["offer_written"] = True
+    new_rfp_entry["sent"] = datetime.datetime.now()
     new_rfp_entry["status"] = Status.SAVED
     # sleep(3)
