@@ -159,7 +159,7 @@ def offer_matcher_render():
         )
         current_process["freelancer-tech-skills"] = freelancer_tech_skills
         st.write(f"{_T('Freelancer Tech-Skills')}:\n{freelancer_tech_skills}")
-        freelancer_desired_rate = freelancer.get("desired_rate_min")
+        freelancer_desired_rate = freelancer.get("desired_rate_min", 0.0)
         current_process["freelance-desired-rate"] = freelancer_desired_rate
         log_info(
             __name__, f"Freelancer #{current_process.get('freelancer-id')} is found"
@@ -261,6 +261,8 @@ def offer_matcher_render():
                 )
                 with st.container(key=key_rpf_offer_freelancer + "_container"):
                     freelancer_desired_rate_min = freelancer.get("desired_rate_min")
+                    if not freelancer_desired_rate_min:
+                        freelancer_desired_rate_min = 0.0
                     st.markdown(
                         f"***{_T('Making Offer for RFP')}: {new_rfp.get('title')}***"
                     )
@@ -372,7 +374,7 @@ def offer_matcher_render():
                                     ),
                                     "yearly_flat_rate_onsite": container.get_value(
                                         path_yearly_flat_rate_onsite,
-                                        freelancer_desired_rate * 1680,
+                                        freelancer_desired_rate_min * 1680,
                                     ),
                                 },
                                 language=container.get_value(

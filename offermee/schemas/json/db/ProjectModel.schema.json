@@ -73,11 +73,11 @@
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000027C2B9B0AE0>"
+            "default": "<function datetime.utcnow at 0x0000023E7CAE7F60>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000027C2B9B0B80>"
+            "default": "<function datetime.utcnow at 0x0000023E7CB08040>"
         },
         "address_id": {
             "type": "integer"
