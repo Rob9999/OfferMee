@@ -1,3 +1,7 @@
+## v0.0.6674 - 2025-01-29T13:59:47.282Z
+
+- Merge branch 'main' of https://github.com/Rob9999/OfferMee
+
 ## v0.0.6673 - 2025-01-27T16:14:50.818Z
 
 - removed offer template file
