@@ -23,7 +23,7 @@ class EmailUtils:
         self.smtp_server = current_config.smtp_server
         self.smtp_port = current_config.smtp_port
 
-    def send_email(self, recipient, subject, body, html=False):
+    def send_email(self, recipient, subject, body, is_html=False):
         """
         Sends an email to the recipient.
 
@@ -43,7 +43,7 @@ class EmailUtils:
             message["To"] = recipient
             message["Subject"] = subject
 
-            part = MIMEText(body, "html" if html else "plain")
+            part = MIMEText(body, "html" if is_html else "plain")
             message.attach(part)
 
             try:

@@ -23,11 +23,11 @@
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023E7CAE51C0>"
+            "default": "<function datetime.utcnow at 0x00000184FBBC0B80>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023E7CAE5260>"
+            "default": "<function datetime.utcnow at 0x00000184FBBC0C20>"
         },
         "contact_id": {
             "type": "integer"

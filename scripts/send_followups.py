@@ -1,10 +1,8 @@
-import os
 import datetime
 from datetime import timedelta
 import logging
 
-from offermee.database.db_connection import connect_to_db
-from offermee.database.facades.main_facades import ProjectFacade
+from offermee.database.facades.main_facades import OfferFacade
 from offermee.database.models.main_models import OfferStatus
 from offermee.offers.email_utils import EmailUtils
 
@@ -25,31 +23,33 @@ def main():
 
     try:
         # Load all offers with status SENT
-        offers_to_check = ProjectFacade.get_all_by({"offer_status": OfferStatus.SENT})
+        offers_to_check = OfferFacade.get_all_by({"status": OfferStatus.SENT})
 
         for offer in offers_to_check:
             # Was the offer ever sent?
-            if not offer.sent_date:
+            if not offer.get("sent_date"):
                 continue
 
             # Was the offer already rejected/accepted by the customer? -> Possibly check status here
             # if ...
 
             # Check if the maximum possible follow-ups have been exceeded
-            if offer.follow_up_count >= MAX_FOLLOWUPS:
+            if offer.get("follow_up_count") >= MAX_FOLLOWUPS:
                 continue
 
             # Time since the last follow-up or initial sending
-            last_time = offer.last_follow_up_date or offer.sent_date
+            last_time = offer.get("last_follow_up_date") or offer.get("sent_date")
             if last_time < threshold_date:
                 # => Follow-up needed
-                logger.info(f"Sending follow-up for project: {offer.title}")
+                logger.info(
+                    f"Sending follow-up for project: {offer.get('title')} offer number: {offer.get('offer_number')}"
+                )
 
                 # Build email
-                subject = f"Reminder: Your offer for '{offer.title}'"
+                subject = f"Reminder: Your offer for '{offer.get('title')}', [OFFER#:{offer.get('offer_number')}]"
 
             body = (
-                f"Dear {offer.offer_contact_person or 'Interested Party'},\n\n"
+                f"Dear {offer.get('offer_contact_person') or 'Interested Party'},\n\n"
                 "I wanted to remind you of my offer. "
                 "Do you have any questions or need further information?\n\n"
                 "Best regards\n\n"
@@ -68,20 +68,19 @@ def main():
             )
 
             # Send email
+            recipient = offer.get("offer_contact_person_email")
+            if not recipient:
+                raise ValueError("Missing recpient (contact person email)")
             email_utils.send_email(
-                recipient=(
-                    offer.offer_contact_person
-                    if offer.offer_contact_person
-                    else "info@example.com"  # TODO FIX
-                ),
+                recipient=recipient,
                 subject=subject,
                 body=body,
             )
 
             # Update database
-            offer.last_follow_up_date = now
-            offer.follow_up_count += 1
-            ProjectFacade.update(offer)
+            offer["last_follow_up_date"] = now
+            offer["follow_up_count"] += 1
+            OfferFacade.update(offer.get("id"), offer)
 
             # Optional: Notify freelancer
             # -> Here an email could be sent to the freelancer,

@@ -1,12 +1,15 @@
+from offermee.database.transformers.project_model_transformer import json_to_db
+from offermee.enums.process_status import Status
 from offermee.utils.international import _T
 import json
 from typing import Any, Dict, List
 import streamlit as st
 from offermee.AI.cv_processor import CVProcessor
-from offermee.dashboard.helpers.web_dashboard import log_info
+from offermee.dashboard.helpers.web_dashboard import log_error, log_info
 from offermee.database.facades.main_facades import (
     CVFacade,
     FreelancerFacade,
+    ProjectFacade,
     ReadFacade,
 )
 from offermee.database.models.main_models import ContactRole
@@ -198,3 +201,33 @@ def save_cv_to_db(
         CVFacade.create(data=new_cv, created_by=operator)
 
     log_info(__name__, f"CV for {name} has been saved successfully.")
+
+
+def save_to_db(rfp_entry: Dict[str, Any], operator: str):
+    try:
+        if not rfp_entry:
+            raise ValueError("Missing RFP Entry")
+        if not operator:
+            raise ValueError("Missing Operator")
+        final_data: Dict[str, Any] = rfp_entry.get("data")
+        if not final_data:
+            raise ValueError("Missing RFP Data")
+        rfp: Dict[str, Any] = final_data.get("project")
+        if not rfp:
+            raise ValueError("Missing RFP")
+        original_link = rfp.get("original-link")
+        if not original_link:
+            raise ValueError("Missing RFP Original Link")
+        if original_link:
+            existing = ProjectFacade.get_first_by({"original_link": original_link})
+            if existing:
+                st.warning(_T("A project with that 'original-link' already exists."))
+                return
+        # create and save
+        new_project = json_to_db(final_data).to_dict()
+        ProjectFacade.create(new_project, operator)
+        rfp_entry["status"] = Status.SAVED
+        st.success(f"{_T('Saved RFP')}: '{rfp.get('title')}'.")
+    except Exception as e:
+        log_error(__name__, f"Error saving to DB: {e}")
+        st.error(f"{_T('Error while saving')}: {e}")

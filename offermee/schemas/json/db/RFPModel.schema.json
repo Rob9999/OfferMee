@@ -1,33 +1,43 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "ProjectModel",
+    "title": "RFPModel",
     "type": "object",
     "properties": {
         "id": {
             "type": "integer"
         },
-        "title": {
+        "project_title": {
             "type": "string"
         },
         "description": {
             "type": "string"
         },
         "location": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+                "Remote",
+                "OnSite",
+                "Hybrid"
+            ],
+            "maxLength": 6
         },
-        "must_haves": {
-            "type": "string"
+        "must_have_requirements": {
+            "type": "string",
+            "default": "<function list at 0x00000184FBBC3920>"
         },
-        "nice_to_haves": {
-            "type": "string"
+        "nice_to_have_requirements": {
+            "type": "string",
+            "default": "<function list at 0x00000184FBBC39C0>"
         },
         "tasks": {
-            "type": "string"
+            "type": "string",
+            "default": "<function list at 0x00000184FBBC3A60>"
         },
         "responsibilities": {
-            "type": "string"
+            "type": "string",
+            "default": "<function list at 0x00000184FBBC3B00>"
         },
-        "hourly_rate": {
+        "max_hourly_rate": {
             "type": "number"
         },
         "other_conditions": {
@@ -52,43 +62,26 @@
             "type": "string"
         },
         "duration": {
-            "type": "string"
+            "type": "integer"
         },
         "extension_option": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "maxLength": 3
         },
         "original_link": {
             "type": "string"
-        },
-        "status": {
-            "type": "string",
-            "enum": [
-                "NEW",
-                "OFFER_SENT",
-                "INTERVIEW",
-                "CONTRACT_SIGNED",
-                "IN_PROGRESS",
-                "COMPLETED",
-                "REJECTED"
-            ],
-            "default": "NEW",
-            "maxLength": 15
-        },
-        "created_at": {
-            "type": "string",
-            "default": "<function datetime.utcnow at 0x00000184FBBE5B20>"
-        },
-        "updated_at": {
-            "type": "string",
-            "default": "<function datetime.utcnow at 0x00000184FBBE5BC0>"
-        },
-        "address_id": {
-            "type": "integer"
         }
     },
     "required": [
         "id",
-        "title",
-        "start_date"
+        "project_title",
+        "must_have_requirements",
+        "nice_to_have_requirements",
+        "tasks",
+        "responsibilities"
     ]
 }

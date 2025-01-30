@@ -88,6 +88,13 @@
 					],
 					"description": "Contact person for the project"
 				},
+				"contact-person-email": {
+					"type": [
+						"string",
+						"null"
+					],
+					"description": "Email of the contact person for the project (if available)"
+				},
 				"project-provider": {
 					"type": [
 						"string",

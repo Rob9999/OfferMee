@@ -15,11 +15,10 @@ from offermee.dashboard.helpers.web_dashboard import (
     log_error,
 )
 from offermee.AI.project_processor import ProjectProcessor
-from offermee.database.facades.main_facades import ProjectFacade
+from offermee.dashboard.widgets.db_utils import save_to_db
 from offermee.enums.process_status import Status
 from offermee.schemas.json.schema_loader import get_schema, validate_json
 from offermee.schemas.json.schema_keys import SchemaKey
-from offermee.database.transformers.project_model_transformer import json_to_db
 from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
 )
@@ -154,33 +153,3 @@ def rfp_manual_input_render():
         # --- Step 5: Save to DB (only if valid)
         if rfp["status"] == Status.VALIDATED:
             st.button(_T("Save"), on_click=save_to_db, args=(rfp, operator))
-
-
-def save_to_db(rfp_entry: Dict[str, Any], operator: str):
-    try:
-        if not rfp_entry:
-            raise ValueError("Missing RFP Entry")
-        if not operator:
-            raise ValueError("Missing Operator")
-        final_data: Dict[str, Any] = rfp_entry.get("data")
-        if not final_data:
-            raise ValueError("Missing RFP Data")
-        rfp: Dict[str, Any] = final_data.get("project")
-        if not rfp:
-            raise ValueError("Missing RFP")
-        original_link = rfp.get("original-link")
-        if not original_link:
-            raise ValueError("Missing RFP Original Link")
-        if original_link:
-            existing = ProjectFacade.get_first_by({"original_link": original_link})
-            if existing:
-                st.warning(_T("A project with that 'original-link' already exists."))
-                return
-        # create and save
-        new_project = json_to_db(final_data).to_dict()
-        ProjectFacade.create(new_project, operator)
-        rfp_entry["status"] = Status.SAVED
-        st.success(f"{_T('Saved RFP')}: '{rfp.get('title')}'.")
-    except Exception as e:
-        log_error(__name__, f"Error saving to DB: {e}")
-        st.error(f"{_T('Error while saving')}: {e}")

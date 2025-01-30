@@ -12,6 +12,9 @@
         "offer_number": {
             "type": "string"
         },
+        "title": {
+            "type": "string"
+        },
         "status": {
             "type": "string",
             "enum": [
@@ -24,6 +27,9 @@
             "maxLength": 9
         },
         "offer_contact_person": {
+            "type": "string"
+        },
+        "offer_contact_person_email": {
             "type": "string"
         },
         "offer_text": {
@@ -41,17 +47,19 @@
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023E7CB26C00>"
+            "default": "<function datetime.utcnow at 0x00000184FBC38680>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023E7CB26CA0>"
+            "default": "<function datetime.utcnow at 0x00000184FBC38720>"
         }
     },
     "required": [
         "id",
         "offer_number",
+        "title",
         "offer_contact_person",
+        "offer_contact_person_email",
         "follow_up_count"
     ]
 }

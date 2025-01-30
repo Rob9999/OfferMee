@@ -23,7 +23,17 @@ from offermee.database.database_manager import DatabaseManager
 Base = DatabaseManager.Base
 
 
-# Enums
+class LocationType(PyEnum):
+    Remote = "Remote"
+    OnSite = "On-site"
+    Hybrid = "Hybrid"
+
+
+class YesNoOption(PyEnum):
+    Yes = "Yes"
+    No = "No"
+
+
 class ProjectStatus(PyEnum):
     NEW = "NEW"
     OFFER_SENT = "OFFER_SENT"
@@ -503,6 +513,126 @@ class CompanyModel(
         return json.dumps(self.to_dict())
 
 
+class RFPModel(Base):
+    """
+    This model represents the JSON schema "Request For Proposal" in a relational database.
+    All fields from the schema are stored in a single table "rfps".
+    The columns reflect the properties defined in the JSON schema, including descriptions.
+    """
+
+    __tablename__ = "rfps"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    # "title" (required, non-null)
+    project_title = Column(String, nullable=False, comment="The project title")
+
+    # "description" (optional)
+    description = Column(
+        Text,
+        nullable=True,
+        comment="The project description (summarized, up to 20 lines)",
+    )
+
+    # "location" (required, can be null in the schema)
+    location = Column(
+        Enum(LocationType),
+        nullable=True,
+        comment="Expected working modality: Remote, On-site or Hybrid",
+    )
+
+    # "must-have-requirements" (required, array not null -> default=list)
+    must_have_requirements = Column(
+        JSON,  # oder JSONB, wenn Postgres
+        nullable=False,
+        default=list,
+        comment="Mandatory requirements for the project",
+    )
+
+    # "nice-to-have-requirements" (required, array not null -> default=list)
+    nice_to_have_requirements = Column(
+        JSON, nullable=False, default=list, comment="Desirable additional requirements"
+    )
+
+    # "tasks" (required, array not null -> default=list)
+    tasks = Column(
+        JSON, nullable=False, default=list, comment="List of tasks in the project"
+    )
+
+    # "responsibilities" (required, array not null -> default=list)
+    responsibilities = Column(
+        JSON,
+        nullable=False,
+        default=list,
+        comment="List of responsibilities in the project",
+    )
+
+    # "max-hourly-rate" (required, but can be null)
+    max_hourly_rate = Column(
+        Float, nullable=True, comment="Maximum hourly rate (if available)"
+    )
+
+    # "other-conditions" (required, can be null)
+    other_conditions = Column(
+        Text, nullable=True, comment="Other conditions or requirements"
+    )
+
+    # "contact-person" (required, can be null)
+    contact_person = Column(
+        String, nullable=True, comment="Contact person for the project"
+    )
+
+    # "contact-person-email" (optional)
+    contact_person_email = Column(
+        String,
+        nullable=True,
+        comment="Email of the contact person for the project (if available)",
+    )
+
+    # "project-provider" (required, can be null)
+    provider = Column(String, nullable=True, comment="Project provider (if available)")
+
+    # "project-provider-link" (required, format=uri, can be null)
+    provider_link = Column(
+        String, nullable=True, comment="Link to the project provider (if available)"
+    )
+
+    # "start-date" (required, can be null; format dd.mm.yyyy or mm.yyyy)
+    start_date = Column(
+        String, nullable=True, comment="Start date in format dd.mm.yyyy or mm.yyyy"
+    )
+
+    # "end-date" (optional, can be null; same format)
+    end_date = Column(
+        String, nullable=True, comment="End date in format dd.mm.yyyy or mm.yyyy"
+    )
+
+    # "duration" (optional, integer | null, minimum=1)
+    duration = Column(Integer, nullable=True, comment="Duration in months")
+
+    # "extension-option" (optional, can be "Yes", "No", or null)
+    extension_option = Column(
+        Enum(YesNoOption),
+        nullable=True,
+        comment="Option to extend the project duration",
+    )
+
+    # "original-link" (required, format=uri, can be null)
+    original_link = Column(
+        String, nullable=True, comment="Link to the original source of the project"
+    )
+
+    def to_dict(self):
+        """Convert the model instance into a dictionary of column values."""
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
+
+    def to_json(self):
+        """Convert the model instance into a JSON string."""
+        return json.dumps(self.to_dict())
+
+
 class ProjectModel(Base):
     __tablename__ = "projects"
     id = Column(Integer, primary_key=True)
@@ -516,6 +646,7 @@ class ProjectModel(Base):
     hourly_rate = Column(Float)  # Corresponds to max-hourly-rate
     other_conditions = Column(Text)
     contact_person = Column(String)
+    contact_person_email = Column(String)
     provider = Column(String)  # Project provider
     provider_link = Column(String)  # Project provider link
     start_date = Column(Date, nullable=False)
@@ -647,8 +778,10 @@ class OfferModel(Base):
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"))
     offer_number = Column(String, nullable=False)
+    title = Column(String, nullable=False)
     status = Column(Enum(OfferStatus), default=OfferStatus.DRAFT)
     offer_contact_person = Column(String, nullable=False)
+    offer_contact_person_email = Column(String, nullable=False)
     offer_text = Column(Text, nullable=True)  # To store detailed offer text if needed
     sent_date = Column(DateTime, nullable=True)
     last_follow_up_date = Column(DateTime, nullable=True)

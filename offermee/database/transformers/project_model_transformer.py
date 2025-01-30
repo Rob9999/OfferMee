@@ -31,7 +31,7 @@ def json_to_db(json_data) -> ProjectModel:
     Transform JSON data conforming to the Project schema to a ProjectModel instance.
     Assumes json_data is a dict containing a "project" key with the relevant data.
     """
-    project_data = json_data.get("project", {})
+    project_data: dict = json_data.get("project", {})
 
     # Create a new ProjectModel instance
     project = ProjectModel()
@@ -62,6 +62,7 @@ def json_to_db(json_data) -> ProjectModel:
     project.hourly_rate = project_data.get("max-hourly-rate")
     project.other_conditions = project_data.get("other-conditions")
     project.contact_person = project_data.get("contact-person")
+    project.contact_person_email = project_data.get("contact-person-email")
     project.provider = project_data.get("project-provider")
     project.provider_link = project_data.get("project-provider-link")
 
