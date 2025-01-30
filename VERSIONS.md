@@ -1,3 +1,7 @@
+## v0.0.6675 - 2025-01-30T12:04:08.816Z
+
+- refactored rfp manual input and send follow up
+
 ## v0.0.6674 - 2025-01-29T13:59:47.282Z
 
 - Merge branch 'main' of https://github.com/Rob9999/OfferMee
