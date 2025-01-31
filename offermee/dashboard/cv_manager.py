@@ -25,6 +25,10 @@ from offermee.utils.container import Container
 from offermee.utils.utils import safe_type
 
 
+def cv_manager_get_title() -> str:
+    return _T("Upload CV")
+
+
 def cv_manager_render() -> None:
     """
     Rendert die 'Upload CV'-Page in der Streamlit-Anwendung.
@@ -32,7 +36,7 @@ def cv_manager_render() -> None:
     das Bearbeiten der extrahierten Daten und das Speichern in der Datenbank.
     """
 
-    st.header(_T("Upload CV"))
+    st.header(cv_manager_get_title())
     stop_if_not_logged_in()
 
     page_root = __name__
