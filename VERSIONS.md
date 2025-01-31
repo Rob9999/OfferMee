@@ -1,3 +1,7 @@
+## v0.0.6676 - 2025-01-31T04:12:55.632Z
+
+- refactored page navigation
+
 ## v0.0.6675 - 2025-01-30T12:04:08.816Z
 
 - refactored rfp manual input and send follow up
