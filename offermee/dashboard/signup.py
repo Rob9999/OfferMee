@@ -10,10 +10,10 @@ def get_title() -> str:
 def signup_render():
     st.title(get_title())
 
-    username = st.text_input("Username")
-    email = st.text_input("Email (optional)")
-    password = st.text_input("Passwort", type="password")
-    if st.button("Jetzt registrieren"):
+    username = st.text_input(_T("Username"))
+    email = st.text_input(_T("Email (optional)"))
+    password = st.text_input(_T("Password"), type="password")
+    if st.button(_T("Register Now")):
         ok, msg = register_user(username, password, email)
         if ok:
             st.success(msg)
@@ -21,7 +21,7 @@ def signup_render():
             from offermee.dashboard.login import get_title as login_get_title
 
             st.button(
-                _T("Weiter"),
+                _T("Continue"),
                 on_click=navigate_to,
                 args=(login_get_title(), 3),
             )
