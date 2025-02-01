@@ -1,3 +1,7 @@
+## v0.0.6677 - 2025-02-01T13:13:16.658Z
+
+- implemented edit freelancer page
+
 ## v0.0.6676 - 2025-01-31T04:12:55.632Z
 
 - refactored page navigation
