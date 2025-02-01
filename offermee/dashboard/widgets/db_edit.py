@@ -151,44 +151,45 @@ def edit(
         return
     container.set_value(schema_path, db_model_to_json_schema(facade.SERVICE.MODEL))
 
-    log_info(__name__, f"3. data: {container.get_value(record_path)}")
-
     @st.dialog(_T("Dismiss unsaved data?"))
     def change_data_load_mode():
         # make a hint
         st.write(
             _T(
-                "Change data load mode would dismmiss all unsaved data.\nDo you want to save your data changes first?"
+                "Change data load mode would dismiss all unsaved data.\nDo you want to save your data changes first?"
             )
         )
-        col1, col2 = st.columns(1, 1)
-        col1.button(_T("No, Dismiss Data"))
+        col1, col2 = st.columns([1, 1])
+        dismiss_data = col1.button(_T("No, Dismiss Data"))
         if col2.button(_T("Cancel")):
             st.rerun()
-        # get current value
-        load_mode_value = container.get_value(load_mode_path, "flat")
-        if load_mode_value == "flat":
-            # Toggle to full
-            # 3.1 If the user selects full load of record (including related data) then load all related data
-            record_full = facade.get_by_id_with_relations(record_id=record.get("id"))
-            if not record_full:
-                raise ValueError("Missing full record")
-            container.set_value(record_path, record_full)
-            container.set_value(
-                schema_path, build_full_json_schema(facade.SERVICE.MODEL)
-            )
-            container.set_value(load_mode_path, "full")
-        else:
-            # Toggle to flat
-            record_flat = facade.get_by_id(record_id=record.get("id"))
-            if not record_flat:
-                raise ValueError("Missing flat record")
-            container.set_value(record_path, record_flat)
-            container.set_value(
-                schema_path, db_model_to_json_schema(facade.SERVICE.MODEL)
-            )
-            container.set_value(load_mode_path, "flat")
-        st.rerun()
+        if dismiss_data:
+            # get current value
+            load_mode_value = container.get_value(load_mode_path, "flat")
+            if load_mode_value == "flat":
+                # Toggle to full
+                # 3.1 If the user selects full load of record (including related data) then load all related data
+                record_full = facade.get_by_id_with_relations(
+                    record_id=record.get("id")
+                )
+                if not record_full:
+                    raise ValueError("Missing full record")
+                container.set_value(record_path, record_full)
+                container.set_value(
+                    schema_path, build_full_json_schema(facade.SERVICE.MODEL)
+                )
+                container.set_value(load_mode_path, "full")
+            else:
+                # Toggle to flat
+                record_flat = facade.get_by_id(record_id=record.get("id"))
+                if not record_flat:
+                    raise ValueError("Missing flat record")
+                container.set_value(record_path, record_flat)
+                container.set_value(
+                    schema_path, db_model_to_json_schema(facade.SERVICE.MODEL)
+                )
+                container.set_value(load_mode_path, "flat")
+            st.rerun()
 
     load_selection_map = {"full": _T("Full"), "flat": _T("Flat")}
     load_options = load_selection_map.values()
@@ -196,7 +197,7 @@ def edit(
         label=_T("Select Data Load Mode"),
         key="select_data_load_mode",
         options=load_options,
-        index=0 if container.get_value(load_mode_path, "flat") == "flat" else 1,
+        index=1 if container.get_value(load_mode_path, "flat") == "flat" else 0,
         on_change=change_data_load_mode,
     )
 

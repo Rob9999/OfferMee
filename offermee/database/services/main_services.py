@@ -176,15 +176,17 @@ def _joined_load_by_id(session, model, record_id):
     query = session.query(model)
 
     # For each relationship, apply a joinedload option
-    for rel in mapper.relationships:
+    for rel_name in mapper.relationships.keys():
         # Optionally filter by only certain relationships
         # or skip certain ones if you don't want them all.
-        query = query.options(joinedload(rel.key))
+        print(f"rel_name: '{rel_name}'")
+        rel_prop = getattr(model, rel_name).property
+        query = query.options(joinedload(rel_prop))
 
     return query.get(record_id)
 
 
-def _build_nested_dict(record, visited=None) -> Dict[str, Any]:
+def _build_nested_dict(model: Any, record: Any, visited: set = None) -> Dict[str, Any]:
     """
     Recursively build a dictionary for `record`,
     including all related objects.
@@ -205,23 +207,32 @@ def _build_nested_dict(record, visited=None) -> Dict[str, Any]:
     # Or do it manually via object attributes.
     data = record.to_dict()
 
-    mapper = inspect(record)
-    for rel in mapper.relationships:
-        rel_name = rel.key
+    mapper = inspect(model)
+    for rel_name in mapper.relationships.keys():
         related_value = getattr(record, rel_name)
+        rel_prop = getattr(model, rel_name).property
+        related_model = rel_prop.mapper.class_
 
         if related_value is None:
             data[rel_name] = None
         elif isinstance(related_value, list):
             # This is a "one-to-many" or "many-to-many"
             data[rel_name] = [
-                _build_nested_dict(child, visited)
+                _build_nested_dict(
+                    model=related_model,
+                    record=child,
+                    visited=visited,
+                )
                 for child in related_value
                 # If you expect large sets, you might want to limit or lazy-load here
             ]
         else:
             # This is a "many-to-one" or "one-to-one"
-            data[rel_name] = _build_nested_dict(related_value, visited)
+            data[rel_name] = _build_nested_dict(
+                model=related_model,
+                record=related_value,
+                visited=visited,
+            )
 
     return data
 
@@ -236,7 +247,10 @@ def _get_record_with_relations(session, model, record_id):
     if not record:
         return None
 
-    return _build_nested_dict(record)
+    return _build_nested_dict(
+        model=model,
+        record=record,
+    )
 
 
 def _get_primary_keys(model: Any):
@@ -836,7 +850,7 @@ class BaseService:
     @classmethod
     def get_by_id_with_relations(cls, record_id: int):
         """Eager loading"""
-        with session_scope as session:
+        with session_scope() as session:
             return _get_record_with_relations(
                 session=session,
                 model=cls.MODEL,
