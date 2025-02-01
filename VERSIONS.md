@@ -1,3 +1,7 @@
+## v0.0.6678 - 2025-02-01T15:00:51.565Z
+
+- refactored db model and db edit form
+
 ## v0.0.6677 - 2025-02-01T13:13:16.658Z
 
 - implemented edit freelancer page
