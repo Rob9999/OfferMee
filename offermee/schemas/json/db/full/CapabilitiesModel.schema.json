@@ -11,11 +11,11 @@
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x000001A10CF60FE0>"
+            "default": "<function datetime.utcnow at 0x000002359559F1A0>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x000001A10CF61120>"
+            "default": "<function datetime.utcnow at 0x000002359559F2E0>"
         },
         "soft_skills": {
             "type": "array",
@@ -142,11 +142,11 @@
                     },
                     "created_at": {
                         "type": "string",
-                        "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                        "default": "<function datetime.utcnow at 0x0000023595572DE0>"
                     },
                     "updated_at": {
                         "type": "string",
-                        "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                        "default": "<function datetime.utcnow at 0x0000023595572E80>"
                     }
                 },
                 "required": [
@@ -201,7 +201,7 @@
                     },
                     "created_at": {
                         "type": "string",
-                        "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                        "default": "<function datetime.utcnow at 0x000002359559C4A0>"
                     }
                 },
                 "required": [

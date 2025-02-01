@@ -23,19 +23,19 @@
         },
         "must_have_requirements": {
             "type": "string",
-            "default": "<function list at 0x000001A10DF76980>"
+            "default": "<function list at 0x0000023595618B80>"
         },
         "nice_to_have_requirements": {
             "type": "string",
-            "default": "<function list at 0x000001A10DF76A20>"
+            "default": "<function list at 0x0000023595618C20>"
         },
         "tasks": {
             "type": "string",
-            "default": "<function list at 0x000001A10DF76AC0>"
+            "default": "<function list at 0x0000023595618CC0>"
         },
         "responsibilities": {
             "type": "string",
-            "default": "<function list at 0x000001A10DF76B60>"
+            "default": "<function list at 0x0000023595618D60>"
         },
         "max_hourly_rate": {
             "type": "number"
