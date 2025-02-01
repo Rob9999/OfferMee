@@ -1,3 +1,7 @@
+## v0.0.6681 - 2025-02-01T22:05:08.191Z
+
+- Updated INSTALL.md
+
 ## v0.0.6680 - 2025-02-01T21:17:37.960Z
 
 - Merge branch 'main' of https://github.com/Rob9999/OfferMee
