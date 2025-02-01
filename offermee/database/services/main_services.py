@@ -611,7 +611,8 @@ def _update(
                     f"ERROR while parsing the date time of {k}='{v}': {e}"
                 )
                 continue
-            print(f"Set {k} to {v}")
+        setattr(instance, k, v)
+        print(f"Set {k} to {v}")
     session.flush()
 
     # 3.1 Update or create related dict data
