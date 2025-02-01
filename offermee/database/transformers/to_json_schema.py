@@ -114,21 +114,21 @@ def build_full_json_schema(
 
     # 2) For each relationship in the model, build child schema.
     mapper = inspect(model)
-    for rel in mapper.relationships:
-        rel_key = rel.key  # e.g. "children"
-        related_model = rel.mapper.class_  # e.g. Child class
+    for rel_name in mapper.relationships.keys():
+        rel_prop = getattr(model, rel_name).property
+        related_model = rel_prop.mapper.class_  # e.g. Child class
         child_schema = build_full_json_schema(related_model, visited)
-
-        if rel.uselist:
+        # print(f"{rel_prop} uselist? {rel_prop.uselist}")
+        if rel_prop.uselist:
             # This is a one-to-many or many-to-many relationship
             # so we represent it as an array of objects.
-            base_schema["properties"][rel_key] = {
+            base_schema["properties"][rel_name] = {
                 "type": "array",
                 "items": child_schema,
             }
         else:
             # This is a many-to-one or one-to-one relationship
             # so we represent it as a nested object.
-            base_schema["properties"][rel_key] = child_schema
+            base_schema["properties"][rel_name] = child_schema
 
     return base_schema

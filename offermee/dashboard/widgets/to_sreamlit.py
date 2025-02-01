@@ -391,7 +391,9 @@ def create_streamlit_edit_form_from_json_schema(
     log_info(__name__, f"Show edit form of '{label}'")
     st.markdown(f"**{label}**")
     schema = container.get_value(container_schema_path)
+    print(schema)
     data = container.get_value(container_data_path)
+    print(data)
     if schema is None:
         raise ValueError(
             f"Schema  is None: container '{container.get_name()}' path '{container_schema_path}'."

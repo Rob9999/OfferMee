@@ -150,7 +150,10 @@ def edit(
         record: Dict[str, Any] = container.get_value(record_path, sentinel)
         if record == sentinel:
             return
-        container.set_value(schema_path, db_model_to_json_schema(facade.SERVICE.MODEL))
+        if container.get_value(schema_path, sentinel) == sentinel:
+            container.set_value(
+                schema_path, db_model_to_json_schema(facade.SERVICE.MODEL)
+            )
 
         @st.dialog(_T("Dismiss unsaved data?"))
         def change_data_load_mode():
@@ -202,7 +205,7 @@ def edit(
             on_change=change_data_load_mode,
         )
 
-        log_info(__name__, f"4. data: {container.get_value(record_path)}")
+        # log_debug(__name__, f"4. data: {container.get_value(record_path)}")
         # 4. The user then may change the loaded data and if the user pressed the SAVE Button save all data including related data
         create_streamlit_edit_form_from_json_schema(
             container=container,
