@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Tuple, Optional
 from datetime import datetime
 from enum import Enum as PyEnum
 
-from sqlalchemy import UniqueConstraint, inspect
+from sqlalchemy import DateTime, UniqueConstraint, inspect
 from sqlalchemy.orm import Session
 
 from offermee.database.db_connection import session_scope
@@ -179,7 +179,6 @@ def _joined_load_by_id(session, model, record_id):
     for rel_name in mapper.relationships.keys():
         # Optionally filter by only certain relationships
         # or skip certain ones if you don't want them all.
-        print(f"rel_name: '{rel_name}'")
         rel_prop = getattr(model, rel_name).property
         query = query.options(joinedload(rel_prop))
 
@@ -601,8 +600,18 @@ def _update(
 
     # 2. Update flat fields
     for k, v in flat_fields.items():
-        setattr(instance, k, v)
-        print(f"Set {k} to {v}")
+        prop = getattr(model, k).property
+        col_type = prop.columns[0].type
+        if isinstance(col_type, DateTime) and isinstance(v, str):
+            try:
+                # Expects an ISO 8601 conform string
+                v = datetime.fromisoformat(v)
+            except ValueError as e:
+                service_logger.error(
+                    f"ERROR while parsing the date time of {k}='{v}': {e}"
+                )
+                continue
+            print(f"Set {k} to {v}")
     session.flush()
 
     # 3.1 Update or create related dict data
