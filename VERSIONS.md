@@ -1,3 +1,7 @@
+## v0.0.6679 - 2025-02-01T15:43:01.797Z
+
+- Merge branch 'main' of https://github.com/Rob9999/OfferMee
+
 ## v0.0.6678 - 2025-02-01T15:00:51.565Z
 
 - refactored db model and db edit form
