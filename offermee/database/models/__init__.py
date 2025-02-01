@@ -15,6 +15,7 @@ from .main_models import (
     InterviewModel,
     OfferModel,
     ProjectModel,
+    RFPModel,
     SchemaModel,
     SkillModel,
     WorkPackageModel,

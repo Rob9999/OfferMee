@@ -102,9 +102,6 @@ def data_imports_render():
                             operator,
                         ),
                     )
-                    # log_info(__name__, f"Viewing data '{key}'.")
-                    # Redirect to CV edit page
-                    st.rerun()
 
 
 def validate_and_get_json_and_schema(

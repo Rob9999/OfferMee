@@ -43,7 +43,6 @@ def cv_view_all_render():
                 _T("Created At"),
                 _T("Updated At"),
                 _T("Structured Data"),
-                _T("JSON Schema"),
             ]
 
             # Sammle die Daten in einer Liste von Dictionaries
@@ -58,7 +57,6 @@ def cv_view_all_render():
                         _T("Created At"): cv.get("created_at"),
                         _T("Updated At"): cv.get("updated_at"),
                         _T("Structured Data"): cv.get("cv_structured_data"),
-                        _T("JSON Schema"): cv.get("cv_schema_reference"),
                     }
                 )
 

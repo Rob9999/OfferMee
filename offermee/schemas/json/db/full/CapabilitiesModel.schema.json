@@ -1,0 +1,220 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CapabilitiesModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "roles": {
+            "type": "string"
+        },
+        "created_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x000001A10CF60FE0>"
+        },
+        "updated_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x000001A10CF61120>"
+        },
+        "soft_skills": {
+            "type": "array",
+            "items": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "SkillModel",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "capabilities_soft": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "title": "CapabilitiesModel (Already Included)"
+                        }
+                    },
+                    "capabilities_tech": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "title": "CapabilitiesModel (Already Included)"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "type"
+                ]
+            }
+        },
+        "tech_skills": {
+            "type": "array",
+            "items": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "SkillModel",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "capabilities_soft": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "title": "CapabilitiesModel (Already Included)"
+                        }
+                    },
+                    "capabilities_tech": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "title": "CapabilitiesModel (Already Included)"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "type"
+                ]
+            }
+        },
+        "documents": {
+            "type": "array",
+            "items": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "DocumentModel",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "related_type": {
+                        "type": "string",
+                        "enum": [
+                            "ADDRESS",
+                            "CONTACT",
+                            "REQUEST",
+                            "OFFER",
+                            "CONTRACT",
+                            "APPLICATION",
+                            "CV",
+                            "PROJECT",
+                            "INTERVIEW",
+                            "COMPANY",
+                            "EMPLOYEE",
+                            "WORKPACKAGE",
+                            "CAPABILITIES"
+                        ],
+                        "maxLength": 12
+                    },
+                    "related_id": {
+                        "type": "integer"
+                    },
+                    "document_name": {
+                        "type": "string"
+                    },
+                    "document_link": {
+                        "type": "string"
+                    },
+                    "document_raw_text": {
+                        "type": "string"
+                    },
+                    "document_structured_text": {
+                        "type": "string"
+                    },
+                    "document_schema_reference_id": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                    }
+                },
+                "required": [
+                    "id",
+                    "related_type",
+                    "related_id",
+                    "document_name",
+                    "document_link"
+                ]
+            }
+        },
+        "histories": {
+            "type": "array",
+            "items": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "HistoryModel",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "related_type": {
+                        "type": "string",
+                        "enum": [
+                            "ADDRESS",
+                            "CONTACT",
+                            "REQUEST",
+                            "OFFER",
+                            "CONTRACT",
+                            "APPLICATION",
+                            "CV",
+                            "PROJECT",
+                            "INTERVIEW",
+                            "COMPANY",
+                            "EMPLOYEE",
+                            "WORKPACKAGE",
+                            "CAPABILITIES"
+                        ],
+                        "maxLength": 12
+                    },
+                    "related_id": {
+                        "type": "integer"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "event_date": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                    }
+                },
+                "required": [
+                    "id",
+                    "related_type",
+                    "related_id",
+                    "event_date",
+                    "created_by"
+                ]
+            }
+        }
+    },
+    "required": [
+        "id"
+    ]
+}

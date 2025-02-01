@@ -79,7 +79,7 @@ def _create_documents(
             document_link=doc_data.get("document_link"),
             document_raw_text=doc_data.get("document_raw_text"),
             document_structured_text=doc_data.get("document_structured_text"),
-            document_schema_reference=doc_data.get("document_schema_reference"),
+            document_schema_reference_id=doc_data.get("document_schema_reference_id"),
         )
         session.add(doc)
         created_docs.append(doc)
@@ -849,6 +849,7 @@ class BaseService:
 
             # Dynamisch Filter anwenden
             for key, value in pattern.items():
+                # print(f"{cls.MODEL}.{key}: {getattr(cls.MODEL, key) == value}")
                 query = query.filter(getattr(cls.MODEL, key) == value)
 
             first = query.first()

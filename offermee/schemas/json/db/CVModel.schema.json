@@ -24,16 +24,16 @@
         "cv_structured_data": {
             "type": "string"
         },
-        "cv_schema_reference": {
+        "cv_schema_reference_id": {
             "type": "integer"
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000018CC95A2FC0>"
+            "default": "<function datetime.utcnow at 0x000001A10DF545E0>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000018CC95A3060>"
+            "default": "<function datetime.utcnow at 0x000001A10DF54680>"
         }
     },
     "required": [
@@ -41,6 +41,6 @@
         "name",
         "cv_raw_text",
         "cv_structured_data",
-        "cv_schema_reference"
+        "cv_schema_reference_id"
     ]
 }

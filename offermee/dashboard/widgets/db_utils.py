@@ -11,6 +11,7 @@ from offermee.database.facades.main_facades import (
     FreelancerFacade,
     ProjectFacade,
     ReadFacade,
+    SchemaFacade,
 )
 from offermee.database.models.main_models import ContactRole
 from offermee.utils.utils import safe_type
@@ -173,7 +174,19 @@ def save_cv_to_db(
         FreelancerFacade.update(
             freelancer.get("id"), data=update_freelancer, updated_by=operator
         )
-
+    # Fetch or Create CV Schema:
+    schema_definition = uploaded_cv.get("cv_schema_reference")
+    schema: Dict[str, Any] = SchemaFacade.get_first_by(
+        {"schema_definition": schema_definition},
+    )
+    if not schema:
+        schema: Dict[str, Any] = SchemaFacade.create(
+            {
+                "name": "cv.schema.json",
+                "schema_definition": schema_definition,
+                "description": "JSON Schema of Structured CV Data.",
+            },
+        )
     # CV aktualisieren oder anlegen
     cv = ReadFacade.get_cv_by_freelancer_id(freelancer.get("id"))
     if cv:
@@ -183,7 +196,7 @@ def save_cv_to_db(
             "name": name,
             "cv_raw_text": uploaded_cv.get("cv_raw_text"),
             "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
-            "cv_schema_reference": json.dumps(uploaded_cv.get("cv_schema_reference")),
+            "cv_schema_reference_id": schema.get("id"),
         }
         CVFacade.update(record_id=cv.get("id"), data=update_cv, updated_by=operator)
     else:
@@ -196,7 +209,7 @@ def save_cv_to_db(
             "name": name,
             "cv_raw_text": uploaded_cv.get("cv_raw_text"),
             "cv_structured_data": json.dumps(uploaded_cv.get("cv_structured_data")),
-            "cv_schema_reference": json.dumps(uploaded_cv.get("cv_schema_reference")),
+            "cv_schema_reference_id": schema.get("id"),
         }
         CVFacade.create(data=new_cv, created_by=operator)
 

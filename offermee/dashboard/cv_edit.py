@@ -15,7 +15,7 @@ from offermee.dashboard.helpers.web_dashboard import (
     join_container_path,
     stop_if_not_logged_in,
 )
-from offermee.database.facades.main_facades import CVFacade
+from offermee.database.facades.main_facades import CVFacade, SchemaFacade
 from offermee.utils.container import Container
 
 
@@ -94,9 +94,14 @@ def get_cv_data_and_schema(cv: Dict[str, Any]) -> tuple[Dict[str, Any], Dict[str
         structured_data = json.loads(cv.get("cv_structured_data"))
         if structured_data is None:
             raise ValueError("cv_structured_data is None")
-        cv_schema = json.loads(cv.get("cv_schema_reference"))
+        # Fetch CV Schema:
+        schema_id = cv.get("cv_schema_reference_id")
+        schema: Dict[str, Any] = SchemaFacade.get_by_id(schema_id)
+        if not schema:
+            raise ValueError(f"cv_schema_reference_id #{schema_id} is Unknown")
+        cv_schema = json.loads(schema.get("schema_definition"))
         if cv_schema is None:
-            raise ValueError("cv_schema_reference is None")
+            raise ValueError(f"cv_schema '{schema.get('name')}' is None")
         return structured_data, cv_schema
     except Exception as e:
         log_error(__name__, "Cv data or schema reference is corrupt or None: {e}")

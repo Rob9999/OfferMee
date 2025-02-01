@@ -9,7 +9,10 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
 from offermee.config import Config
-from offermee.database.transformers.to_json_schema import db_model_to_json_schema
+from offermee.database.transformers.to_json_schema import (
+    build_full_json_schema,
+    db_model_to_json_schema,
+)
 from offermee.logger import CentralLogger
 
 
@@ -150,8 +153,10 @@ class DatabaseManager:
             logging.info(f"Database {db_type} initialized at {db_path}")
             return session_maker, engine, db_path, db_type
 
-        def _store_all_db_models_as_json_schema(self):
-            storage_dir = os.path.normpath("./offermee/schemas/json/db")
+        def _store_all_db_models_as_json_schema(self, full: bool = False):
+            storage_dir = os.path.normpath(
+                "./offermee/schemas/json/db" + ("/full" if full else "")
+            )
             os.makedirs(storage_dir, exist_ok=True)
             logging.info(f"Storing all db models as json schema to '{storage_dir}' ...")
             try:
@@ -160,8 +165,10 @@ class DatabaseManager:
                     model_cls = mapper.class_
 
                     # Generiere ein JSON-Schema
-                    schema_dict: Dict[str, Any] = db_model_to_json_schema(
-                        model=model_cls
+                    schema_dict: Dict[str, Any] = (
+                        build_full_json_schema(model=model_cls)
+                        if full
+                        else db_model_to_json_schema(model=model_cls)
                     )
                     # logging.debug(
                     #    f"Generated JSON schema from db model '{model_cls.__name__}':\n{schema_dict}"
@@ -216,4 +223,5 @@ class DatabaseManager:
             logging.info(f"Database created at {db_path}")
             # store all db tables as json schema
             self._store_all_db_models_as_json_schema()
+            self._store_all_db_models_as_json_schema(full=True)
             return engine

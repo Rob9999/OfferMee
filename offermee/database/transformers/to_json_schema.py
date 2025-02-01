@@ -117,7 +117,7 @@ def build_full_json_schema(
     for rel_name in mapper.relationships.keys():
         rel_prop = getattr(model, rel_name).property
         related_model = rel_prop.mapper.class_  # e.g. Child class
-        child_schema = build_full_json_schema(related_model, visited)
+        child_schema = build_full_json_schema(related_model, set(visited))
         # print(f"{rel_prop} uselist? {rel_prop.uselist}")
         if rel_prop.uselist:
             # This is a one-to-many or many-to-many relationship

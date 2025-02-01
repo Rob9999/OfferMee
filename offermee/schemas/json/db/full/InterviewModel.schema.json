@@ -1,0 +1,1974 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "InterviewModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "project_id": {
+            "type": "integer"
+        },
+        "date": {
+            "type": "string"
+        },
+        "interviewer": {
+            "type": "string"
+        },
+        "notes": {
+            "type": "string"
+        },
+        "rating": {
+            "type": "number"
+        },
+        "documents": {
+            "type": "array",
+            "items": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "DocumentModel",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "related_type": {
+                        "type": "string",
+                        "enum": [
+                            "ADDRESS",
+                            "CONTACT",
+                            "REQUEST",
+                            "OFFER",
+                            "CONTRACT",
+                            "APPLICATION",
+                            "CV",
+                            "PROJECT",
+                            "INTERVIEW",
+                            "COMPANY",
+                            "EMPLOYEE",
+                            "WORKPACKAGE",
+                            "CAPABILITIES"
+                        ],
+                        "maxLength": 12
+                    },
+                    "related_id": {
+                        "type": "integer"
+                    },
+                    "document_name": {
+                        "type": "string"
+                    },
+                    "document_link": {
+                        "type": "string"
+                    },
+                    "document_raw_text": {
+                        "type": "string"
+                    },
+                    "document_structured_text": {
+                        "type": "string"
+                    },
+                    "document_schema_reference_id": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                    }
+                },
+                "required": [
+                    "id",
+                    "related_type",
+                    "related_id",
+                    "document_name",
+                    "document_link"
+                ]
+            }
+        },
+        "histories": {
+            "type": "array",
+            "items": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "HistoryModel",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "related_type": {
+                        "type": "string",
+                        "enum": [
+                            "ADDRESS",
+                            "CONTACT",
+                            "REQUEST",
+                            "OFFER",
+                            "CONTRACT",
+                            "APPLICATION",
+                            "CV",
+                            "PROJECT",
+                            "INTERVIEW",
+                            "COMPANY",
+                            "EMPLOYEE",
+                            "WORKPACKAGE",
+                            "CAPABILITIES"
+                        ],
+                        "maxLength": 12
+                    },
+                    "related_id": {
+                        "type": "integer"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "event_date": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                    }
+                },
+                "required": [
+                    "id",
+                    "related_type",
+                    "related_id",
+                    "event_date",
+                    "created_by"
+                ]
+            }
+        },
+        "project": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "title": "ProjectModel",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "must_haves": {
+                    "type": "string"
+                },
+                "nice_to_haves": {
+                    "type": "string"
+                },
+                "tasks": {
+                    "type": "string"
+                },
+                "responsibilities": {
+                    "type": "string"
+                },
+                "hourly_rate": {
+                    "type": "number"
+                },
+                "other_conditions": {
+                    "type": "string"
+                },
+                "contact_person": {
+                    "type": "string"
+                },
+                "contact_person_email": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "provider_link": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "string"
+                },
+                "extension_option": {
+                    "type": "string"
+                },
+                "original_link": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "NEW",
+                        "OFFER_SENT",
+                        "INTERVIEW",
+                        "CONTRACT_SIGNED",
+                        "IN_PROGRESS",
+                        "COMPLETED",
+                        "REJECTED"
+                    ],
+                    "default": "NEW",
+                    "maxLength": 15
+                },
+                "created_at": {
+                    "type": "string",
+                    "default": "<function datetime.utcnow at 0x000001A10DFA0B80>"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "default": "<function datetime.utcnow at 0x000001A10DFA0C20>"
+                },
+                "address_id": {
+                    "type": "integer"
+                },
+                "address": {
+                    "$schema": "http://json-schema.org/draft-07/schema#",
+                    "title": "AddressModel",
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "integer"
+                        },
+                        "street": {
+                            "type": "string"
+                        },
+                        "city": {
+                            "type": "string"
+                        },
+                        "zip_code": {
+                            "type": "string"
+                        },
+                        "country": {
+                            "type": "string"
+                        },
+                        "documents": {
+                            "type": "array",
+                            "items": {
+                                "$schema": "http://json-schema.org/draft-07/schema#",
+                                "title": "DocumentModel",
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "related_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "ADDRESS",
+                                            "CONTACT",
+                                            "REQUEST",
+                                            "OFFER",
+                                            "CONTRACT",
+                                            "APPLICATION",
+                                            "CV",
+                                            "PROJECT",
+                                            "INTERVIEW",
+                                            "COMPANY",
+                                            "EMPLOYEE",
+                                            "WORKPACKAGE",
+                                            "CAPABILITIES"
+                                        ],
+                                        "maxLength": 12
+                                    },
+                                    "related_id": {
+                                        "type": "integer"
+                                    },
+                                    "document_name": {
+                                        "type": "string"
+                                    },
+                                    "document_link": {
+                                        "type": "string"
+                                    },
+                                    "document_raw_text": {
+                                        "type": "string"
+                                    },
+                                    "document_structured_text": {
+                                        "type": "string"
+                                    },
+                                    "document_schema_reference_id": {
+                                        "type": "integer"
+                                    },
+                                    "created_at": {
+                                        "type": "string",
+                                        "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                                    },
+                                    "updated_at": {
+                                        "type": "string",
+                                        "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "related_type",
+                                    "related_id",
+                                    "document_name",
+                                    "document_link"
+                                ]
+                            }
+                        },
+                        "histories": {
+                            "type": "array",
+                            "items": {
+                                "$schema": "http://json-schema.org/draft-07/schema#",
+                                "title": "HistoryModel",
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "related_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "ADDRESS",
+                                            "CONTACT",
+                                            "REQUEST",
+                                            "OFFER",
+                                            "CONTRACT",
+                                            "APPLICATION",
+                                            "CV",
+                                            "PROJECT",
+                                            "INTERVIEW",
+                                            "COMPANY",
+                                            "EMPLOYEE",
+                                            "WORKPACKAGE",
+                                            "CAPABILITIES"
+                                        ],
+                                        "maxLength": 12
+                                    },
+                                    "related_id": {
+                                        "type": "integer"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "event_date": {
+                                        "type": "string"
+                                    },
+                                    "created_by": {
+                                        "type": "string"
+                                    },
+                                    "created_at": {
+                                        "type": "string",
+                                        "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "related_type",
+                                    "related_id",
+                                    "event_date",
+                                    "created_by"
+                                ]
+                            }
+                        }
+                    },
+                    "required": [
+                        "id",
+                        "street",
+                        "city",
+                        "zip_code",
+                        "country"
+                    ]
+                },
+                "interviews": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "title": "InterviewModel (Already Included)"
+                    }
+                },
+                "contracts": {
+                    "type": "array",
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "title": "ContractModel",
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "project_id": {
+                                "type": "integer"
+                            },
+                            "contract_date": {
+                                "type": "string"
+                            },
+                            "signed_by_client": {
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "signed_by_freelancer": {
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "project": {
+                                "type": "object",
+                                "title": "ProjectModel (Already Included)"
+                            },
+                            "documents": {
+                                "type": "array",
+                                "items": {
+                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                    "title": "DocumentModel",
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "related_type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "ADDRESS",
+                                                "CONTACT",
+                                                "REQUEST",
+                                                "OFFER",
+                                                "CONTRACT",
+                                                "APPLICATION",
+                                                "CV",
+                                                "PROJECT",
+                                                "INTERVIEW",
+                                                "COMPANY",
+                                                "EMPLOYEE",
+                                                "WORKPACKAGE",
+                                                "CAPABILITIES"
+                                            ],
+                                            "maxLength": 12
+                                        },
+                                        "related_id": {
+                                            "type": "integer"
+                                        },
+                                        "document_name": {
+                                            "type": "string"
+                                        },
+                                        "document_link": {
+                                            "type": "string"
+                                        },
+                                        "document_raw_text": {
+                                            "type": "string"
+                                        },
+                                        "document_structured_text": {
+                                            "type": "string"
+                                        },
+                                        "document_schema_reference_id": {
+                                            "type": "integer"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "related_type",
+                                        "related_id",
+                                        "document_name",
+                                        "document_link"
+                                    ]
+                                }
+                            },
+                            "histories": {
+                                "type": "array",
+                                "items": {
+                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                    "title": "HistoryModel",
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "related_type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "ADDRESS",
+                                                "CONTACT",
+                                                "REQUEST",
+                                                "OFFER",
+                                                "CONTRACT",
+                                                "APPLICATION",
+                                                "CV",
+                                                "PROJECT",
+                                                "INTERVIEW",
+                                                "COMPANY",
+                                                "EMPLOYEE",
+                                                "WORKPACKAGE",
+                                                "CAPABILITIES"
+                                            ],
+                                            "maxLength": 12
+                                        },
+                                        "related_id": {
+                                            "type": "integer"
+                                        },
+                                        "description": {
+                                            "type": "string"
+                                        },
+                                        "event_date": {
+                                            "type": "string"
+                                        },
+                                        "created_by": {
+                                            "type": "string"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "related_type",
+                                        "related_id",
+                                        "event_date",
+                                        "created_by"
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "contract_date"
+                        ]
+                    }
+                },
+                "workpackages": {
+                    "type": "array",
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "title": "WorkPackageModel",
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "project_id": {
+                                "type": "integer"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string"
+                            },
+                            "start_date": {
+                                "type": "string"
+                            },
+                            "end_date": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "type": "string",
+                                "enum": [
+                                    "OPEN",
+                                    "IN_PROGRESS",
+                                    "ON_HOLD",
+                                    "COMPLETED"
+                                ],
+                                "default": "OPEN",
+                                "maxLength": 11
+                            },
+                            "documents": {
+                                "type": "array",
+                                "items": {
+                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                    "title": "DocumentModel",
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "related_type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "ADDRESS",
+                                                "CONTACT",
+                                                "REQUEST",
+                                                "OFFER",
+                                                "CONTRACT",
+                                                "APPLICATION",
+                                                "CV",
+                                                "PROJECT",
+                                                "INTERVIEW",
+                                                "COMPANY",
+                                                "EMPLOYEE",
+                                                "WORKPACKAGE",
+                                                "CAPABILITIES"
+                                            ],
+                                            "maxLength": 12
+                                        },
+                                        "related_id": {
+                                            "type": "integer"
+                                        },
+                                        "document_name": {
+                                            "type": "string"
+                                        },
+                                        "document_link": {
+                                            "type": "string"
+                                        },
+                                        "document_raw_text": {
+                                            "type": "string"
+                                        },
+                                        "document_structured_text": {
+                                            "type": "string"
+                                        },
+                                        "document_schema_reference_id": {
+                                            "type": "integer"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "related_type",
+                                        "related_id",
+                                        "document_name",
+                                        "document_link"
+                                    ]
+                                }
+                            },
+                            "histories": {
+                                "type": "array",
+                                "items": {
+                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                    "title": "HistoryModel",
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "related_type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "ADDRESS",
+                                                "CONTACT",
+                                                "REQUEST",
+                                                "OFFER",
+                                                "CONTRACT",
+                                                "APPLICATION",
+                                                "CV",
+                                                "PROJECT",
+                                                "INTERVIEW",
+                                                "COMPANY",
+                                                "EMPLOYEE",
+                                                "WORKPACKAGE",
+                                                "CAPABILITIES"
+                                            ],
+                                            "maxLength": 12
+                                        },
+                                        "related_id": {
+                                            "type": "integer"
+                                        },
+                                        "description": {
+                                            "type": "string"
+                                        },
+                                        "event_date": {
+                                            "type": "string"
+                                        },
+                                        "created_by": {
+                                            "type": "string"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "related_type",
+                                        "related_id",
+                                        "event_date",
+                                        "created_by"
+                                    ]
+                                }
+                            },
+                            "project": {
+                                "type": "object",
+                                "title": "ProjectModel (Already Included)"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "title"
+                        ]
+                    }
+                },
+                "offers": {
+                    "type": "array",
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "title": "OfferModel",
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "project_id": {
+                                "type": "integer"
+                            },
+                            "offer_number": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "type": "string",
+                                "enum": [
+                                    "DRAFT",
+                                    "SENT",
+                                    "FOLLOW_UP",
+                                    "FINALIZED"
+                                ],
+                                "default": "DRAFT",
+                                "maxLength": 9
+                            },
+                            "offer_contact_person": {
+                                "type": "string"
+                            },
+                            "offer_contact_person_email": {
+                                "type": "string"
+                            },
+                            "offer_text": {
+                                "type": "string"
+                            },
+                            "sent_date": {
+                                "type": "string"
+                            },
+                            "last_follow_up_date": {
+                                "type": "string"
+                            },
+                            "follow_up_count": {
+                                "type": "integer",
+                                "default": 0
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "default": "<function datetime.utcnow at 0x000001A10DFD36A0>"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "default": "<function datetime.utcnow at 0x000001A10DFD3740>"
+                            },
+                            "documents": {
+                                "type": "array",
+                                "items": {
+                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                    "title": "DocumentModel",
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "related_type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "ADDRESS",
+                                                "CONTACT",
+                                                "REQUEST",
+                                                "OFFER",
+                                                "CONTRACT",
+                                                "APPLICATION",
+                                                "CV",
+                                                "PROJECT",
+                                                "INTERVIEW",
+                                                "COMPANY",
+                                                "EMPLOYEE",
+                                                "WORKPACKAGE",
+                                                "CAPABILITIES"
+                                            ],
+                                            "maxLength": 12
+                                        },
+                                        "related_id": {
+                                            "type": "integer"
+                                        },
+                                        "document_name": {
+                                            "type": "string"
+                                        },
+                                        "document_link": {
+                                            "type": "string"
+                                        },
+                                        "document_raw_text": {
+                                            "type": "string"
+                                        },
+                                        "document_structured_text": {
+                                            "type": "string"
+                                        },
+                                        "document_schema_reference_id": {
+                                            "type": "integer"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "related_type",
+                                        "related_id",
+                                        "document_name",
+                                        "document_link"
+                                    ]
+                                }
+                            },
+                            "histories": {
+                                "type": "array",
+                                "items": {
+                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                    "title": "HistoryModel",
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "related_type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "ADDRESS",
+                                                "CONTACT",
+                                                "REQUEST",
+                                                "OFFER",
+                                                "CONTRACT",
+                                                "APPLICATION",
+                                                "CV",
+                                                "PROJECT",
+                                                "INTERVIEW",
+                                                "COMPANY",
+                                                "EMPLOYEE",
+                                                "WORKPACKAGE",
+                                                "CAPABILITIES"
+                                            ],
+                                            "maxLength": 12
+                                        },
+                                        "related_id": {
+                                            "type": "integer"
+                                        },
+                                        "description": {
+                                            "type": "string"
+                                        },
+                                        "event_date": {
+                                            "type": "string"
+                                        },
+                                        "created_by": {
+                                            "type": "string"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "related_type",
+                                        "related_id",
+                                        "event_date",
+                                        "created_by"
+                                    ]
+                                }
+                            },
+                            "project": {
+                                "type": "object",
+                                "title": "ProjectModel (Already Included)"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "offer_number",
+                            "title",
+                            "offer_contact_person",
+                            "offer_contact_person_email",
+                            "follow_up_count"
+                        ]
+                    }
+                },
+                "documents": {
+                    "type": "array",
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "title": "DocumentModel",
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "related_type": {
+                                "type": "string",
+                                "enum": [
+                                    "ADDRESS",
+                                    "CONTACT",
+                                    "REQUEST",
+                                    "OFFER",
+                                    "CONTRACT",
+                                    "APPLICATION",
+                                    "CV",
+                                    "PROJECT",
+                                    "INTERVIEW",
+                                    "COMPANY",
+                                    "EMPLOYEE",
+                                    "WORKPACKAGE",
+                                    "CAPABILITIES"
+                                ],
+                                "maxLength": 12
+                            },
+                            "related_id": {
+                                "type": "integer"
+                            },
+                            "document_name": {
+                                "type": "string"
+                            },
+                            "document_link": {
+                                "type": "string"
+                            },
+                            "document_raw_text": {
+                                "type": "string"
+                            },
+                            "document_structured_text": {
+                                "type": "string"
+                            },
+                            "document_schema_reference_id": {
+                                "type": "integer"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "related_type",
+                            "related_id",
+                            "document_name",
+                            "document_link"
+                        ]
+                    }
+                },
+                "histories": {
+                    "type": "array",
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "title": "HistoryModel",
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "related_type": {
+                                "type": "string",
+                                "enum": [
+                                    "ADDRESS",
+                                    "CONTACT",
+                                    "REQUEST",
+                                    "OFFER",
+                                    "CONTRACT",
+                                    "APPLICATION",
+                                    "CV",
+                                    "PROJECT",
+                                    "INTERVIEW",
+                                    "COMPANY",
+                                    "EMPLOYEE",
+                                    "WORKPACKAGE",
+                                    "CAPABILITIES"
+                                ],
+                                "maxLength": 12
+                            },
+                            "related_id": {
+                                "type": "integer"
+                            },
+                            "description": {
+                                "type": "string"
+                            },
+                            "event_date": {
+                                "type": "string"
+                            },
+                            "created_by": {
+                                "type": "string"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "related_type",
+                            "related_id",
+                            "event_date",
+                            "created_by"
+                        ]
+                    }
+                },
+                "matching_scores": {
+                    "type": "array",
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "title": "MatchingScoreModel",
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "project_id": {
+                                "type": "integer"
+                            },
+                            "freelancer_id": {
+                                "type": "integer"
+                            },
+                            "matching_score": {
+                                "type": "number",
+                                "default": 0.0
+                            },
+                            "match_details": {
+                                "type": "string"
+                            },
+                            "matched_at": {
+                                "type": "string",
+                                "default": "<function datetime.utcnow at 0x000001A10CEC4540>"
+                            },
+                            "project": {
+                                "type": "object",
+                                "title": "ProjectModel (Already Included)"
+                            },
+                            "freelancer": {
+                                "$schema": "http://json-schema.org/draft-07/schema#",
+                                "title": "FreelancerModel",
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "website": {
+                                        "type": "string"
+                                    },
+                                    "capabilities_id": {
+                                        "type": "integer"
+                                    },
+                                    "role": {
+                                        "type": "string"
+                                    },
+                                    "availability": {
+                                        "type": "string"
+                                    },
+                                    "desired_rate_min": {
+                                        "type": "number"
+                                    },
+                                    "desired_rate_max": {
+                                        "type": "number"
+                                    },
+                                    "offer_template": {
+                                        "type": "string"
+                                    },
+                                    "preferred_language": {
+                                        "type": "string"
+                                    },
+                                    "preferred_currency": {
+                                        "type": "string"
+                                    },
+                                    "created_at": {
+                                        "type": "string",
+                                        "default": "<function datetime.utcnow at 0x000001A10CF623E0>"
+                                    },
+                                    "updated_at": {
+                                        "type": "string",
+                                        "default": "<function datetime.utcnow at 0x000001A10CF62480>"
+                                    },
+                                    "contact_id": {
+                                        "type": "integer"
+                                    },
+                                    "capabilities": {
+                                        "$schema": "http://json-schema.org/draft-07/schema#",
+                                        "title": "CapabilitiesModel",
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "roles": {
+                                                "type": "string"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "default": "<function datetime.utcnow at 0x000001A10CF60FE0>"
+                                            },
+                                            "updated_at": {
+                                                "type": "string",
+                                                "default": "<function datetime.utcnow at 0x000001A10CF61120>"
+                                            },
+                                            "soft_skills": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                                    "title": "SkillModel",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "type": {
+                                                            "type": "string"
+                                                        },
+                                                        "capabilities_soft": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "title": "CapabilitiesModel (Already Included)"
+                                                            }
+                                                        },
+                                                        "capabilities_tech": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "title": "CapabilitiesModel (Already Included)"
+                                                            }
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "type"
+                                                    ]
+                                                }
+                                            },
+                                            "tech_skills": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                                    "title": "SkillModel",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "type": {
+                                                            "type": "string"
+                                                        },
+                                                        "capabilities_soft": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "title": "CapabilitiesModel (Already Included)"
+                                                            }
+                                                        },
+                                                        "capabilities_tech": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "title": "CapabilitiesModel (Already Included)"
+                                                            }
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "type"
+                                                    ]
+                                                }
+                                            },
+                                            "documents": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                                    "title": "DocumentModel",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "related_type": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "ADDRESS",
+                                                                "CONTACT",
+                                                                "REQUEST",
+                                                                "OFFER",
+                                                                "CONTRACT",
+                                                                "APPLICATION",
+                                                                "CV",
+                                                                "PROJECT",
+                                                                "INTERVIEW",
+                                                                "COMPANY",
+                                                                "EMPLOYEE",
+                                                                "WORKPACKAGE",
+                                                                "CAPABILITIES"
+                                                            ],
+                                                            "maxLength": 12
+                                                        },
+                                                        "related_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "document_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "document_link": {
+                                                            "type": "string"
+                                                        },
+                                                        "document_raw_text": {
+                                                            "type": "string"
+                                                        },
+                                                        "document_structured_text": {
+                                                            "type": "string"
+                                                        },
+                                                        "document_schema_reference_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                                                        },
+                                                        "updated_at": {
+                                                            "type": "string",
+                                                            "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "related_type",
+                                                        "related_id",
+                                                        "document_name",
+                                                        "document_link"
+                                                    ]
+                                                }
+                                            },
+                                            "histories": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                                    "title": "HistoryModel",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "related_type": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "ADDRESS",
+                                                                "CONTACT",
+                                                                "REQUEST",
+                                                                "OFFER",
+                                                                "CONTRACT",
+                                                                "APPLICATION",
+                                                                "CV",
+                                                                "PROJECT",
+                                                                "INTERVIEW",
+                                                                "COMPANY",
+                                                                "EMPLOYEE",
+                                                                "WORKPACKAGE",
+                                                                "CAPABILITIES"
+                                                            ],
+                                                            "maxLength": 12
+                                                        },
+                                                        "related_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "description": {
+                                                            "type": "string"
+                                                        },
+                                                        "event_date": {
+                                                            "type": "string"
+                                                        },
+                                                        "created_by": {
+                                                            "type": "string"
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "related_type",
+                                                        "related_id",
+                                                        "event_date",
+                                                        "created_by"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "required": [
+                                            "id"
+                                        ]
+                                    },
+                                    "contact": {
+                                        "$schema": "http://json-schema.org/draft-07/schema#",
+                                        "title": "ContactModel",
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "first_name": {
+                                                "type": "string"
+                                            },
+                                            "last_name": {
+                                                "type": "string"
+                                            },
+                                            "phone": {
+                                                "type": "string"
+                                            },
+                                            "email": {
+                                                "type": "string"
+                                            },
+                                            "type": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "BUSINESS",
+                                                    "EMPLOYEE",
+                                                    "FREELANCER",
+                                                    "APPLICANT",
+                                                    "COMPANY",
+                                                    "SUPPLIER"
+                                                ],
+                                                "maxLength": 10
+                                            },
+                                            "address_id": {
+                                                "type": "integer"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "default": "<function datetime.utcnow at 0x000001A10CEF9BC0>"
+                                            },
+                                            "updated_at": {
+                                                "type": "string",
+                                                "default": "<function datetime.utcnow at 0x000001A10CEF9C60>"
+                                            },
+                                            "address": {
+                                                "$schema": "http://json-schema.org/draft-07/schema#",
+                                                "title": "AddressModel",
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "street": {
+                                                        "type": "string"
+                                                    },
+                                                    "city": {
+                                                        "type": "string"
+                                                    },
+                                                    "zip_code": {
+                                                        "type": "string"
+                                                    },
+                                                    "country": {
+                                                        "type": "string"
+                                                    },
+                                                    "documents": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "$schema": "http://json-schema.org/draft-07/schema#",
+                                                            "title": "DocumentModel",
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "related_type": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "ADDRESS",
+                                                                        "CONTACT",
+                                                                        "REQUEST",
+                                                                        "OFFER",
+                                                                        "CONTRACT",
+                                                                        "APPLICATION",
+                                                                        "CV",
+                                                                        "PROJECT",
+                                                                        "INTERVIEW",
+                                                                        "COMPANY",
+                                                                        "EMPLOYEE",
+                                                                        "WORKPACKAGE",
+                                                                        "CAPABILITIES"
+                                                                    ],
+                                                                    "maxLength": 12
+                                                                },
+                                                                "related_id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "document_name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "document_link": {
+                                                                    "type": "string"
+                                                                },
+                                                                "document_raw_text": {
+                                                                    "type": "string"
+                                                                },
+                                                                "document_structured_text": {
+                                                                    "type": "string"
+                                                                },
+                                                                "document_schema_reference_id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "created_at": {
+                                                                    "type": "string",
+                                                                    "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                                                                },
+                                                                "updated_at": {
+                                                                    "type": "string",
+                                                                    "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "id",
+                                                                "related_type",
+                                                                "related_id",
+                                                                "document_name",
+                                                                "document_link"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "histories": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "$schema": "http://json-schema.org/draft-07/schema#",
+                                                            "title": "HistoryModel",
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "related_type": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "ADDRESS",
+                                                                        "CONTACT",
+                                                                        "REQUEST",
+                                                                        "OFFER",
+                                                                        "CONTRACT",
+                                                                        "APPLICATION",
+                                                                        "CV",
+                                                                        "PROJECT",
+                                                                        "INTERVIEW",
+                                                                        "COMPANY",
+                                                                        "EMPLOYEE",
+                                                                        "WORKPACKAGE",
+                                                                        "CAPABILITIES"
+                                                                    ],
+                                                                    "maxLength": 12
+                                                                },
+                                                                "related_id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "description": {
+                                                                    "type": "string"
+                                                                },
+                                                                "event_date": {
+                                                                    "type": "string"
+                                                                },
+                                                                "created_by": {
+                                                                    "type": "string"
+                                                                },
+                                                                "created_at": {
+                                                                    "type": "string",
+                                                                    "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "id",
+                                                                "related_type",
+                                                                "related_id",
+                                                                "event_date",
+                                                                "created_by"
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "street",
+                                                    "city",
+                                                    "zip_code",
+                                                    "country"
+                                                ]
+                                            },
+                                            "documents": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                                    "title": "DocumentModel",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "related_type": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "ADDRESS",
+                                                                "CONTACT",
+                                                                "REQUEST",
+                                                                "OFFER",
+                                                                "CONTRACT",
+                                                                "APPLICATION",
+                                                                "CV",
+                                                                "PROJECT",
+                                                                "INTERVIEW",
+                                                                "COMPANY",
+                                                                "EMPLOYEE",
+                                                                "WORKPACKAGE",
+                                                                "CAPABILITIES"
+                                                            ],
+                                                            "maxLength": 12
+                                                        },
+                                                        "related_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "document_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "document_link": {
+                                                            "type": "string"
+                                                        },
+                                                        "document_raw_text": {
+                                                            "type": "string"
+                                                        },
+                                                        "document_structured_text": {
+                                                            "type": "string"
+                                                        },
+                                                        "document_schema_reference_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                                                        },
+                                                        "updated_at": {
+                                                            "type": "string",
+                                                            "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "related_type",
+                                                        "related_id",
+                                                        "document_name",
+                                                        "document_link"
+                                                    ]
+                                                }
+                                            },
+                                            "histories": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                                    "title": "HistoryModel",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "related_type": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "ADDRESS",
+                                                                "CONTACT",
+                                                                "REQUEST",
+                                                                "OFFER",
+                                                                "CONTRACT",
+                                                                "APPLICATION",
+                                                                "CV",
+                                                                "PROJECT",
+                                                                "INTERVIEW",
+                                                                "COMPANY",
+                                                                "EMPLOYEE",
+                                                                "WORKPACKAGE",
+                                                                "CAPABILITIES"
+                                                            ],
+                                                            "maxLength": 12
+                                                        },
+                                                        "related_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "description": {
+                                                            "type": "string"
+                                                        },
+                                                        "event_date": {
+                                                            "type": "string"
+                                                        },
+                                                        "created_by": {
+                                                            "type": "string"
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "related_type",
+                                                        "related_id",
+                                                        "event_date",
+                                                        "created_by"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "required": [
+                                            "id",
+                                            "first_name",
+                                            "last_name",
+                                            "phone",
+                                            "email",
+                                            "type"
+                                        ]
+                                    },
+                                    "documents": {
+                                        "type": "array",
+                                        "items": {
+                                            "$schema": "http://json-schema.org/draft-07/schema#",
+                                            "title": "DocumentModel",
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "related_type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "ADDRESS",
+                                                        "CONTACT",
+                                                        "REQUEST",
+                                                        "OFFER",
+                                                        "CONTRACT",
+                                                        "APPLICATION",
+                                                        "CV",
+                                                        "PROJECT",
+                                                        "INTERVIEW",
+                                                        "COMPANY",
+                                                        "EMPLOYEE",
+                                                        "WORKPACKAGE",
+                                                        "CAPABILITIES"
+                                                    ],
+                                                    "maxLength": 12
+                                                },
+                                                "related_id": {
+                                                    "type": "integer"
+                                                },
+                                                "document_name": {
+                                                    "type": "string"
+                                                },
+                                                "document_link": {
+                                                    "type": "string"
+                                                },
+                                                "document_raw_text": {
+                                                    "type": "string"
+                                                },
+                                                "document_structured_text": {
+                                                    "type": "string"
+                                                },
+                                                "document_schema_reference_id": {
+                                                    "type": "integer"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "related_type",
+                                                "related_id",
+                                                "document_name",
+                                                "document_link"
+                                            ]
+                                        }
+                                    },
+                                    "histories": {
+                                        "type": "array",
+                                        "items": {
+                                            "$schema": "http://json-schema.org/draft-07/schema#",
+                                            "title": "HistoryModel",
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "related_type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "ADDRESS",
+                                                        "CONTACT",
+                                                        "REQUEST",
+                                                        "OFFER",
+                                                        "CONTRACT",
+                                                        "APPLICATION",
+                                                        "CV",
+                                                        "PROJECT",
+                                                        "INTERVIEW",
+                                                        "COMPANY",
+                                                        "EMPLOYEE",
+                                                        "WORKPACKAGE",
+                                                        "CAPABILITIES"
+                                                    ],
+                                                    "maxLength": 12
+                                                },
+                                                "related_id": {
+                                                    "type": "integer"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "event_date": {
+                                                    "type": "string"
+                                                },
+                                                "created_by": {
+                                                    "type": "string"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "related_type",
+                                                "related_id",
+                                                "event_date",
+                                                "created_by"
+                                            ]
+                                        }
+                                    },
+                                    "matching_scores": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "title": "MatchingScoreModel (Already Included)"
+                                        }
+                                    },
+                                    "cv": {
+                                        "type": "array",
+                                        "items": {
+                                            "$schema": "http://json-schema.org/draft-07/schema#",
+                                            "title": "CVModel",
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "freelancer_id": {
+                                                    "type": "integer"
+                                                },
+                                                "employee_id": {
+                                                    "type": "integer"
+                                                },
+                                                "applicant_id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "cv_raw_text": {
+                                                    "type": "string"
+                                                },
+                                                "cv_structured_data": {
+                                                    "type": "string"
+                                                },
+                                                "cv_schema_reference_id": {
+                                                    "type": "integer"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "default": "<function datetime.utcnow at 0x000001A10DF545E0>"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "default": "<function datetime.utcnow at 0x000001A10DF54680>"
+                                                },
+                                                "documents": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$schema": "http://json-schema.org/draft-07/schema#",
+                                                        "title": "DocumentModel",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "related_type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "ADDRESS",
+                                                                    "CONTACT",
+                                                                    "REQUEST",
+                                                                    "OFFER",
+                                                                    "CONTRACT",
+                                                                    "APPLICATION",
+                                                                    "CV",
+                                                                    "PROJECT",
+                                                                    "INTERVIEW",
+                                                                    "COMPANY",
+                                                                    "EMPLOYEE",
+                                                                    "WORKPACKAGE",
+                                                                    "CAPABILITIES"
+                                                                ],
+                                                                "maxLength": 12
+                                                            },
+                                                            "related_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "document_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "document_link": {
+                                                                "type": "string"
+                                                            },
+                                                            "document_raw_text": {
+                                                                "type": "string"
+                                                            },
+                                                            "document_structured_text": {
+                                                                "type": "string"
+                                                            },
+                                                            "document_schema_reference_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "created_at": {
+                                                                "type": "string",
+                                                                "default": "<function datetime.utcnow at 0x000001A10CF2CC20>"
+                                                            },
+                                                            "updated_at": {
+                                                                "type": "string",
+                                                                "default": "<function datetime.utcnow at 0x000001A10CF2CCC0>"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "related_type",
+                                                            "related_id",
+                                                            "document_name",
+                                                            "document_link"
+                                                        ]
+                                                    }
+                                                },
+                                                "histories": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$schema": "http://json-schema.org/draft-07/schema#",
+                                                        "title": "HistoryModel",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "related_type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "ADDRESS",
+                                                                    "CONTACT",
+                                                                    "REQUEST",
+                                                                    "OFFER",
+                                                                    "CONTRACT",
+                                                                    "APPLICATION",
+                                                                    "CV",
+                                                                    "PROJECT",
+                                                                    "INTERVIEW",
+                                                                    "COMPANY",
+                                                                    "EMPLOYEE",
+                                                                    "WORKPACKAGE",
+                                                                    "CAPABILITIES"
+                                                                ],
+                                                                "maxLength": 12
+                                                            },
+                                                            "related_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "description": {
+                                                                "type": "string"
+                                                            },
+                                                            "event_date": {
+                                                                "type": "string"
+                                                            },
+                                                            "created_by": {
+                                                                "type": "string"
+                                                            },
+                                                            "created_at": {
+                                                                "type": "string",
+                                                                "default": "<function datetime.utcnow at 0x000001A10CF2E2A0>"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "related_type",
+                                                            "related_id",
+                                                            "event_date",
+                                                            "created_by"
+                                                        ]
+                                                    }
+                                                },
+                                                "freelancer": {
+                                                    "type": "object",
+                                                    "title": "FreelancerModel (Already Included)"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "cv_raw_text",
+                                                "cv_structured_data",
+                                                "cv_schema_reference_id"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "name",
+                                    "website",
+                                    "role"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "project_id",
+                            "freelancer_id",
+                            "matching_score",
+                            "matched_at"
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "id",
+                "title",
+                "start_date"
+            ]
+        }
+    },
+    "required": [
+        "id",
+        "date",
+        "interviewer"
+    ]
+}
