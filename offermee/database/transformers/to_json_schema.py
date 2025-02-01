@@ -1,6 +1,6 @@
 import enum
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from sqlalchemy import Column, Integer, String, Float, Boolean, Enum as SAEnum
+from sqlalchemy import Integer, String, Float, Boolean, Enum as SAEnum
 from sqlalchemy.types import DateTime, Text, Date
 from typing import Any, Dict, Type
 
@@ -79,3 +79,56 @@ def db_model_to_json_schema(model: Type[DeclarativeMeta]) -> Dict[str, Any]:
         schema["properties"][field_name] = field_schema
 
     return schema
+
+
+from sqlalchemy.inspection import inspect
+from sqlalchemy.ext.declarative import DeclarativeMeta
+from typing import Dict, Any, Set, Type
+
+
+def build_full_json_schema(
+    model: Type[DeclarativeMeta], visited: Set[Type[DeclarativeMeta]] = None
+) -> Dict[str, Any]:
+    """
+    Recursively build a JSON schema for a model, including its relationships.
+    This inlines the child schema for each relationship.
+
+    WARNING: If your models have deep or cyclical relationships, this can blow up in size
+             or cause infinite recursion. The `visited` set helps avoid infinite loops,
+             but repeated references to the same model are inlined more than once
+             (unless you skip or add references).
+    """
+    if visited is None:
+        visited = set()
+
+    # If we've already seen this model, return an empty or minimal schema
+    # to avoid infinite recursion. In a more advanced implementation,
+    # you might return {"$ref": "#/definitions/<ModelName>"} instead.
+    if model in visited:
+        return {"type": "object", "title": model.__name__ + " (Already Included)"}
+
+    visited.add(model)
+
+    # 1) Start with the base schema (columns only).
+    base_schema = db_model_to_json_schema(model)
+
+    # 2) For each relationship in the model, build child schema.
+    mapper = inspect(model)
+    for rel in mapper.relationships:
+        rel_key = rel.key  # e.g. "children"
+        related_model = rel.mapper.class_  # e.g. Child class
+        child_schema = build_full_json_schema(related_model, visited)
+
+        if rel.uselist:
+            # This is a one-to-many or many-to-many relationship
+            # so we represent it as an array of objects.
+            base_schema["properties"][rel_key] = {
+                "type": "array",
+                "items": child_schema,
+            }
+        else:
+            # This is a many-to-one or one-to-one relationship
+            # so we represent it as a nested object.
+            base_schema["properties"][rel_key] = child_schema
+
+    return base_schema

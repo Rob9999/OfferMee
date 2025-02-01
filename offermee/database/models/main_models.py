@@ -382,6 +382,9 @@ class CVModel(Base):
     cv_schema_reference = Column(
         Integer, ForeignKey("schemas.id"), nullable=False
     )  # Link to schema
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
     documents = relationship(
         "DocumentModel",
         primaryjoin="and_(DocumentModel.related_type == 'CV', foreign(DocumentModel.related_id)  == CVModel.id)",

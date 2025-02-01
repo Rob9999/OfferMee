@@ -35,6 +35,10 @@ from offermee.utils.container import Container
 from offermee.enums.process_status import Status
 
 
+def get_title() -> str:
+    return _T("Find in Email")
+
+
 def rfp_scrap_from_email_render():
     """
     # scrap email account for new RFPs (email of the last 48 hours)

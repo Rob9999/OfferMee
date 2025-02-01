@@ -120,9 +120,7 @@ def _expunge_all(
 def _separate_relationship_data(
     model: Any,
     data: Dict[str, Any],
-) -> Tuple[
-    Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any], List[str], List[str]
-]:
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
     """
     Separates flat column data from nested relationship data and odd fields (data that do not belong
     to the model and its related ones).
@@ -163,6 +161,82 @@ def _separate_relationship_data(
         relationships_list_data,
         odd_fields,
     )
+
+
+from sqlalchemy.orm import joinedload
+from typing import Any, Dict, Optional
+
+
+def _joined_load_by_id(session, model, record_id):
+    """
+    Eager-load (joined load) all relationships for `model`.
+    Then fetch one record by ID. Return the record or None.
+    """
+    mapper = inspect(model)
+    query = session.query(model)
+
+    # For each relationship, apply a joinedload option
+    for rel in mapper.relationships:
+        # Optionally filter by only certain relationships
+        # or skip certain ones if you don't want them all.
+        query = query.options(joinedload(rel.key))
+
+    return query.get(record_id)
+
+
+def _build_nested_dict(record, visited=None) -> Dict[str, Any]:
+    """
+    Recursively build a dictionary for `record`,
+    including all related objects.
+    """
+    if record is None:
+        return {}
+
+    if visited is None:
+        visited = set()
+
+    # Avoid infinite recursion: if we've seen this object before, stop.
+    rec_id = (record.__class__, record.id)
+    if rec_id in visited:
+        return {}
+    visited.add(rec_id)
+
+    # Start with whatever your model's to_dict() does.
+    # Or do it manually via object attributes.
+    data = record.to_dict()
+
+    mapper = inspect(record)
+    for rel in mapper.relationships:
+        rel_name = rel.key
+        related_value = getattr(record, rel_name)
+
+        if related_value is None:
+            data[rel_name] = None
+        elif isinstance(related_value, list):
+            # This is a "one-to-many" or "many-to-many"
+            data[rel_name] = [
+                _build_nested_dict(child, visited)
+                for child in related_value
+                # If you expect large sets, you might want to limit or lazy-load here
+            ]
+        else:
+            # This is a "many-to-one" or "one-to-one"
+            data[rel_name] = _build_nested_dict(related_value, visited)
+
+    return data
+
+
+def _get_record_with_relations(session, model, record_id):
+    """
+    High-level function that:
+      1) does a joined-load for the given model/record_id
+      2) recursively builds a nested dict
+    """
+    record = _joined_load_by_id(session, model, record_id)
+    if not record:
+        return None
+
+    return _build_nested_dict(record)
 
 
 def _get_primary_keys(model: Any):
@@ -757,6 +831,16 @@ class BaseService:
             return _expunge(
                 session=session,
                 instance=first,
+            )
+
+    @classmethod
+    def get_by_id_with_relations(cls, record_id: int):
+        """Eager loading"""
+        with session_scope as session:
+            return _get_record_with_relations(
+                session=session,
+                model=cls.MODEL,
+                record_id=record_id,
             )
 
     @classmethod

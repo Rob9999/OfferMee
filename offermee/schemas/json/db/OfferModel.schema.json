@@ -47,11 +47,11 @@
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x00000155FFDA5300>"
+            "default": "<function datetime.utcnow at 0x000001D5585999E0>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x00000155FFDA53A0>"
+            "default": "<function datetime.utcnow at 0x000001D558599A80>"
         }
     },
     "required": [

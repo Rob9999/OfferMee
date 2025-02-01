@@ -29,6 +29,10 @@ from offermee.offers.email_utils import EmailUtils
 from offermee.utils.container import Container
 
 
+def get_title() -> str:
+    return _T("Project Matcher & Offer Creation")
+
+
 def offer_matcher_render():
     """
     1. Select a candidate (freelancer)
@@ -38,7 +42,7 @@ def offer_matcher_render():
     4. Send the offer plus the cv to the customer
     5. Repeat as long as matching rfps are available, may select another freelancer
     """
-    page_title = _T("Project Matcher & Offer Creation")
+    page_title = get_title()
     st.header(page_title)
     stop_if_not_logged_in()
     log_info(__name__, "Visiting the side.")

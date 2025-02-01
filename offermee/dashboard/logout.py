@@ -1,15 +1,19 @@
 import time
 import streamlit as st
-import os
 from offermee.dashboard.helpers.web_dashboard import (
     get_authenticator,
     is_logged_in,
     set_logged_in,
 )
+from offermee.utils.international import _T
+
+
+def get_title() -> str:
+    return _T("Logout")
 
 
 def logout_render():
-    st.title("Logout")
+    st.title(get_title())
     # stop_if_not_logged_in()
     if is_logged_in():
         st.warning("Möchtest du dich wirklich ausloggen?")

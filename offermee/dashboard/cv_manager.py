@@ -25,7 +25,7 @@ from offermee.utils.container import Container
 from offermee.utils.utils import safe_type
 
 
-def cv_manager_get_title() -> str:
+def get_title() -> str:
     return _T("Upload CV")
 
 
@@ -36,7 +36,7 @@ def cv_manager_render() -> None:
     das Bearbeiten der extrahierten Daten und das Speichern in der Datenbank.
     """
 
-    st.header(cv_manager_get_title())
+    st.header(get_title())
     stop_if_not_logged_in()
 
     page_root = __name__

@@ -26,6 +26,14 @@
         },
         "cv_schema_reference": {
             "type": "integer"
+        },
+        "created_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x000001D5584FA8E0>"
+        },
+        "updated_at": {
+            "type": "string",
+            "default": "<function datetime.utcnow at 0x000001D5584FA980>"
         }
     },
     "required": [

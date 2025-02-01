@@ -1,8 +1,6 @@
-from time import sleep
 import streamlit as st
 from offermee.dashboard.helpers.web_dashboard import (
     get_authenticator,
-    is_logged_in,
     log_info,
     set_logged_in,
 )

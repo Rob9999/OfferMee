@@ -17,6 +17,10 @@ from offermee.utils.international import _T
 from offermee.utils.container import Container
 
 
+def get_title() -> str:
+    return _T("View All")
+
+
 def rfp_view_all_render():
 
     st.header("View Requests For Proposal (RFPs)")
@@ -96,6 +100,6 @@ def rfp_view_all_render():
         else:
             st.info(_T("No Requests For Proposal found."))
     except Exception as e:
-        log_error(__name__, f"Error retrieving offers: {e}")
-        st.error(f"{_T('Error retrieving offers')}: {e}")
+        log_error(__name__, f"Error retrieving RFPs: {e}")
+        st.error(f"{_T('Error retrieving RFPs')}: {e}")
         traceback.print_exception(type(e), e, e.__traceback__)

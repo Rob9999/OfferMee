@@ -26,6 +26,10 @@ from offermee.utils.international import _T
 from offermee.utils.container import Container
 
 
+def get_title() -> str:
+    return _T("Manual Input")
+
+
 def rfp_manual_input_render():
 
     st.header("Manual Request For Proposal (RFP) Input (Multi-Step)")

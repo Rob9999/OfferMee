@@ -19,8 +19,12 @@ from offermee.database.facades.main_facades import CVFacade
 from offermee.utils.container import Container
 
 
+def get_title() -> str:
+    return _T("Edit CV")
+
+
 def cv_edit_render():
-    st.header(_T("Edit CV"))
+    st.header(get_title())
     stop_if_not_logged_in()
 
     page_root = __name__

@@ -2,12 +2,17 @@ import streamlit as st
 from offermee.dashboard.helpers.web_dashboard import stop_if_not_logged_in
 
 from offermee.database.facades.main_facades import OfferFacade
+from offermee.utils.international import _T
 
 # from offermee.database.models.main_models import OfferStatus
 
 
+def get_title() -> str:
+    return _T("Offer History")
+
+
 def offer_view_all_render():
-    st.header("Offer History")
+    st.header(get_title())
     stop_if_not_logged_in()
 
     try:

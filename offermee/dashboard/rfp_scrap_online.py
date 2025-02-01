@@ -8,6 +8,10 @@ from offermee.enums.sites import Site
 from offermee.scraper.freelancermap import FreelanceMapScraper
 
 
+def get_title() -> str:
+    return _T("Find Online")
+
+
 def rfp_scrap_online_render():
     st.header(_T("Scrap Requests For Proposal (RFPs) Online"))
 

@@ -39,7 +39,7 @@
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x00000155FFCE4220>"
+            "default": "<function datetime.utcnow at 0x000001D5584D45E0>"
         }
     },
     "required": [

@@ -8,12 +8,16 @@ from offermee.utils.international import _T
 from offermee.dashboard.helpers.web_dashboard import log_error, log_info
 
 
+def get_title() -> str:
+    return _T("Export CV")
+
+
 def cv_export_render():
     """
     Render the CV export page in the Streamlit dashboard.
     Allows users to select a CV, choose a language, and export it as a PDF.
     """
-    st.header(_T("Export CV"))
+    st.header(get_title())
 
     # Render the CV selection form
     render_cv_selection_form(_T("Select CV to export"))

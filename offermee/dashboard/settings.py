@@ -8,8 +8,12 @@ from offermee.dashboard.helpers.web_dashboard import (
 )
 
 
+def get_title() -> str:
+    return _T("Settings")
+
+
 def settings_render():
-    st.title(_T("Settings"))
+    st.title(get_title())
     stop_if_not_logged_in()
 
     config = Config.get_instance()

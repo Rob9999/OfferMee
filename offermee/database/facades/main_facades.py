@@ -83,6 +83,11 @@ class BaseFacade:
         return cls.SERVICE.get_first_by(pattern=pattern)
 
     @classmethod
+    def get_by_id_with_relations(cls, record_id: int):
+        """Eager loading"""
+        return cls.SERVICE.get_by_id_with_relations(record_id=record_id)
+
+    @classmethod
     def update(
         cls,
         record_id: int,

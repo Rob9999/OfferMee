@@ -19,12 +19,16 @@ from offermee.dashboard.helpers.web_dashboard import (
 from offermee.utils.container import Container
 
 
+def get_title() -> str:
+    return _T("Data Import")
+
+
 def data_imports_render():
     """
     Render the data import page in the Streamlit dashboard.
     Allows users to import a data JSON plus JSON schema.
     """
-    st.header(_T("Data Import"))
+    st.header(get_title())
     stop_if_not_logged_in()
     # log_debug(__name__, f"Rendering data import page ...")
     page_root = __name__

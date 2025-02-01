@@ -16,6 +16,10 @@ from offermee.enums.process_status import Status
 from offermee.utils.container import Container
 
 
+def get_title() -> str:
+    return _T("Offer Templates")
+
+
 def offer_templates_render():
     """
     1. Select a freelancer
@@ -24,7 +28,7 @@ def offer_templates_render():
     4. Edit offer template of freelancer (apply alos a prefered CV of the freelancer)
     5. Save to db
     """
-    st.header(_T("Offer Templates"))
+    st.header(get_title())
     stop_if_not_logged_in()
     try:
 
