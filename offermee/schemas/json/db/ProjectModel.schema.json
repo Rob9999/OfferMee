@@ -101,14 +101,14 @@
             "format": "date-time",
             "title": "Created At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000002A19B4B77E0>"
+            "default": "<function datetime.utcnow at 0x000002B65AAC3C40>"
         },
         "updated_at": {
             "type": "string",
             "format": "date-time",
             "title": "Updated At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000002A19B4B7880>"
+            "default": "<function datetime.utcnow at 0x000002B65AAC3CE0>"
         },
         "address_id": {
             "type": "integer",

@@ -84,14 +84,14 @@
                         "format": "date-time",
                         "title": "Created At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000002A19B417880>"
+                        "default": "<function datetime.utcnow at 0x000002B65AA27CE0>"
                     },
                     "updated_at": {
                         "type": "string",
                         "format": "date-time",
                         "title": "Updated At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000002A19B417920>"
+                        "default": "<function datetime.utcnow at 0x000002B65AA27D80>"
                     }
                 },
                 "required": [
@@ -156,7 +156,7 @@
                         "format": "date-time",
                         "title": "Created At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000002A19B440F40>"
+                        "default": "<function datetime.utcnow at 0x000002B65AA4D3A0>"
                     }
                 },
                 "required": [

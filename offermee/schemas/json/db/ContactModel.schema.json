@@ -45,14 +45,14 @@
             "format": "date-time",
             "title": "Created At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000002A19B414860>"
+            "default": "<function datetime.utcnow at 0x000002B65AA24CC0>"
         },
         "updated_at": {
             "type": "string",
             "format": "date-time",
             "title": "Updated At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000002A19B414900>"
+            "default": "<function datetime.utcnow at 0x000002B65AA24D60>"
         }
     },
     "required": [
