@@ -4,18 +4,27 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "roles": {
-            "type": "string"
+            "type": "string",
+            "title": "Roles"
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x000002359559F1A0>"
+            "format": "date-time",
+            "title": "Created At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B443C40>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x000002359559F2E0>"
+            "format": "date-time",
+            "title": "Updated At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B443D80>"
         }
     },
     "required": [

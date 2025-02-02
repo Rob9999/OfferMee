@@ -4,16 +4,21 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "name": {
-            "type": "string"
+            "type": "string",
+            "title": "Name"
         },
         "website": {
-            "type": "string"
+            "type": "string",
+            "title": "Website"
         },
         "contact_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Contact ID"
         }
     },
     "required": [

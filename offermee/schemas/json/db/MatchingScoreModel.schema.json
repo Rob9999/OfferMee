@@ -21,7 +21,8 @@
         },
         "matched_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023595506700>"
+            "format": "date-time",
+            "default": "<function datetime.utcnow at 0x000002A19A3E3100>"
         }
     },
     "required": [

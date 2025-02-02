@@ -172,7 +172,16 @@ def create_streamlit_edit_form_from_json_schema(
                 0
             ]  # Handle multi-type fields by taking the first type.
 
-        description = field_def.get("description", "")
+        title = field_def.get("title", None)
+        read_only = field_def.get("readOnly", False) == True
+        write_only = field_def.get("writeOnly", False) == True  # e.g. password field
+        example = field_def.get("example", None)
+        deprecated = field_def.get("deprecated", None)  # hint
+        description = (
+            field_def.get("description", "")
+            + (f", {_T('Example')}: {example}" if example else "")
+            + (f", {_T('Deprecated')}: {deprecated}" if deprecated else "")
+        )
         enum_values = field_def.get("enum")
         minimum = field_def.get("minimum")
         maximum = field_def.get("maximum")
@@ -182,7 +191,7 @@ def create_streamlit_edit_form_from_json_schema(
         else:
             current_edited_data_path += "." + f"{field_name}"
             label_name = field_name
-
+        label_name = label_name if not title else title
         # Handle enums
         if enum_values:
             if current_value not in enum_values:
@@ -193,6 +202,7 @@ def create_streamlit_edit_form_from_json_schema(
                 options=enum_values,
                 index=enum_values.index(current_value),
                 help=description,
+                disabled=read_only,
             )
 
         # Handle different field types
@@ -202,6 +212,7 @@ def create_streamlit_edit_form_from_json_schema(
                 value=current_value or "",
                 key=current_edited_data_path,
                 help=description,
+                disabled=read_only,
             )
 
         elif field_type == "number":
@@ -214,6 +225,7 @@ def create_streamlit_edit_form_from_json_schema(
                 min_value=minimum,
                 max_value=maximum,
                 help=description,
+                disabled=read_only,
             )
 
         elif field_type == "integer":
@@ -227,6 +239,7 @@ def create_streamlit_edit_form_from_json_schema(
                 max_value=maximum,
                 step=1,
                 help=description,
+                disabled=read_only,
             )
 
         elif field_type == "boolean":
@@ -235,6 +248,7 @@ def create_streamlit_edit_form_from_json_schema(
                 key=current_edited_data_path,
                 value=bool(current_value),
                 help=description,
+                disabled=read_only,
             )
 
         elif field_type == "array":
@@ -360,6 +374,7 @@ def create_streamlit_edit_form_from_json_schema(
                 key=current_edited_data_path,
                 value=str(current_value or ""),
                 help=description,
+                disabled=read_only,
             )
 
     def nestable(
@@ -396,7 +411,7 @@ def create_streamlit_edit_form_from_json_schema(
     print(data)
     if schema is None:
         raise ValueError(
-            f"Schema  is None: container '{container.get_name()}' path '{container_schema_path}'."
+            f"Schema is None: container '{container.get_name()}' path '{container_schema_path}'."
         )
     if data is None:
         raise ValueError(

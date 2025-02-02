@@ -4,48 +4,67 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "name": {
-            "type": "string"
+            "type": "string",
+            "title": "Name"
         },
         "website": {
-            "type": "string"
+            "type": "string",
+            "title": "Website"
         },
         "capabilities_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Capabilities ID"
         },
         "role": {
-            "type": "string"
+            "type": "string",
+            "title": "Role"
         },
         "availability": {
-            "type": "string"
+            "type": "string",
+            "title": "Availability"
         },
         "desired_rate_min": {
-            "type": "number"
+            "type": "number",
+            "title": "Desired Rate Min"
         },
         "desired_rate_max": {
-            "type": "number"
+            "type": "number",
+            "title": "Desired Rate Max"
         },
         "offer_template": {
-            "type": "string"
+            "type": "string",
+            "title": "Offer Template"
         },
         "preferred_language": {
-            "type": "string"
+            "type": "string",
+            "title": "Preferred Language"
         },
         "preferred_currency": {
-            "type": "string"
+            "type": "string",
+            "title": "Preferred Currency"
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x00000235955C45E0>"
+            "format": "date-time",
+            "title": "Created At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B469080>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x00000235955C4680>"
+            "format": "date-time",
+            "title": "Updated At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B469120>"
         },
         "contact_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Contact ID"
         }
     },
     "required": [

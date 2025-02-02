@@ -4,13 +4,17 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "name": {
-            "type": "string"
+            "type": "string",
+            "title": "Name"
         },
         "type": {
-            "type": "string"
+            "type": "string",
+            "title": "Type"
         }
     },
     "required": [

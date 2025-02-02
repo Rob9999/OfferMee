@@ -4,19 +4,25 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "street": {
-            "type": "string"
+            "type": "string",
+            "title": "Street"
         },
         "city": {
-            "type": "string"
+            "type": "string",
+            "title": "City"
         },
         "zip_code": {
-            "type": "string"
+            "type": "string",
+            "title": "Zip Code"
         },
         "country": {
-            "type": "string"
+            "type": "string",
+            "title": "Country"
         }
     },
     "required": [

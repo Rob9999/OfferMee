@@ -4,22 +4,30 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "project_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Project ID"
         },
         "date": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time",
+            "title": "Date"
         },
         "interviewer": {
-            "type": "string"
+            "type": "string",
+            "title": "Interviewer"
         },
         "notes": {
-            "type": "string"
+            "type": "string",
+            "title": "Notes"
         },
         "rating": {
-            "type": "number"
+            "type": "number",
+            "title": "Rating"
         }
     },
     "required": [

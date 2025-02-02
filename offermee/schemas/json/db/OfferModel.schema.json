@@ -4,16 +4,21 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "project_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Project ID"
         },
         "offer_number": {
-            "type": "string"
+            "type": "string",
+            "title": "Offer Number"
         },
         "title": {
-            "type": "string"
+            "type": "string",
+            "title": "Title"
         },
         "status": {
             "type": "string",
@@ -23,35 +28,49 @@
                 "FOLLOW_UP",
                 "FINALIZED"
             ],
-            "default": "DRAFT",
-            "maxLength": 9
+            "title": "Status",
+            "default": "DRAFT"
         },
         "offer_contact_person": {
-            "type": "string"
+            "type": "string",
+            "title": "Offer Contact Person"
         },
         "offer_contact_person_email": {
-            "type": "string"
+            "type": "string",
+            "title": "Offer Contact Person Email"
         },
         "offer_text": {
-            "type": "string"
+            "type": "string",
+            "title": "Offer Text"
         },
         "sent_date": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time",
+            "title": "Sent Date"
         },
         "last_follow_up_date": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Follow Up Date"
         },
         "follow_up_count": {
             "type": "integer",
+            "title": "Follow Up Count",
             "default": 0
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x00000235956618A0>"
+            "format": "date-time",
+            "title": "Created At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B502340>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023595661940>"
+            "format": "date-time",
+            "title": "Updated At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B5023E0>"
         }
     },
     "required": [

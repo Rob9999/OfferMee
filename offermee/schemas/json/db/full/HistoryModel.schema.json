@@ -4,7 +4,9 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "related_type": {
             "type": "string",
@@ -23,23 +25,31 @@
                 "WORKPACKAGE",
                 "CAPABILITIES"
             ],
-            "maxLength": 12
+            "title": "Related Type"
         },
         "related_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Related ID"
         },
         "description": {
-            "type": "string"
+            "type": "string",
+            "title": "Description"
         },
         "event_date": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time",
+            "title": "Event Date"
         },
         "created_by": {
-            "type": "string"
+            "type": "string",
+            "title": "Created By"
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+            "format": "date-time",
+            "title": "Created At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B440F40>"
         }
     },
     "required": [

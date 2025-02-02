@@ -4,20 +4,27 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "project_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Project ID"
         },
         "contract_date": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time",
+            "title": "Contract Date"
         },
         "signed_by_client": {
             "type": "boolean",
+            "title": "Signed by Client",
             "default": false
         },
         "signed_by_freelancer": {
             "type": "boolean",
+            "title": "Signed by Freelancer",
             "default": false
         }
     },

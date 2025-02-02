@@ -4,13 +4,19 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "project_title": {
-            "type": "string"
+            "type": "string",
+            "title": "Project Title",
+            "description": "The project title"
         },
         "description": {
-            "type": "string"
+            "type": "string",
+            "title": "Description",
+            "description": "The project description (summarized, up to 20 lines)"
         },
         "location": {
             "type": "string",
@@ -19,50 +25,77 @@
                 "OnSite",
                 "Hybrid"
             ],
-            "maxLength": 6
+            "title": "Location",
+            "description": "Expected working modality: Remote, On-site or Hybrid"
         },
         "must_have_requirements": {
             "type": "string",
-            "default": "<function list at 0x0000023595618B80>"
+            "title": "Must-have Requirements",
+            "default": "<function list at 0x000002A19B4B5620>",
+            "description": "Mandatory requirements for the project"
         },
         "nice_to_have_requirements": {
             "type": "string",
-            "default": "<function list at 0x0000023595618C20>"
+            "title": "Nice-to-have Requirements",
+            "default": "<function list at 0x000002A19B4B56C0>",
+            "description": "Desirable additional requirements"
         },
         "tasks": {
             "type": "string",
-            "default": "<function list at 0x0000023595618CC0>"
+            "title": "Tasks",
+            "default": "<function list at 0x000002A19B4B5760>",
+            "description": "List of tasks in the project"
         },
         "responsibilities": {
             "type": "string",
-            "default": "<function list at 0x0000023595618D60>"
+            "title": "Responsibilities",
+            "default": "<function list at 0x000002A19B4B5800>",
+            "description": "List of responsibilities in the project"
         },
         "max_hourly_rate": {
-            "type": "number"
+            "type": "number",
+            "title": "Max Hourly Rate",
+            "description": "Maximum hourly rate (if available)"
         },
         "other_conditions": {
-            "type": "string"
+            "type": "string",
+            "title": "Other Conditions",
+            "description": "Other conditions or requirements"
         },
         "contact_person": {
-            "type": "string"
+            "type": "string",
+            "title": "Contact Person",
+            "description": "Contact person for the project"
         },
         "contact_person_email": {
-            "type": "string"
+            "type": "string",
+            "title": "Contact Person Email",
+            "description": "Email of the contact person for the project (if available)"
         },
         "provider": {
-            "type": "string"
+            "type": "string",
+            "title": "Provider",
+            "description": "Project provider (if available)"
         },
         "provider_link": {
-            "type": "string"
+            "type": "string",
+            "title": "Provider Link",
+            "description": "Link to the project provider (if available)"
         },
         "start_date": {
-            "type": "string"
+            "type": "string",
+            "title": "Start Date",
+            "description": "Start date in format dd.mm.yyyy or mm.yyyy"
         },
         "end_date": {
-            "type": "string"
+            "type": "string",
+            "title": "End Date",
+            "description": "End date in format dd.mm.yyyy or mm.yyyy"
         },
         "duration": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Duration",
+            "description": "Duration in months"
         },
         "extension_option": {
             "type": "string",
@@ -70,10 +103,13 @@
                 "Yes",
                 "No"
             ],
-            "maxLength": 3
+            "title": "Extension Option",
+            "description": "Option to extend the project duration"
         },
         "original_link": {
-            "type": "string"
+            "type": "string",
+            "title": "Original Link",
+            "description": "Link to the original source of the project"
         }
     },
     "required": [

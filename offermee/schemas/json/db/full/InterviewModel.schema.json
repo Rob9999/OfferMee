@@ -4,22 +4,30 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "project_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Project ID"
         },
         "date": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time",
+            "title": "Date"
         },
         "interviewer": {
-            "type": "string"
+            "type": "string",
+            "title": "Interviewer"
         },
         "notes": {
-            "type": "string"
+            "type": "string",
+            "title": "Notes"
         },
         "rating": {
-            "type": "number"
+            "type": "number",
+            "title": "Rating"
         },
         "documents": {
             "type": "array",
@@ -29,7 +37,9 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "integer"
+                        "type": "integer",
+                        "title": "ID",
+                        "readOnly": true
                     },
                     "related_type": {
                         "type": "string",
@@ -48,33 +58,45 @@
                             "WORKPACKAGE",
                             "CAPABILITIES"
                         ],
-                        "maxLength": 12
+                        "title": "Related Type"
                     },
                     "related_id": {
-                        "type": "integer"
+                        "type": "integer",
+                        "title": "Related ID"
                     },
                     "document_name": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "Document Name"
                     },
                     "document_link": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "Document Link"
                     },
                     "document_raw_text": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "Document Raw Text"
                     },
                     "document_structured_text": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "Document Structured Text"
                     },
                     "document_schema_reference_id": {
-                        "type": "integer"
+                        "type": "integer",
+                        "title": "Document Schema Reference ID"
                     },
                     "created_at": {
                         "type": "string",
-                        "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                        "format": "date-time",
+                        "title": "Created At",
+                        "readOnly": true,
+                        "default": "<function datetime.utcnow at 0x000002A19B417880>"
                     },
                     "updated_at": {
                         "type": "string",
-                        "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                        "format": "date-time",
+                        "title": "Updated At",
+                        "readOnly": true,
+                        "default": "<function datetime.utcnow at 0x000002A19B417920>"
                     }
                 },
                 "required": [
@@ -94,7 +116,9 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "integer"
+                        "type": "integer",
+                        "title": "ID",
+                        "readOnly": true
                     },
                     "related_type": {
                         "type": "string",
@@ -113,23 +137,31 @@
                             "WORKPACKAGE",
                             "CAPABILITIES"
                         ],
-                        "maxLength": 12
+                        "title": "Related Type"
                     },
                     "related_id": {
-                        "type": "integer"
+                        "type": "integer",
+                        "title": "Related ID"
                     },
                     "description": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "Description"
                     },
                     "event_date": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Event Date"
                     },
                     "created_by": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "Created By"
                     },
                     "created_at": {
                         "type": "string",
-                        "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                        "format": "date-time",
+                        "title": "Created At",
+                        "readOnly": true,
+                        "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                     }
                 },
                 "required": [
@@ -147,61 +179,83 @@
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "title": "ID",
+                    "readOnly": true
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Title"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Description"
                 },
                 "location": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Location"
                 },
                 "must_haves": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Must Haves"
                 },
                 "nice_to_haves": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Nice to Haves"
                 },
                 "tasks": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Tasks"
                 },
                 "responsibilities": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Responsibilities"
                 },
                 "hourly_rate": {
-                    "type": "number"
+                    "type": "number",
+                    "title": "Hourly Rate"
                 },
                 "other_conditions": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Other Conditions"
                 },
                 "contact_person": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Contact Person"
                 },
                 "contact_person_email": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Contact Person Email"
                 },
                 "provider": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Provider"
                 },
                 "provider_link": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Provider Link"
                 },
                 "start_date": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time",
+                    "title": "Start Date"
                 },
                 "end_date": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time",
+                    "title": "End Date"
                 },
                 "duration": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Duration"
                 },
                 "extension_option": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Extension Option"
                 },
                 "original_link": {
-                    "type": "string"
+                    "type": "string",
+                    "title": "Original Link"
                 },
                 "status": {
                     "type": "string",
@@ -214,19 +268,26 @@
                         "COMPLETED",
                         "REJECTED"
                     ],
-                    "default": "NEW",
-                    "maxLength": 15
+                    "title": "Status",
+                    "default": "NEW"
                 },
                 "created_at": {
                     "type": "string",
-                    "default": "<function datetime.utcnow at 0x000002359561AD40>"
+                    "format": "date-time",
+                    "title": "Created At",
+                    "readOnly": true,
+                    "default": "<function datetime.utcnow at 0x000002A19B4B77E0>"
                 },
                 "updated_at": {
                     "type": "string",
-                    "default": "<function datetime.utcnow at 0x000002359561ADE0>"
+                    "format": "date-time",
+                    "title": "Updated At",
+                    "readOnly": true,
+                    "default": "<function datetime.utcnow at 0x000002A19B4B7880>"
                 },
                 "address_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "title": "Address ID"
                 },
                 "address": {
                     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -234,19 +295,25 @@
                     "type": "object",
                     "properties": {
                         "id": {
-                            "type": "integer"
+                            "type": "integer",
+                            "title": "ID",
+                            "readOnly": true
                         },
                         "street": {
-                            "type": "string"
+                            "type": "string",
+                            "title": "Street"
                         },
                         "city": {
-                            "type": "string"
+                            "type": "string",
+                            "title": "City"
                         },
                         "zip_code": {
-                            "type": "string"
+                            "type": "string",
+                            "title": "Zip Code"
                         },
                         "country": {
-                            "type": "string"
+                            "type": "string",
+                            "title": "Country"
                         },
                         "documents": {
                             "type": "array",
@@ -256,7 +323,9 @@
                                 "type": "object",
                                 "properties": {
                                     "id": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "title": "ID",
+                                        "readOnly": true
                                     },
                                     "related_type": {
                                         "type": "string",
@@ -275,33 +344,45 @@
                                             "WORKPACKAGE",
                                             "CAPABILITIES"
                                         ],
-                                        "maxLength": 12
+                                        "title": "Related Type"
                                     },
                                     "related_id": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "title": "Related ID"
                                     },
                                     "document_name": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Document Name"
                                     },
                                     "document_link": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Document Link"
                                     },
                                     "document_raw_text": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Document Raw Text"
                                     },
                                     "document_structured_text": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Document Structured Text"
                                     },
                                     "document_schema_reference_id": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "title": "Document Schema Reference ID"
                                     },
                                     "created_at": {
                                         "type": "string",
-                                        "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                                        "format": "date-time",
+                                        "title": "Created At",
+                                        "readOnly": true,
+                                        "default": "<function datetime.utcnow at 0x000002A19B417880>"
                                     },
                                     "updated_at": {
                                         "type": "string",
-                                        "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                                        "format": "date-time",
+                                        "title": "Updated At",
+                                        "readOnly": true,
+                                        "default": "<function datetime.utcnow at 0x000002A19B417920>"
                                     }
                                 },
                                 "required": [
@@ -321,7 +402,9 @@
                                 "type": "object",
                                 "properties": {
                                     "id": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "title": "ID",
+                                        "readOnly": true
                                     },
                                     "related_type": {
                                         "type": "string",
@@ -340,23 +423,31 @@
                                             "WORKPACKAGE",
                                             "CAPABILITIES"
                                         ],
-                                        "maxLength": 12
+                                        "title": "Related Type"
                                     },
                                     "related_id": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "title": "Related ID"
                                     },
                                     "description": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Description"
                                     },
                                     "event_date": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "title": "Event Date"
                                     },
                                     "created_by": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Created By"
                                     },
                                     "created_at": {
                                         "type": "string",
-                                        "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                                        "format": "date-time",
+                                        "title": "Created At",
+                                        "readOnly": true,
+                                        "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                                     }
                                 },
                                 "required": [
@@ -392,20 +483,27 @@
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "ID",
+                                "readOnly": true
                             },
                             "project_id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "Project ID"
                             },
                             "contract_date": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "date-time",
+                                "title": "Contract Date"
                             },
                             "signed_by_client": {
                                 "type": "boolean",
+                                "title": "Signed by Client",
                                 "default": false
                             },
                             "signed_by_freelancer": {
                                 "type": "boolean",
+                                "title": "Signed by Freelancer",
                                 "default": false
                             },
                             "project": {
@@ -420,7 +518,9 @@
                                     "type": "object",
                                     "properties": {
                                         "id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "ID",
+                                            "readOnly": true
                                         },
                                         "related_type": {
                                             "type": "string",
@@ -439,33 +539,45 @@
                                                 "WORKPACKAGE",
                                                 "CAPABILITIES"
                                             ],
-                                            "maxLength": 12
+                                            "title": "Related Type"
                                         },
                                         "related_id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "Related ID"
                                         },
                                         "document_name": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Name"
                                         },
                                         "document_link": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Link"
                                         },
                                         "document_raw_text": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Raw Text"
                                         },
                                         "document_structured_text": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Structured Text"
                                         },
                                         "document_schema_reference_id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "Document Schema Reference ID"
                                         },
                                         "created_at": {
                                             "type": "string",
-                                            "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                                            "format": "date-time",
+                                            "title": "Created At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002A19B417880>"
                                         },
                                         "updated_at": {
                                             "type": "string",
-                                            "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                                            "format": "date-time",
+                                            "title": "Updated At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002A19B417920>"
                                         }
                                     },
                                     "required": [
@@ -485,7 +597,9 @@
                                     "type": "object",
                                     "properties": {
                                         "id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "ID",
+                                            "readOnly": true
                                         },
                                         "related_type": {
                                             "type": "string",
@@ -504,23 +618,31 @@
                                                 "WORKPACKAGE",
                                                 "CAPABILITIES"
                                             ],
-                                            "maxLength": 12
+                                            "title": "Related Type"
                                         },
                                         "related_id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "Related ID"
                                         },
                                         "description": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Description"
                                         },
                                         "event_date": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "title": "Event Date"
                                         },
                                         "created_by": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Created By"
                                         },
                                         "created_at": {
                                             "type": "string",
-                                            "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                                            "format": "date-time",
+                                            "title": "Created At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                                         }
                                     },
                                     "required": [
@@ -547,22 +669,31 @@
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "ID",
+                                "readOnly": true
                             },
                             "project_id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "Project ID"
                             },
                             "title": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Title"
                             },
                             "description": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Description"
                             },
                             "start_date": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "date-time",
+                                "title": "Start Date"
                             },
                             "end_date": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "date-time",
+                                "title": "End Date"
                             },
                             "status": {
                                 "type": "string",
@@ -572,8 +703,8 @@
                                     "ON_HOLD",
                                     "COMPLETED"
                                 ],
-                                "default": "OPEN",
-                                "maxLength": 11
+                                "title": "Status",
+                                "default": "OPEN"
                             },
                             "documents": {
                                 "type": "array",
@@ -583,7 +714,9 @@
                                     "type": "object",
                                     "properties": {
                                         "id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "ID",
+                                            "readOnly": true
                                         },
                                         "related_type": {
                                             "type": "string",
@@ -602,33 +735,45 @@
                                                 "WORKPACKAGE",
                                                 "CAPABILITIES"
                                             ],
-                                            "maxLength": 12
+                                            "title": "Related Type"
                                         },
                                         "related_id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "Related ID"
                                         },
                                         "document_name": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Name"
                                         },
                                         "document_link": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Link"
                                         },
                                         "document_raw_text": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Raw Text"
                                         },
                                         "document_structured_text": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Structured Text"
                                         },
                                         "document_schema_reference_id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "Document Schema Reference ID"
                                         },
                                         "created_at": {
                                             "type": "string",
-                                            "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                                            "format": "date-time",
+                                            "title": "Created At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002A19B417880>"
                                         },
                                         "updated_at": {
                                             "type": "string",
-                                            "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                                            "format": "date-time",
+                                            "title": "Updated At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002A19B417920>"
                                         }
                                     },
                                     "required": [
@@ -648,7 +793,9 @@
                                     "type": "object",
                                     "properties": {
                                         "id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "ID",
+                                            "readOnly": true
                                         },
                                         "related_type": {
                                             "type": "string",
@@ -667,23 +814,31 @@
                                                 "WORKPACKAGE",
                                                 "CAPABILITIES"
                                             ],
-                                            "maxLength": 12
+                                            "title": "Related Type"
                                         },
                                         "related_id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "Related ID"
                                         },
                                         "description": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Description"
                                         },
                                         "event_date": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "title": "Event Date"
                                         },
                                         "created_by": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Created By"
                                         },
                                         "created_at": {
                                             "type": "string",
-                                            "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                                            "format": "date-time",
+                                            "title": "Created At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                                         }
                                     },
                                     "required": [
@@ -714,16 +869,21 @@
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "ID",
+                                "readOnly": true
                             },
                             "project_id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "Project ID"
                             },
                             "offer_number": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Offer Number"
                             },
                             "title": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Title"
                             },
                             "status": {
                                 "type": "string",
@@ -733,35 +893,49 @@
                                     "FOLLOW_UP",
                                     "FINALIZED"
                                 ],
-                                "default": "DRAFT",
-                                "maxLength": 9
+                                "title": "Status",
+                                "default": "DRAFT"
                             },
                             "offer_contact_person": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Offer Contact Person"
                             },
                             "offer_contact_person_email": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Offer Contact Person Email"
                             },
                             "offer_text": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Offer Text"
                             },
                             "sent_date": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "date-time",
+                                "title": "Sent Date"
                             },
                             "last_follow_up_date": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "date-time",
+                                "title": "Last Follow Up Date"
                             },
                             "follow_up_count": {
                                 "type": "integer",
+                                "title": "Follow Up Count",
                                 "default": 0
                             },
                             "created_at": {
                                 "type": "string",
-                                "default": "<function datetime.utcnow at 0x00000235956618A0>"
+                                "format": "date-time",
+                                "title": "Created At",
+                                "readOnly": true,
+                                "default": "<function datetime.utcnow at 0x000002A19B502340>"
                             },
                             "updated_at": {
                                 "type": "string",
-                                "default": "<function datetime.utcnow at 0x0000023595661940>"
+                                "format": "date-time",
+                                "title": "Updated At",
+                                "readOnly": true,
+                                "default": "<function datetime.utcnow at 0x000002A19B5023E0>"
                             },
                             "documents": {
                                 "type": "array",
@@ -771,7 +945,9 @@
                                     "type": "object",
                                     "properties": {
                                         "id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "ID",
+                                            "readOnly": true
                                         },
                                         "related_type": {
                                             "type": "string",
@@ -790,33 +966,45 @@
                                                 "WORKPACKAGE",
                                                 "CAPABILITIES"
                                             ],
-                                            "maxLength": 12
+                                            "title": "Related Type"
                                         },
                                         "related_id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "Related ID"
                                         },
                                         "document_name": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Name"
                                         },
                                         "document_link": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Link"
                                         },
                                         "document_raw_text": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Raw Text"
                                         },
                                         "document_structured_text": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Document Structured Text"
                                         },
                                         "document_schema_reference_id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "Document Schema Reference ID"
                                         },
                                         "created_at": {
                                             "type": "string",
-                                            "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                                            "format": "date-time",
+                                            "title": "Created At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002A19B417880>"
                                         },
                                         "updated_at": {
                                             "type": "string",
-                                            "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                                            "format": "date-time",
+                                            "title": "Updated At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002A19B417920>"
                                         }
                                     },
                                     "required": [
@@ -836,7 +1024,9 @@
                                     "type": "object",
                                     "properties": {
                                         "id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "ID",
+                                            "readOnly": true
                                         },
                                         "related_type": {
                                             "type": "string",
@@ -855,23 +1045,31 @@
                                                 "WORKPACKAGE",
                                                 "CAPABILITIES"
                                             ],
-                                            "maxLength": 12
+                                            "title": "Related Type"
                                         },
                                         "related_id": {
-                                            "type": "integer"
+                                            "type": "integer",
+                                            "title": "Related ID"
                                         },
                                         "description": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Description"
                                         },
                                         "event_date": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "title": "Event Date"
                                         },
                                         "created_by": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "title": "Created By"
                                         },
                                         "created_at": {
                                             "type": "string",
-                                            "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                                            "format": "date-time",
+                                            "title": "Created At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                                         }
                                     },
                                     "required": [
@@ -906,7 +1104,9 @@
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "ID",
+                                "readOnly": true
                             },
                             "related_type": {
                                 "type": "string",
@@ -925,33 +1125,45 @@
                                     "WORKPACKAGE",
                                     "CAPABILITIES"
                                 ],
-                                "maxLength": 12
+                                "title": "Related Type"
                             },
                             "related_id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "Related ID"
                             },
                             "document_name": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Document Name"
                             },
                             "document_link": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Document Link"
                             },
                             "document_raw_text": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Document Raw Text"
                             },
                             "document_structured_text": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Document Structured Text"
                             },
                             "document_schema_reference_id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "Document Schema Reference ID"
                             },
                             "created_at": {
                                 "type": "string",
-                                "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                                "format": "date-time",
+                                "title": "Created At",
+                                "readOnly": true,
+                                "default": "<function datetime.utcnow at 0x000002A19B417880>"
                             },
                             "updated_at": {
                                 "type": "string",
-                                "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                                "format": "date-time",
+                                "title": "Updated At",
+                                "readOnly": true,
+                                "default": "<function datetime.utcnow at 0x000002A19B417920>"
                             }
                         },
                         "required": [
@@ -971,7 +1183,9 @@
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "ID",
+                                "readOnly": true
                             },
                             "related_type": {
                                 "type": "string",
@@ -990,23 +1204,31 @@
                                     "WORKPACKAGE",
                                     "CAPABILITIES"
                                 ],
-                                "maxLength": 12
+                                "title": "Related Type"
                             },
                             "related_id": {
-                                "type": "integer"
+                                "type": "integer",
+                                "title": "Related ID"
                             },
                             "description": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Description"
                             },
                             "event_date": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "date-time",
+                                "title": "Event Date"
                             },
                             "created_by": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Created By"
                             },
                             "created_at": {
                                 "type": "string",
-                                "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                                "format": "date-time",
+                                "title": "Created At",
+                                "readOnly": true,
+                                "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                             }
                         },
                         "required": [
@@ -1043,7 +1265,8 @@
                             },
                             "matched_at": {
                                 "type": "string",
-                                "default": "<function datetime.utcnow at 0x0000023595506700>"
+                                "format": "date-time",
+                                "default": "<function datetime.utcnow at 0x000002A19A3E3100>"
                             },
                             "project": {
                                 "type": "object",
@@ -1055,48 +1278,67 @@
                                 "type": "object",
                                 "properties": {
                                     "id": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "title": "ID",
+                                        "readOnly": true
                                     },
                                     "name": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Name"
                                     },
                                     "website": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Website"
                                     },
                                     "capabilities_id": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "title": "Capabilities ID"
                                     },
                                     "role": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Role"
                                     },
                                     "availability": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Availability"
                                     },
                                     "desired_rate_min": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "title": "Desired Rate Min"
                                     },
                                     "desired_rate_max": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "title": "Desired Rate Max"
                                     },
                                     "offer_template": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Offer Template"
                                     },
                                     "preferred_language": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Preferred Language"
                                     },
                                     "preferred_currency": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "title": "Preferred Currency"
                                     },
                                     "created_at": {
                                         "type": "string",
-                                        "default": "<function datetime.utcnow at 0x00000235955C45E0>"
+                                        "format": "date-time",
+                                        "title": "Created At",
+                                        "readOnly": true,
+                                        "default": "<function datetime.utcnow at 0x000002A19B469080>"
                                     },
                                     "updated_at": {
                                         "type": "string",
-                                        "default": "<function datetime.utcnow at 0x00000235955C4680>"
+                                        "format": "date-time",
+                                        "title": "Updated At",
+                                        "readOnly": true,
+                                        "default": "<function datetime.utcnow at 0x000002A19B469120>"
                                     },
                                     "contact_id": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "title": "Contact ID"
                                     },
                                     "capabilities": {
                                         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -1104,18 +1346,27 @@
                                         "type": "object",
                                         "properties": {
                                             "id": {
-                                                "type": "integer"
+                                                "type": "integer",
+                                                "title": "ID",
+                                                "readOnly": true
                                             },
                                             "roles": {
-                                                "type": "string"
+                                                "type": "string",
+                                                "title": "Roles"
                                             },
                                             "created_at": {
                                                 "type": "string",
-                                                "default": "<function datetime.utcnow at 0x000002359559F1A0>"
+                                                "format": "date-time",
+                                                "title": "Created At",
+                                                "readOnly": true,
+                                                "default": "<function datetime.utcnow at 0x000002A19B443C40>"
                                             },
                                             "updated_at": {
                                                 "type": "string",
-                                                "default": "<function datetime.utcnow at 0x000002359559F2E0>"
+                                                "format": "date-time",
+                                                "title": "Updated At",
+                                                "readOnly": true,
+                                                "default": "<function datetime.utcnow at 0x000002A19B443D80>"
                                             },
                                             "soft_skills": {
                                                 "type": "array",
@@ -1125,13 +1376,17 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "ID",
+                                                            "readOnly": true
                                                         },
                                                         "name": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Name"
                                                         },
                                                         "type": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Type"
                                                         },
                                                         "capabilities_soft": {
                                                             "type": "array",
@@ -1163,13 +1418,17 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "ID",
+                                                            "readOnly": true
                                                         },
                                                         "name": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Name"
                                                         },
                                                         "type": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Type"
                                                         },
                                                         "capabilities_soft": {
                                                             "type": "array",
@@ -1201,7 +1460,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "ID",
+                                                            "readOnly": true
                                                         },
                                                         "related_type": {
                                                             "type": "string",
@@ -1220,33 +1481,45 @@
                                                                 "WORKPACKAGE",
                                                                 "CAPABILITIES"
                                                             ],
-                                                            "maxLength": 12
+                                                            "title": "Related Type"
                                                         },
                                                         "related_id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "Related ID"
                                                         },
                                                         "document_name": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Document Name"
                                                         },
                                                         "document_link": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Document Link"
                                                         },
                                                         "document_raw_text": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Document Raw Text"
                                                         },
                                                         "document_structured_text": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Document Structured Text"
                                                         },
                                                         "document_schema_reference_id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "Document Schema Reference ID"
                                                         },
                                                         "created_at": {
                                                             "type": "string",
-                                                            "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                                                            "format": "date-time",
+                                                            "title": "Created At",
+                                                            "readOnly": true,
+                                                            "default": "<function datetime.utcnow at 0x000002A19B417880>"
                                                         },
                                                         "updated_at": {
                                                             "type": "string",
-                                                            "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                                                            "format": "date-time",
+                                                            "title": "Updated At",
+                                                            "readOnly": true,
+                                                            "default": "<function datetime.utcnow at 0x000002A19B417920>"
                                                         }
                                                     },
                                                     "required": [
@@ -1266,7 +1539,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "ID",
+                                                            "readOnly": true
                                                         },
                                                         "related_type": {
                                                             "type": "string",
@@ -1285,23 +1560,31 @@
                                                                 "WORKPACKAGE",
                                                                 "CAPABILITIES"
                                                             ],
-                                                            "maxLength": 12
+                                                            "title": "Related Type"
                                                         },
                                                         "related_id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "Related ID"
                                                         },
                                                         "description": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Description"
                                                         },
                                                         "event_date": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "format": "date-time",
+                                                            "title": "Event Date"
                                                         },
                                                         "created_by": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Created By"
                                                         },
                                                         "created_at": {
                                                             "type": "string",
-                                                            "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                                                            "format": "date-time",
+                                                            "title": "Created At",
+                                                            "readOnly": true,
+                                                            "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                                                         }
                                                     },
                                                     "required": [
@@ -1324,19 +1607,25 @@
                                         "type": "object",
                                         "properties": {
                                             "id": {
-                                                "type": "integer"
+                                                "type": "integer",
+                                                "title": "ID",
+                                                "readOnly": true
                                             },
                                             "first_name": {
-                                                "type": "string"
+                                                "type": "string",
+                                                "title": "First Name"
                                             },
                                             "last_name": {
-                                                "type": "string"
+                                                "type": "string",
+                                                "title": "Last Name"
                                             },
                                             "phone": {
-                                                "type": "string"
+                                                "type": "string",
+                                                "title": "Phone"
                                             },
                                             "email": {
-                                                "type": "string"
+                                                "type": "string",
+                                                "title": "Email"
                                             },
                                             "type": {
                                                 "type": "string",
@@ -1348,18 +1637,25 @@
                                                     "COMPANY",
                                                     "SUPPLIER"
                                                 ],
-                                                "maxLength": 10
+                                                "title": "Type"
                                             },
                                             "address_id": {
-                                                "type": "integer"
+                                                "type": "integer",
+                                                "title": "Address ID"
                                             },
                                             "created_at": {
                                                 "type": "string",
-                                                "default": "<function datetime.utcnow at 0x0000023595537D80>"
+                                                "format": "date-time",
+                                                "title": "Created At",
+                                                "readOnly": true,
+                                                "default": "<function datetime.utcnow at 0x000002A19B414860>"
                                             },
                                             "updated_at": {
                                                 "type": "string",
-                                                "default": "<function datetime.utcnow at 0x0000023595537E20>"
+                                                "format": "date-time",
+                                                "title": "Updated At",
+                                                "readOnly": true,
+                                                "default": "<function datetime.utcnow at 0x000002A19B414900>"
                                             },
                                             "address": {
                                                 "$schema": "http://json-schema.org/draft-07/schema#",
@@ -1367,19 +1663,25 @@
                                                 "type": "object",
                                                 "properties": {
                                                     "id": {
-                                                        "type": "integer"
+                                                        "type": "integer",
+                                                        "title": "ID",
+                                                        "readOnly": true
                                                     },
                                                     "street": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "title": "Street"
                                                     },
                                                     "city": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "title": "City"
                                                     },
                                                     "zip_code": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "title": "Zip Code"
                                                     },
                                                     "country": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "title": "Country"
                                                     },
                                                     "documents": {
                                                         "type": "array",
@@ -1389,7 +1691,9 @@
                                                             "type": "object",
                                                             "properties": {
                                                                 "id": {
-                                                                    "type": "integer"
+                                                                    "type": "integer",
+                                                                    "title": "ID",
+                                                                    "readOnly": true
                                                                 },
                                                                 "related_type": {
                                                                     "type": "string",
@@ -1408,33 +1712,45 @@
                                                                         "WORKPACKAGE",
                                                                         "CAPABILITIES"
                                                                     ],
-                                                                    "maxLength": 12
+                                                                    "title": "Related Type"
                                                                 },
                                                                 "related_id": {
-                                                                    "type": "integer"
+                                                                    "type": "integer",
+                                                                    "title": "Related ID"
                                                                 },
                                                                 "document_name": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "title": "Document Name"
                                                                 },
                                                                 "document_link": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "title": "Document Link"
                                                                 },
                                                                 "document_raw_text": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "title": "Document Raw Text"
                                                                 },
                                                                 "document_structured_text": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "title": "Document Structured Text"
                                                                 },
                                                                 "document_schema_reference_id": {
-                                                                    "type": "integer"
+                                                                    "type": "integer",
+                                                                    "title": "Document Schema Reference ID"
                                                                 },
                                                                 "created_at": {
                                                                     "type": "string",
-                                                                    "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                                                                    "format": "date-time",
+                                                                    "title": "Created At",
+                                                                    "readOnly": true,
+                                                                    "default": "<function datetime.utcnow at 0x000002A19B417880>"
                                                                 },
                                                                 "updated_at": {
                                                                     "type": "string",
-                                                                    "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                                                                    "format": "date-time",
+                                                                    "title": "Updated At",
+                                                                    "readOnly": true,
+                                                                    "default": "<function datetime.utcnow at 0x000002A19B417920>"
                                                                 }
                                                             },
                                                             "required": [
@@ -1454,7 +1770,9 @@
                                                             "type": "object",
                                                             "properties": {
                                                                 "id": {
-                                                                    "type": "integer"
+                                                                    "type": "integer",
+                                                                    "title": "ID",
+                                                                    "readOnly": true
                                                                 },
                                                                 "related_type": {
                                                                     "type": "string",
@@ -1473,23 +1791,31 @@
                                                                         "WORKPACKAGE",
                                                                         "CAPABILITIES"
                                                                     ],
-                                                                    "maxLength": 12
+                                                                    "title": "Related Type"
                                                                 },
                                                                 "related_id": {
-                                                                    "type": "integer"
+                                                                    "type": "integer",
+                                                                    "title": "Related ID"
                                                                 },
                                                                 "description": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "title": "Description"
                                                                 },
                                                                 "event_date": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "format": "date-time",
+                                                                    "title": "Event Date"
                                                                 },
                                                                 "created_by": {
-                                                                    "type": "string"
+                                                                    "type": "string",
+                                                                    "title": "Created By"
                                                                 },
                                                                 "created_at": {
                                                                     "type": "string",
-                                                                    "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                                                                    "format": "date-time",
+                                                                    "title": "Created At",
+                                                                    "readOnly": true,
+                                                                    "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                                                                 }
                                                             },
                                                             "required": [
@@ -1518,7 +1844,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "ID",
+                                                            "readOnly": true
                                                         },
                                                         "related_type": {
                                                             "type": "string",
@@ -1537,33 +1865,45 @@
                                                                 "WORKPACKAGE",
                                                                 "CAPABILITIES"
                                                             ],
-                                                            "maxLength": 12
+                                                            "title": "Related Type"
                                                         },
                                                         "related_id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "Related ID"
                                                         },
                                                         "document_name": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Document Name"
                                                         },
                                                         "document_link": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Document Link"
                                                         },
                                                         "document_raw_text": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Document Raw Text"
                                                         },
                                                         "document_structured_text": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Document Structured Text"
                                                         },
                                                         "document_schema_reference_id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "Document Schema Reference ID"
                                                         },
                                                         "created_at": {
                                                             "type": "string",
-                                                            "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                                                            "format": "date-time",
+                                                            "title": "Created At",
+                                                            "readOnly": true,
+                                                            "default": "<function datetime.utcnow at 0x000002A19B417880>"
                                                         },
                                                         "updated_at": {
                                                             "type": "string",
-                                                            "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                                                            "format": "date-time",
+                                                            "title": "Updated At",
+                                                            "readOnly": true,
+                                                            "default": "<function datetime.utcnow at 0x000002A19B417920>"
                                                         }
                                                     },
                                                     "required": [
@@ -1583,7 +1923,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "ID",
+                                                            "readOnly": true
                                                         },
                                                         "related_type": {
                                                             "type": "string",
@@ -1602,23 +1944,31 @@
                                                                 "WORKPACKAGE",
                                                                 "CAPABILITIES"
                                                             ],
-                                                            "maxLength": 12
+                                                            "title": "Related Type"
                                                         },
                                                         "related_id": {
-                                                            "type": "integer"
+                                                            "type": "integer",
+                                                            "title": "Related ID"
                                                         },
                                                         "description": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Description"
                                                         },
                                                         "event_date": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "format": "date-time",
+                                                            "title": "Event Date"
                                                         },
                                                         "created_by": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "title": "Created By"
                                                         },
                                                         "created_at": {
                                                             "type": "string",
-                                                            "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                                                            "format": "date-time",
+                                                            "title": "Created At",
+                                                            "readOnly": true,
+                                                            "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                                                         }
                                                     },
                                                     "required": [
@@ -1648,7 +1998,9 @@
                                             "type": "object",
                                             "properties": {
                                                 "id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "title": "ID",
+                                                    "readOnly": true
                                                 },
                                                 "related_type": {
                                                     "type": "string",
@@ -1667,33 +2019,45 @@
                                                         "WORKPACKAGE",
                                                         "CAPABILITIES"
                                                     ],
-                                                    "maxLength": 12
+                                                    "title": "Related Type"
                                                 },
                                                 "related_id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "title": "Related ID"
                                                 },
                                                 "document_name": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "Document Name"
                                                 },
                                                 "document_link": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "Document Link"
                                                 },
                                                 "document_raw_text": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "Document Raw Text"
                                                 },
                                                 "document_structured_text": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "Document Structured Text"
                                                 },
                                                 "document_schema_reference_id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "title": "Document Schema Reference ID"
                                                 },
                                                 "created_at": {
                                                     "type": "string",
-                                                    "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                                                    "format": "date-time",
+                                                    "title": "Created At",
+                                                    "readOnly": true,
+                                                    "default": "<function datetime.utcnow at 0x000002A19B417880>"
                                                 },
                                                 "updated_at": {
                                                     "type": "string",
-                                                    "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                                                    "format": "date-time",
+                                                    "title": "Updated At",
+                                                    "readOnly": true,
+                                                    "default": "<function datetime.utcnow at 0x000002A19B417920>"
                                                 }
                                             },
                                             "required": [
@@ -1713,7 +2077,9 @@
                                             "type": "object",
                                             "properties": {
                                                 "id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "title": "ID",
+                                                    "readOnly": true
                                                 },
                                                 "related_type": {
                                                     "type": "string",
@@ -1732,23 +2098,31 @@
                                                         "WORKPACKAGE",
                                                         "CAPABILITIES"
                                                     ],
-                                                    "maxLength": 12
+                                                    "title": "Related Type"
                                                 },
                                                 "related_id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "title": "Related ID"
                                                 },
                                                 "description": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "Description"
                                                 },
                                                 "event_date": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "title": "Event Date"
                                                 },
                                                 "created_by": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "Created By"
                                                 },
                                                 "created_at": {
                                                     "type": "string",
-                                                    "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                                                    "format": "date-time",
+                                                    "title": "Created At",
+                                                    "readOnly": true,
+                                                    "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                                                 }
                                             },
                                             "required": [
@@ -1775,36 +2149,51 @@
                                             "type": "object",
                                             "properties": {
                                                 "id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "title": "ID",
+                                                    "readOnly": true
                                                 },
                                                 "freelancer_id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "title": "Freelancer ID"
                                                 },
                                                 "employee_id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "title": "Employee ID"
                                                 },
                                                 "applicant_id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "title": "Applicant ID"
                                                 },
                                                 "name": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "Name"
                                                 },
                                                 "cv_raw_text": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "CV Raw Text"
                                                 },
                                                 "cv_structured_data": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "CV Structured Data"
                                                 },
                                                 "cv_schema_reference_id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "title": "CV Schema Reference ID"
                                                 },
                                                 "created_at": {
                                                     "type": "string",
-                                                    "default": "<function datetime.utcnow at 0x00000235955C67A0>"
+                                                    "format": "date-time",
+                                                    "title": "Created At",
+                                                    "readOnly": true,
+                                                    "default": "<function datetime.utcnow at 0x000002A19B46B240>"
                                                 },
                                                 "updated_at": {
                                                     "type": "string",
-                                                    "default": "<function datetime.utcnow at 0x00000235955C6840>"
+                                                    "format": "date-time",
+                                                    "title": "Updated At",
+                                                    "readOnly": true,
+                                                    "default": "<function datetime.utcnow at 0x000002A19B46B2E0>"
                                                 },
                                                 "documents": {
                                                     "type": "array",
@@ -1814,7 +2203,9 @@
                                                         "type": "object",
                                                         "properties": {
                                                             "id": {
-                                                                "type": "integer"
+                                                                "type": "integer",
+                                                                "title": "ID",
+                                                                "readOnly": true
                                                             },
                                                             "related_type": {
                                                                 "type": "string",
@@ -1833,33 +2224,45 @@
                                                                     "WORKPACKAGE",
                                                                     "CAPABILITIES"
                                                                 ],
-                                                                "maxLength": 12
+                                                                "title": "Related Type"
                                                             },
                                                             "related_id": {
-                                                                "type": "integer"
+                                                                "type": "integer",
+                                                                "title": "Related ID"
                                                             },
                                                             "document_name": {
-                                                                "type": "string"
+                                                                "type": "string",
+                                                                "title": "Document Name"
                                                             },
                                                             "document_link": {
-                                                                "type": "string"
+                                                                "type": "string",
+                                                                "title": "Document Link"
                                                             },
                                                             "document_raw_text": {
-                                                                "type": "string"
+                                                                "type": "string",
+                                                                "title": "Document Raw Text"
                                                             },
                                                             "document_structured_text": {
-                                                                "type": "string"
+                                                                "type": "string",
+                                                                "title": "Document Structured Text"
                                                             },
                                                             "document_schema_reference_id": {
-                                                                "type": "integer"
+                                                                "type": "integer",
+                                                                "title": "Document Schema Reference ID"
                                                             },
                                                             "created_at": {
                                                                 "type": "string",
-                                                                "default": "<function datetime.utcnow at 0x0000023595572DE0>"
+                                                                "format": "date-time",
+                                                                "title": "Created At",
+                                                                "readOnly": true,
+                                                                "default": "<function datetime.utcnow at 0x000002A19B417880>"
                                                             },
                                                             "updated_at": {
                                                                 "type": "string",
-                                                                "default": "<function datetime.utcnow at 0x0000023595572E80>"
+                                                                "format": "date-time",
+                                                                "title": "Updated At",
+                                                                "readOnly": true,
+                                                                "default": "<function datetime.utcnow at 0x000002A19B417920>"
                                                             }
                                                         },
                                                         "required": [
@@ -1879,7 +2282,9 @@
                                                         "type": "object",
                                                         "properties": {
                                                             "id": {
-                                                                "type": "integer"
+                                                                "type": "integer",
+                                                                "title": "ID",
+                                                                "readOnly": true
                                                             },
                                                             "related_type": {
                                                                 "type": "string",
@@ -1898,23 +2303,31 @@
                                                                     "WORKPACKAGE",
                                                                     "CAPABILITIES"
                                                                 ],
-                                                                "maxLength": 12
+                                                                "title": "Related Type"
                                                             },
                                                             "related_id": {
-                                                                "type": "integer"
+                                                                "type": "integer",
+                                                                "title": "Related ID"
                                                             },
                                                             "description": {
-                                                                "type": "string"
+                                                                "type": "string",
+                                                                "title": "Description"
                                                             },
                                                             "event_date": {
-                                                                "type": "string"
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "title": "Event Date"
                                                             },
                                                             "created_by": {
-                                                                "type": "string"
+                                                                "type": "string",
+                                                                "title": "Created By"
                                                             },
                                                             "created_at": {
                                                                 "type": "string",
-                                                                "default": "<function datetime.utcnow at 0x000002359559C4A0>"
+                                                                "format": "date-time",
+                                                                "title": "Created At",
+                                                                "readOnly": true,
+                                                                "default": "<function datetime.utcnow at 0x000002A19B440F40>"
                                                             }
                                                         },
                                                         "required": [

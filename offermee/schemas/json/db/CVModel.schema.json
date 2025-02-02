@@ -4,36 +4,51 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "freelancer_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Freelancer ID"
         },
         "employee_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Employee ID"
         },
         "applicant_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Applicant ID"
         },
         "name": {
-            "type": "string"
+            "type": "string",
+            "title": "Name"
         },
         "cv_raw_text": {
-            "type": "string"
+            "type": "string",
+            "title": "CV Raw Text"
         },
         "cv_structured_data": {
-            "type": "string"
+            "type": "string",
+            "title": "CV Structured Data"
         },
         "cv_schema_reference_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "CV Schema Reference ID"
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x00000235955C67A0>"
+            "format": "date-time",
+            "title": "Created At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B46B240>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x00000235955C6840>"
+            "format": "date-time",
+            "title": "Updated At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B46B2E0>"
         }
     },
     "required": [

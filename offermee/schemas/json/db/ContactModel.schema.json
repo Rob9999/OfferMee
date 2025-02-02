@@ -4,19 +4,25 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "first_name": {
-            "type": "string"
+            "type": "string",
+            "title": "First Name"
         },
         "last_name": {
-            "type": "string"
+            "type": "string",
+            "title": "Last Name"
         },
         "phone": {
-            "type": "string"
+            "type": "string",
+            "title": "Phone"
         },
         "email": {
-            "type": "string"
+            "type": "string",
+            "title": "Email"
         },
         "type": {
             "type": "string",
@@ -28,18 +34,25 @@
                 "COMPANY",
                 "SUPPLIER"
             ],
-            "maxLength": 10
+            "title": "Type"
         },
         "address_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Address ID"
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023595537D80>"
+            "format": "date-time",
+            "title": "Created At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B414860>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x0000023595537E20>"
+            "format": "date-time",
+            "title": "Updated At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B414900>"
         }
     },
     "required": [

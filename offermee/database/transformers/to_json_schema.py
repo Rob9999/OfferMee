@@ -5,35 +5,122 @@ from sqlalchemy.types import DateTime, Text, Date
 from typing import Any, Dict, Type
 
 
+import enum
+from sqlalchemy.ext.declarative import DeclarativeMeta
+from sqlalchemy import Integer, String, Float, Boolean, Enum as SAEnum
+from sqlalchemy.types import DateTime, Text, Date
+from typing import Any, Dict, Type, Callable
+
+
 def db_model_to_json_schema(model: Type[DeclarativeMeta]) -> Dict[str, Any]:
     """
-    Generate a JSON schema from a SQLAlchemy ORM model.
+    Erzeugt ein JSON-Schema aus einem SQLAlchemy ORM Model.
+
+    Unterstützt werden u. a. zusätzliche Informationen aus der Spalten-info,
+    z. B. "title", "description", "default", "example", "deprecated",
+    "readOnly" und "writeOnly".
 
     Args:
-        model (Type[DeclarativeMeta]): SQLAlchemy model class.
+        model (Type[DeclarativeMeta]): SQLAlchemy Model-Klasse.
 
     Returns:
-        Dict[str, Any]: JSON schema representation of the model.
+        Dict[str, Any]: JSON-Schema-Repräsentation des Models.
     """
 
-    def get_default_value_as_string(default_obj) -> Any:
+    def get_default_value_as_string(default_obj: Any) -> Any:
         """
-        Konvertiert das default_obj (z. B. ColumnDefault, ScalarElementColumnDefault, etc.)
-        in einen JSON-serialisierbaren Wert (String/Float/Int etc.).
+        Konvertiert ein Default-Objekt (z. B. ColumnDefault, ScalarElementColumnDefault, etc.)
+        in einen JSON-serialisierbaren Wert (z. B. str, int, float).
+
+        Args:
+            default_obj (Any): Das Default-Objekt der Spalte.
+
+        Returns:
+            Any: Der konvertierte Standardwert oder None.
         """
         if default_obj is None:
             return None
-        # Bei ColumnDefault/ScalarElementColumnDefault liegt das echte Objekt oft in `arg`
+        # Bei ColumnDefault/ScalarElementColumnDefault liegt der eigentliche Wert oft in `arg`
         arg = getattr(default_obj, "arg", default_obj)
-        # callable => z.B. datetime.utcnow
+        # Falls callable (z. B. datetime.utcnow) – Rückgabe als String-Repräsentation
         if callable(arg):
             return str(arg)
-        # Falls es sich tatsächlich um ein Enum-Objekt handelt
+        # Falls es sich um ein Enum-Objekt handelt, den zugehörigen Wert zurückgeben
         if isinstance(arg, enum.Enum):
             return arg.value
-        return arg  # Letzte Instanz: einfach den Wert zurückgeben (idR int, float, str)
+        return arg  # Bei int, float, str etc.
 
-    schema = {
+    def map_column_type_to_json_type(column: Any) -> Dict[str, Any]:
+        """
+        Ordnet den SQLAlchemy-Spaltentyp einem JSON-Schema-Typ zu.
+
+        Args:
+            column (Any): Die SQLAlchemy-Spalte.
+
+        Returns:
+            Dict[str, Any]: Ein Dictionary mit dem Schlüssel "type" und ggf. weiteren Attributen.
+        """
+        col_type = column.type
+        if isinstance(col_type, Integer):
+            return {"type": "integer"}
+        elif isinstance(col_type, SAEnum) or hasattr(col_type, "enums"):
+            return {"type": "string", "enum": col_type.enums}
+        elif isinstance(col_type, Float):
+            return {"type": "number"}
+        elif isinstance(col_type, (String, Text)):
+            schema = {"type": "string"}
+            # Falls Länge angegeben ist, als maxLength übernehmen
+            if hasattr(col_type, "length") and col_type.length:
+                schema["maxLength"] = col_type.length
+            return schema
+        elif isinstance(col_type, Boolean):
+            return {"type": "boolean"}
+        elif isinstance(col_type, (DateTime, Date)):
+            return {"type": "string", "format": "date-time"}  # ISO8601-Format
+        else:
+            return {"type": "string"}  # Fallback
+
+    def set_schema_attributes(field_schema: Dict[str, Any], column: Any) -> None:
+        """
+        Überschreibt bzw. ergänzt das Feld-Schema anhand von Zusatzinformationen
+        aus der Spalten-info sowie Default-Werten und Kommentaren.
+
+        Args:
+            field_schema (Dict[str, Any]): Das bereits generierte Feld-Schema.
+            column (Any): Die SQLAlchemy-Spalte.
+        """
+        # Mapping von Info-Schlüsseln zu JSON-Schema-Schlüsseln
+        mapping: Dict[str, str] = {
+            "label": "title",
+            "title": "title",
+            "description": "description",
+            "read_only": "readOnly",
+            "write_only": "writeOnly",
+            "deprecated": "deprecated",
+            "example": "example",
+        }
+        info = getattr(column, "info", None)
+        if info:
+            for key, value in info.items():
+                target_key = mapping.get(key)
+                if target_key:
+                    field_schema[target_key] = value
+
+        # Default-Wert verarbeiten
+        if getattr(column, "default", None) is not None:
+            default_value = get_default_value_as_string(column.default)
+            if default_value is not None:
+                field_schema["default"] = default_value
+
+        # Falls keine Beschreibung in info gesetzt wurde, kann der Spaltenkommentar genutzt werden
+        if (
+            "description" not in field_schema
+            and getattr(column, "comment", None) is not None
+        ):
+            field_schema["description"] = column.comment
+
+    # Initiales JSON-Schema
+    schema: Dict[str, Any] = {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "title": model.__name__,
         "type": "object",
@@ -41,41 +128,16 @@ def db_model_to_json_schema(model: Type[DeclarativeMeta]) -> Dict[str, Any]:
         "required": [],
     }
 
+    # Iteriere über alle Spalten des Models
     for column in model.__table__.columns:
         field_name = column.name
-        field_schema = {}
-
-        # Map SQLAlchemy column types to JSON Schema types
-        if isinstance(column.type, Integer):
-            field_schema["type"] = "integer"
-        elif isinstance(column.type, SAEnum) or hasattr(column.type, "enums"):
-            field_schema["type"] = "string"
-            field_schema["enum"] = column.type.enums
-        elif isinstance(column.type, Float):
-            field_schema["type"] = "number"
-        elif isinstance(column.type, String) or isinstance(column.type, Text):
-            field_schema["type"] = "string"
-        elif isinstance(column.type, Boolean):
-            field_schema["type"] = "boolean"
-        elif isinstance(column.type, DateTime) or isinstance(column.type, Date):
-            field_schema["type"] = "string"  # ISO8601 string
-        else:
-            field_schema["type"] = "string"  # Fallback type
-
-        # Add default value if present
-        if column.default is not None:
-            default_value = get_default_value_as_string(column.default)
-            if default_value is not None:
-                field_schema["default"] = default_value
-
-        # Add "required" if not nullable
+        # Erstelle zunächst das Schema anhand des Spaltentyps
+        field_schema = map_column_type_to_json_type(column)
+        # Ergänze Schema-Attribute aus der Spalten-info, Default-Werten, etc.
+        set_schema_attributes(field_schema, column)
+        # Falls die Spalte nicht nullable ist, als erforderlich markieren
         if not column.nullable:
             schema["required"].append(field_name)
-
-        # Add maxLength if string has a length
-        if hasattr(column.type, "length") and column.type.length:
-            field_schema["maxLength"] = column.type.length
-
         schema["properties"][field_name] = field_schema
 
     return schema

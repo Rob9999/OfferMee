@@ -4,33 +4,47 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "name": {
-            "type": "string"
+            "type": "string",
+            "title": "Name"
         },
         "capabilities_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Capabilities ID"
         },
         "role_interest": {
-            "type": "string"
+            "type": "string",
+            "title": "Role Interest"
         },
         "availability": {
-            "type": "string"
+            "type": "string",
+            "title": "Availability"
         },
         "salary_interest": {
-            "type": "string"
+            "type": "string",
+            "title": "Salary Interest"
         },
         "created_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x00000235955EDDA0>"
+            "format": "date-time",
+            "title": "Created At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B48E840>"
         },
         "updated_at": {
             "type": "string",
-            "default": "<function datetime.utcnow at 0x00000235955EDE40>"
+            "format": "date-time",
+            "title": "Updated At",
+            "readOnly": true,
+            "default": "<function datetime.utcnow at 0x000002A19B48E8E0>"
         },
         "contact_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Contact ID"
         }
     },
     "required": [

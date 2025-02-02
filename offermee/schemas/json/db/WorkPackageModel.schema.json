@@ -4,22 +4,31 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
         },
         "project_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Project ID"
         },
         "title": {
-            "type": "string"
+            "type": "string",
+            "title": "Title"
         },
         "description": {
-            "type": "string"
+            "type": "string",
+            "title": "Description"
         },
         "start_date": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time",
+            "title": "Start Date"
         },
         "end_date": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time",
+            "title": "End Date"
         },
         "status": {
             "type": "string",
@@ -29,8 +38,8 @@
                 "ON_HOLD",
                 "COMPLETED"
             ],
-            "default": "OPEN",
-            "maxLength": 11
+            "title": "Status",
+            "default": "OPEN"
         }
     },
     "required": [
