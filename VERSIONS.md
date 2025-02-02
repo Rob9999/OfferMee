@@ -1,3 +1,7 @@
+## v0.0.6682 - 2025-02-02T11:27:55.284Z
+
+- refactored json from db to set all info attributes, refactored streamlit widget to reflect schema info attributes
+
 ## v0.0.6681 - 2025-02-01T22:05:08.191Z
 
 - Updated INSTALL.md
