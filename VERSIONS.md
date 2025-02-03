@@ -1,3 +1,7 @@
+## v0.0.6684 - 2025-02-03T17:35:44.597Z
+
+- implemented Email attachments (CV attached to Offer)
+
 ## v0.0.6683 - 2025-02-02T11:56:26.089Z
 
 - Merge branch 'main' of https://github.com/Rob9999/OfferMee
