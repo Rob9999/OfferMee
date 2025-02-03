@@ -17,14 +17,14 @@
             "format": "date-time",
             "title": "Created At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000002B65AA780E0>"
+            "default": "<function datetime.utcnow at 0x000001F8F979B380>"
         },
         "updated_at": {
             "type": "string",
             "format": "date-time",
             "title": "Updated At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000002B65AA78220>"
+            "default": "<function datetime.utcnow at 0x000001F8F979B4C0>"
         },
         "soft_skills": {
             "type": "array",
@@ -45,20 +45,6 @@
                     "type": {
                         "type": "string",
                         "title": "Type"
-                    },
-                    "capabilities_soft": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "title": "CapabilitiesModel (Already Included)"
-                        }
-                    },
-                    "capabilities_tech": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "title": "CapabilitiesModel (Already Included)"
-                        }
                     }
                 },
                 "required": [
@@ -87,20 +73,6 @@
                     "type": {
                         "type": "string",
                         "title": "Type"
-                    },
-                    "capabilities_soft": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "title": "CapabilitiesModel (Already Included)"
-                        }
-                    },
-                    "capabilities_tech": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "title": "CapabilitiesModel (Already Included)"
-                        }
                     }
                 },
                 "required": [
@@ -170,14 +142,14 @@
                         "format": "date-time",
                         "title": "Created At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000002B65AA27CE0>"
+                        "default": "<function datetime.utcnow at 0x000001F8F9772FC0>"
                     },
                     "updated_at": {
                         "type": "string",
                         "format": "date-time",
                         "title": "Updated At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000002B65AA27D80>"
+                        "default": "<function datetime.utcnow at 0x000001F8F9773060>"
                     }
                 },
                 "required": [
@@ -235,14 +207,15 @@
                     },
                     "created_by": {
                         "type": "string",
-                        "title": "Created By"
+                        "title": "Created By",
+                        "readOnly": true
                     },
                     "created_at": {
                         "type": "string",
                         "format": "date-time",
                         "title": "Created At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000002B65AA4D3A0>"
+                        "default": "<function datetime.utcnow at 0x000001F8F9798680>"
                     }
                 },
                 "required": [

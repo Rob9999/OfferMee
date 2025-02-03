@@ -42,14 +42,15 @@
         },
         "created_by": {
             "type": "string",
-            "title": "Created By"
+            "title": "Created By",
+            "readOnly": true
         },
         "created_at": {
             "type": "string",
             "format": "date-time",
             "title": "Created At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000002B65AA4D3A0>"
+            "default": "<function datetime.utcnow at 0x000001F8F9798680>"
         }
     },
     "required": [

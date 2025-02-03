@@ -152,45 +152,53 @@ def build_full_json_schema(
     model: Type[DeclarativeMeta], visited: Set[Type[DeclarativeMeta]] = None
 ) -> Dict[str, Any]:
     """
-    Recursively build a JSON schema for a model, including its relationships.
-    This inlines the child schema for each relationship.
+    Erzeugt rekursiv ein JSON-Schema für ein SQLAlchemy Model, inklusive aller
+    Beziehungen. Dabei werden die Kind-Schemas in das Hauptschema eingebettet.
 
-    WARNING: If your models have deep or cyclical relationships, this can blow up in size
-             or cause infinite recursion. The `visited` set helps avoid infinite loops,
-             but repeated references to the same model are inlined more than once
-             (unless you skip or add references).
+    ACHTUNG: Haben die Modelle tiefe oder zyklische Beziehungen, kann das Schema
+    sehr groß werden oder es kann zu einer Endlosschleife kommen. Das `visited`
+    Set verhindert Endlosschleifen, allerdings werden Modelle mehrfach eingebettet,
+    wenn sie mehrfach referenziert werden (anstatt per "$ref" referenziert zu werden).
+
+    Args:
+        model (Type[DeclarativeMeta]): Das SQLAlchemy Model, für das das Schema gebaut werden soll.
+        visited (Set[Type[DeclarativeMeta]], optional): Set von bereits besuchten Modellen.
+
+    Returns:
+        Dict[str, Any]: Das vollständige JSON-Schema des Models inkl. Beziehungen.
     """
     if visited is None:
         visited = set()
 
-    # If we've already seen this model, return an empty or minimal schema
-    # to avoid infinite recursion. In a more advanced implementation,
-    # you might return {"$ref": "#/definitions/<ModelName>"} instead.
+    # Falls das Model bereits verarbeitet wurde, wird ein minimales Schema zurückgegeben.
     if model in visited:
-        return {"type": "object", "title": model.__name__ + " (Already Included)"}
+        return {"type": "object", "title": f"{model.__name__} (Already Included)"}
 
     visited.add(model)
 
-    # 1) Start with the base schema (columns only).
+    # 1) Basis-Schema aus den Spalten erzeugen.
     base_schema = db_model_to_json_schema(model)
 
-    # 2) For each relationship in the model, build child schema.
+    # 2) Beziehungen verarbeiten
     mapper = inspect(model)
-    for rel_name in mapper.relationships.keys():
-        rel_prop = getattr(model, rel_name).property
-        related_model = rel_prop.mapper.class_  # e.g. Child class
-        child_schema = build_full_json_schema(related_model, set(visited))
-        # print(f"{rel_prop} uselist? {rel_prop.uselist}")
+    for rel_name, rel_prop in mapper.relationships.items():
+        # Falls im Relationship-Info-Dictionary das Flag "hide" gesetzt ist, überspringen.
+        info = getattr(rel_prop, "info", {})
+        if info and info.get("hide", False):
+            continue
+
+        # Ermitteln des zugehörigen (verknüpften) Models
+        related_model = rel_prop.mapper.class_
+        child_schema = build_full_json_schema(related_model, visited.copy())
+
         if rel_prop.uselist:
-            # This is a one-to-many or many-to-many relationship
-            # so we represent it as an array of objects.
-            base_schema["properties"][rel_name] = {
+            # Bei One-to-Many oder Many-to-Many Beziehungen wird ein Array von Objekten erzeugt.
+            base_schema.setdefault("properties", {})[rel_name] = {
                 "type": "array",
                 "items": child_schema,
             }
         else:
-            # This is a many-to-one or one-to-one relationship
-            # so we represent it as a nested object.
-            base_schema["properties"][rel_name] = child_schema
+            # Bei Many-to-One oder One-to-One Beziehungen wird ein einzelnes Objekt eingebettet.
+            base_schema.setdefault("properties", {})[rel_name] = child_schema
 
     return base_schema

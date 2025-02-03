@@ -282,7 +282,9 @@ class HistoryModel(Base):
     related_id = Column(Integer, nullable=False, info={"label": _T("Related ID")})
     description = Column(Text, info={"label": _T("Description")})
     event_date = Column(DateTime, nullable=False, info={"label": _T("Event Date")})
-    created_by = Column(String, nullable=False, info={"label": _T("Created By")})
+    created_by = Column(
+        String, nullable=False, info={"label": _T("Created By"), "read_only": True}
+    )
     created_at = Column(
         DateTime,
         default=datetime.utcnow,
@@ -308,11 +310,13 @@ class SkillModel(Base):
         "CapabilitiesModel",
         secondary="soft_skills",
         back_populates="soft_skills",
+        info={"label": _T("Soft Skills"), "read_only": True, "hide": True},
     )
     capabilities_tech = relationship(
         "CapabilitiesModel",
         secondary="tech_skills",
         back_populates="tech_skills",
+        info={"label": _T("Tech Skills"), "read_only": True, "hide": True},
     )
 
     def to_dict(self):
@@ -327,16 +331,40 @@ class SkillModel(Base):
 soft_skills_table = Table(
     "soft_skills",
     Base.metadata,
-    Column("capabilities_id", Integer, ForeignKey("capabilities.id"), primary_key=True),
-    Column("skill_id", Integer, ForeignKey("skills.id"), primary_key=True),
+    Column(
+        "capabilities_id",
+        Integer,
+        ForeignKey("capabilities.id"),
+        primary_key=True,
+        info={"label": _T("Capabilities ID"), "read_only": True},
+    ),
+    Column(
+        "skill_id",
+        Integer,
+        ForeignKey("skills.id"),
+        primary_key=True,
+        info={"label": _T("Skill ID"), "read_only": True},
+    ),
 )
 
 
 tech_skills_table = Table(
     "tech_skills",
     Base.metadata,
-    Column("capabilities_id", Integer, ForeignKey("capabilities.id"), primary_key=True),
-    Column("skill_id", Integer, ForeignKey("skills.id"), primary_key=True),
+    Column(
+        "capabilities_id",
+        Integer,
+        ForeignKey("capabilities.id"),
+        primary_key=True,
+        info={"label": _T("Capabilities ID"), "read_only": True},
+    ),
+    Column(
+        "skill_id",
+        Integer,
+        ForeignKey("skills.id"),
+        primary_key=True,
+        info={"label": _T("Skill ID"), "read_only": True},
+    ),
 )
 
 
@@ -347,18 +375,20 @@ class CapabilitiesModel(Base):
         "SkillModel",
         secondary=soft_skills_table,
         back_populates="capabilities_soft",
+        info={"label": _T("Soft Skills"), "read_only": True},
     )
     tech_skills = relationship(
         "SkillModel",
         secondary=tech_skills_table,
         back_populates="capabilities_tech",
+        info={"label": _T("Tech Skills"), "read_only": True},
     )
     roles = Column(
         String, nullable=True, info={"label": _T("Roles")}
     )  # Comma separated classification (recommendation)
     documents = relationship(
         "DocumentModel",
-        primaryjoin="and_(DocumentModel.related_type == 'CAPABILITIES', foreign(DocumentModel.related_id)  == CapabilitiesModel.id)",
+        primaryjoin="and_(DocumentModel.related_type == 'CAPABILITIES', foreign(DocumentModel.related_id) == CapabilitiesModel.id)",
         viewonly=True,
     )
     histories = relationship(
