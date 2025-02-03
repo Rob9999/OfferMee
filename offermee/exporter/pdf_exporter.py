@@ -40,7 +40,7 @@ def export_cv_to_pdf(name: str, cv_data: Dict[str, Any], language: str = "de") -
         )
         return None
     pdf_filename = os.path.join(
-        Config.get_instance().get_user_temp_dir(), f"cv_{name}_{language}.pdf"
+        Config.get_instance().get_user_temp_dir(), f"CV_{name}_{language}.pdf"
     )
     try:
         pdf_exporter_logger.info(f"Exporting CV '{pdf_filename}' ...")
