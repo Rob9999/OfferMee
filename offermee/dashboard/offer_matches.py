@@ -27,7 +27,7 @@ from offermee.enums.process_status import Status
 from offermee.matcher.skill_matcher import SkillMatcher
 from offermee.matcher.price_matcher import PriceMatcher
 from offermee.offers.generator import OfferGenerator
-from offermee.offers.email_utils import EmailUtils
+from offermee.utils.email_utils import EmailUtils
 from offermee.utils.container import Container
 
 
@@ -297,7 +297,7 @@ def offer_matcher_render():
                             col1.number_input(
                                 f"{_T('Hourly Rate remote in')} {_T('€')} {_T('plus VAT')}: ({_T('min')}) {freelancer_desired_rate_min:.2f}",
                                 key=key_rfp_offer_freelancer + "_hourly_rate_remote",
-                                min_value=container.get_value(
+                                value=container.get_value(
                                     path_hourly_rate_remote, freelancer_desired_rate_min
                                 ),
                                 format="%.2f",
@@ -308,7 +308,7 @@ def offer_matcher_render():
                             col1.number_input(
                                 f"{_T('Hourly Rate onsite in')} {_T('€')} {_T('plus VAT')}: ({_T('min')} + 20%) {(freelancer_desired_rate_min*1.2):.2f}",
                                 key=key_rfp_offer_freelancer + "_hourly_rate_onsite",
-                                min_value=container.get_value(
+                                value=container.get_value(
                                     path_hourly_rate_onsite,
                                     freelancer_desired_rate_min * 1.2,
                                 ),
@@ -321,7 +321,7 @@ def offer_matcher_render():
                                 f"{_T('Daily flat rate onsite throughout Germany (all-in) in')} {_T('€')} {_T('plus VAT')}: ({_T('min')} * 8h + 500 {_T('€')}) {(freelancer_desired_rate_min*8+500.00):.2f}",
                                 key=key_rfp_offer_freelancer
                                 + "_daily_flat_rate_onsite",
-                                min_value=container.get_value(
+                                value=container.get_value(
                                     path_daily_flat_rate_onsite,
                                     freelancer_desired_rate_min * 8 + 500.00,
                                 ),
@@ -333,7 +333,7 @@ def offer_matcher_render():
                             col1.number_input(
                                 f"{_T('Yearly flat rate onsite throughout Germany (all-in) in')} {_T('€')}: ({_T('min')} * 1680h {_T('€')}) {(freelancer_desired_rate_min*1680):.2f}",
                                 key=key_rfp_offer_freelancer + "_yearly_rate_onsite",
-                                min_value=container.get_value(
+                                value=container.get_value(
                                     path_yearly_flat_rate_onsite,
                                     freelancer_desired_rate_min * 1680,
                                 ),
@@ -405,7 +405,7 @@ def offer_matcher_render():
                             path_offer_template,
                             st.text_area(
                                 _T("Freelancer's Offer Template"),
-                                container.get_value(
+                                value=container.get_value(
                                     path_offer_template,
                                     freelancer.get("offer_template"),
                                 ),

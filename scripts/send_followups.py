@@ -4,7 +4,7 @@ import logging
 
 from offermee.database.facades.main_facades import OfferFacade
 from offermee.database.models.main_models import OfferStatus
-from offermee.offers.email_utils import EmailUtils
+from offermee.utils.email_utils import EmailUtils
 
 # Configuration
 FOLLOW_UP_DELAY_DAYS = 3  # After how many days a follow-up is sent

@@ -41,10 +41,10 @@ class ConfigData:
     smtp_server: str = "smtp.gmail.com"
     smtp_port: int = 465
 
-    receiver_email: str = None
-    receiver_password: str = None
-    receiver_server: str = "imap.gmail.com"
-    receiver_port: int = 993
+    imap_email: str = None
+    imap_password: str = None
+    imap_server: str = "imap.gmail.com"
+    imap_port: int = 993
 
     rfp_mailbox = "RFPs"
     rfp_email_subject_filter = "RFP"
@@ -65,10 +65,10 @@ class ConfigData:
         self.sender_password = None
         self.smtp_server = "smtp.gmail.com"
         self.smtp_port = 465
-        self.receiver_email = None
-        self.receiver_password = None
-        self.receiver_server = "imap.gmail.com"
-        self.receiver_port = 993
+        self.imap_email = None
+        self.imap_password = None
+        self.imap_server = "imap.gmail.com"
+        self.imap_port = 993
         self.rfp_mailbox = "RFPs"
         self.rfp_email_subject_filter = "RFP"
         self.rfp_email_sender_filter = ""
@@ -198,14 +198,14 @@ class Config:
             "smtp_server", ""  # smtp.gmail.com"
         )
         self.config_data.smtp_port = self.local_settings.get("smtp_port", 465)
-        self.config_data.receiver_email = self.local_settings.get("receiver_email", "")
-        self.config_data.receiver_password = self.local_settings.get(
+        self.config_data.imap_email = self.local_settings.get("receiver_email", "")
+        self.config_data.imap_password = self.local_settings.get(
             "receiver_password", ""
         )
-        self.config_data.receiver_server = self.local_settings.get(
+        self.config_data.imap_server = self.local_settings.get(
             "receiver_server", ""  # "imap.gmail.com"
         )
-        self.config_data.receiver_port = self.local_settings.get("receiver_port", 993)
+        self.config_data.imap_port = self.local_settings.get("receiver_port", 993)
         self.config_data.rfp_mailbox = self.local_settings.get("rfp_mailbox", "RFPs")
         self.config_data.rfp_email_subject_filter = self.local_settings.get(
             "rfp_email_subject_filter", "RFP"

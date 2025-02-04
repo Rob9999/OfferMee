@@ -31,25 +31,25 @@
         "must_have_requirements": {
             "type": "string",
             "title": "Must-have Requirements",
-            "default": "<function list at 0x000001AAE4386AC0>",
+            "default": "<function list at 0x000001D6D92F85E0>",
             "description": "Mandatory requirements for the project"
         },
         "nice_to_have_requirements": {
             "type": "string",
             "title": "Nice-to-have Requirements",
-            "default": "<function list at 0x000001AAE4386B60>",
+            "default": "<function list at 0x000001D6D92F8680>",
             "description": "Desirable additional requirements"
         },
         "tasks": {
             "type": "string",
             "title": "Tasks",
-            "default": "<function list at 0x000001AAE4386C00>",
+            "default": "<function list at 0x000001D6D92F8720>",
             "description": "List of tasks in the project"
         },
         "responsibilities": {
             "type": "string",
             "title": "Responsibilities",
-            "default": "<function list at 0x000001AAE4386CA0>",
+            "default": "<function list at 0x000001D6D92F87C0>",
             "description": "List of responsibilities in the project"
         },
         "max_hourly_rate": {

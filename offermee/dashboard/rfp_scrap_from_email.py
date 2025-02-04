@@ -64,10 +64,10 @@ def rfp_scrap_from_email_render():
     page_root = __name__
     container: Container = get_app_container()
     config = Config.get_instance().get_config_data()
-    email_user = config.receiver_email
-    email_pass = config.receiver_password
-    server = config.receiver_server
-    port = config.receiver_port
+    email_user = config.imap_email
+    email_pass = config.imap_password
+    server = config.imap_server
+    port = config.imap_port
     mailbox = config.rfp_mailbox
     subject_filter = config.rfp_email_subject_filter
     sender_filter = config.rfp_email_sender_filter

@@ -2,9 +2,7 @@ import imaplib
 import email
 from email.header import decode_header
 import datetime
-import logging
 from typing import List, Dict, Any, Optional
-import sys
 
 # Deine projektspezifischen Importe
 from offermee.config import Config
@@ -12,8 +10,6 @@ from offermee.AI.project_processor import ProjectProcessor
 from offermee.database.facades.main_facades import ProjectFacade
 from offermee.database.transformers.project_model_transformer import json_to_db
 from offermee.logger import CentralLogger
-from offermee.schemas.json.schema_loader import get_schema
-from offermee.schemas.json.schema_keys import SchemaKey
 
 # Konfiguriere Logging
 logger = CentralLogger.getLogger(__name__)
@@ -185,10 +181,10 @@ def process_email(rfp_data: Dict[str, Any], operator: str):
 def scrap_rfps_from_email(since_days: int = 2):
     # Lade Konfiguration
     config = Config.get_instance().get_config_data()
-    email_user = config.receiver_email
-    email_pass = config.receiver_password
-    server = config.receiver_server
-    port = config.receiver_port
+    email_user = config.imap_email
+    email_pass = config.imap_password
+    server = config.imap_server
+    port = config.imap_port
     mailbox = config.rfp_mailbox
     subject_filter = config.rfp_email_subject_filter
     sender_filter = config.rfp_email_sender_filter
