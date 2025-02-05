@@ -1,3 +1,7 @@
+## v0.0.6687 - 2025-02-05T16:04:31.328Z
+
+- Refactored project structure
+
 ## v0.0.6686 - 2025-02-05T13:44:33.831Z
 
 - Refactored db layer
