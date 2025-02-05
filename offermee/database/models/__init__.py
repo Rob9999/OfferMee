@@ -4,6 +4,8 @@ from .main_models import (
     AddressModel,
     ApplicantModel,
     CapabilitiesModel,
+    IndustryModel,
+    RegionModel,
     CompanyModel,
     ContactModel,
     ContractModel,

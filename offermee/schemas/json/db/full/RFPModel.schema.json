@@ -8,7 +8,7 @@
             "title": "ID",
             "readOnly": true
         },
-        "project_title": {
+        "title": {
             "type": "string",
             "title": "Project Title",
             "description": "The project title"
@@ -28,28 +28,113 @@
             "title": "Location",
             "description": "Expected working modality: Remote, On-site or Hybrid"
         },
+        "industry": {
+            "type": "string",
+            "enum": [
+                "INFORMATION_TECHNOLOGY",
+                "FINANCE",
+                "HEALTHCARE",
+                "EDUCATION",
+                "RETAIL",
+                "MANUFACTURING",
+                "TRANSPORTATION",
+                "ENERGY",
+                "AGRICULTURE",
+                "TELECOMMUNICATIONS",
+                "REAL_ESTATE",
+                "HOSPITALITY",
+                "CONSTRUCTION",
+                "ENTERTAINMENT",
+                "AUTOMOTIVE",
+                "FOOD_AND_BEVERAGE",
+                "CHEMICALS",
+                "AEROSPACE",
+                "BIOTECHNOLOGY",
+                "INSURANCE",
+                "MEDIA",
+                "LEGAL",
+                "ENVIRONMENTAL",
+                "SPORTS",
+                "GOVERNMENT",
+                "OTHER"
+            ],
+            "title": "Industry",
+            "default": "Other",
+            "description": "The industry, defaulting to Other if not specified"
+        },
+        "region": {
+            "type": "string",
+            "enum": [
+                "GER_BADEN_WUERTTEMBERG",
+                "GER_BAYERN",
+                "GER_BERLIN",
+                "GER_BRANDENBURG",
+                "GER_BREMEN",
+                "GER_HAMBURG",
+                "GER_HESSEN",
+                "GER_MECKLENBURG_VORPOMMERN",
+                "GER_NIEDERSACHSEN",
+                "GER_NORDRHEIN_WESTFALEN",
+                "GER_RHEINLAND_PFALZ",
+                "GER_SAARLAND",
+                "GER_SACHSEN",
+                "GER_SACHSEN_ANHALT",
+                "GER_SCHLESWIG_HOLSTEIN",
+                "GER_THUERINGEN",
+                "DACH_GERMANY",
+                "DACH_AUSTRIA",
+                "DACH_SWITZERLAND",
+                "EU_GERMANY",
+                "EU_FRANCE",
+                "EU_ITALY",
+                "EU_SPAIN",
+                "EU_NETHERLANDS",
+                "EU_BELGIUM",
+                "EU_POLAND",
+                "EU_SWEDEN",
+                "EU_DENMARK",
+                "EU_FINLAND",
+                "EU_IRELAND",
+                "WORLD_EUROPE",
+                "WORLD_ASIA",
+                "WORLD_AFRICA",
+                "WORLD_NORTH_AMERICA",
+                "WORLD_SOUTH_AMERICA",
+                "WORLD_OCEANIA",
+                "WORLD_ANTARCTICA",
+                "SPACE_LEO",
+                "SPACE_MOON",
+                "OTHER"
+            ],
+            "title": "Region",
+            "default": [
+                "Other",
+                "Other"
+            ],
+            "description": "The region, defaulting to Other if not specified"
+        },
         "must_have_requirements": {
             "type": "string",
             "title": "Must-have Requirements",
-            "default": "<function list at 0x000001D6D92F85E0>",
+            "default": "<function list at 0x000002DC546D8EA0>",
             "description": "Mandatory requirements for the project"
         },
         "nice_to_have_requirements": {
             "type": "string",
             "title": "Nice-to-have Requirements",
-            "default": "<function list at 0x000001D6D92F8680>",
+            "default": "<function list at 0x000002DC546D8F40>",
             "description": "Desirable additional requirements"
         },
         "tasks": {
             "type": "string",
             "title": "Tasks",
-            "default": "<function list at 0x000001D6D92F8720>",
+            "default": "<function list at 0x000002DC546D8FE0>",
             "description": "List of tasks in the project"
         },
         "responsibilities": {
             "type": "string",
             "title": "Responsibilities",
-            "default": "<function list at 0x000001D6D92F87C0>",
+            "default": "<function list at 0x000002DC546D9080>",
             "description": "List of responsibilities in the project"
         },
         "max_hourly_rate": {
@@ -90,12 +175,12 @@
         "end_date": {
             "type": "string",
             "title": "End Date",
-            "description": "End date in format dd.mm.yyyy or mm.yyyy"
+            "description": "End date in format dd.mm.yyyy or mm.yyyy (in case of none, calculate if possible)"
         },
         "duration": {
             "type": "integer",
             "title": "Duration",
-            "description": "Duration in months"
+            "description": "Duration in months (in case of none, calculate if possible)"
         },
         "extension_option": {
             "type": "string",
@@ -110,14 +195,40 @@
             "type": "string",
             "title": "Original Link",
             "description": "Link to the original source of the project"
+        },
+        "source": {
+            "type": "string",
+            "enum": [
+                "ONLINE",
+                "EMAIL",
+                "MANUAL"
+            ],
+            "title": "Source",
+            "description": "The RFP Source, must be one of [ONLINE, EMAIL, MANUAL]"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "NEW",
+                "OFFERED",
+                "OUTDATED",
+                "REJECTED"
+            ],
+            "title": "Status",
+            "default": "NEW",
+            "description": "The RFP Status, must be one of [NEW, OFFERED, OUTDATED, REJECTED]"
         }
     },
     "required": [
         "id",
-        "project_title",
+        "title",
+        "industry",
+        "region",
         "must_have_requirements",
         "nice_to_have_requirements",
         "tasks",
-        "responsibilities"
+        "responsibilities",
+        "source",
+        "status"
     ]
 }

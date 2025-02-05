@@ -20,6 +20,66 @@
             "type": "integer",
             "title": "Contact ID"
         },
+        "industries": {
+            "type": "array",
+            "items": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "IndustryModel",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "ID",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Industry"
+                    },
+                    "companies": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "title": "CompanyModel (Already Included)"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "name"
+                ]
+            }
+        },
+        "regions": {
+            "type": "array",
+            "items": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "RegionModel",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "ID",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Region"
+                    },
+                    "companies": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "title": "CompanyModel (Already Included)"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "name"
+                ]
+            }
+        },
         "contact": {
             "$schema": "http://json-schema.org/draft-07/schema#",
             "title": "ContactModel",
@@ -67,14 +127,14 @@
                     "format": "date-time",
                     "title": "Created At",
                     "readOnly": true,
-                    "default": "<function datetime.utcnow at 0x000001D6D921F7E0>"
+                    "default": "<function datetime.utcnow at 0x000002DC5460A020>"
                 },
                 "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "title": "Updated At",
                     "readOnly": true,
-                    "default": "<function datetime.utcnow at 0x000001D6D921F880>"
+                    "default": "<function datetime.utcnow at 0x000002DC5460A0C0>"
                 },
                 "address": {
                     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -119,15 +179,16 @@
                                         "enum": [
                                             "ADDRESS",
                                             "CONTACT",
-                                            "REQUEST",
+                                            "RFP",
                                             "OFFER",
                                             "CONTRACT",
-                                            "APPLICATION",
+                                            "APPLICANT",
                                             "CV",
                                             "PROJECT",
                                             "INTERVIEW",
                                             "COMPANY",
                                             "EMPLOYEE",
+                                            "FREELANCER",
                                             "WORKPACKAGE",
                                             "CAPABILITIES"
                                         ],
@@ -162,14 +223,14 @@
                                         "format": "date-time",
                                         "title": "Created At",
                                         "readOnly": true,
-                                        "default": "<function datetime.utcnow at 0x000001D6D9256840>"
+                                        "default": "<function datetime.utcnow at 0x000002DC54640F40>"
                                     },
                                     "updated_at": {
                                         "type": "string",
                                         "format": "date-time",
                                         "title": "Updated At",
                                         "readOnly": true,
-                                        "default": "<function datetime.utcnow at 0x000001D6D92568E0>"
+                                        "default": "<function datetime.utcnow at 0x000002DC54640FE0>"
                                     }
                                 },
                                 "required": [
@@ -198,15 +259,16 @@
                                         "enum": [
                                             "ADDRESS",
                                             "CONTACT",
-                                            "REQUEST",
+                                            "RFP",
                                             "OFFER",
                                             "CONTRACT",
-                                            "APPLICATION",
+                                            "APPLICANT",
                                             "CV",
                                             "PROJECT",
                                             "INTERVIEW",
                                             "COMPANY",
                                             "EMPLOYEE",
+                                            "FREELANCER",
                                             "WORKPACKAGE",
                                             "CAPABILITIES"
                                         ],
@@ -235,7 +297,7 @@
                                         "format": "date-time",
                                         "title": "Created At",
                                         "readOnly": true,
-                                        "default": "<function datetime.utcnow at 0x000001D6D9257EC0>"
+                                        "default": "<function datetime.utcnow at 0x000002DC54642480>"
                                     }
                                 },
                                 "required": [
@@ -273,15 +335,16 @@
                                 "enum": [
                                     "ADDRESS",
                                     "CONTACT",
-                                    "REQUEST",
+                                    "RFP",
                                     "OFFER",
                                     "CONTRACT",
-                                    "APPLICATION",
+                                    "APPLICANT",
                                     "CV",
                                     "PROJECT",
                                     "INTERVIEW",
                                     "COMPANY",
                                     "EMPLOYEE",
+                                    "FREELANCER",
                                     "WORKPACKAGE",
                                     "CAPABILITIES"
                                 ],
@@ -316,14 +379,14 @@
                                 "format": "date-time",
                                 "title": "Created At",
                                 "readOnly": true,
-                                "default": "<function datetime.utcnow at 0x000001D6D9256840>"
+                                "default": "<function datetime.utcnow at 0x000002DC54640F40>"
                             },
                             "updated_at": {
                                 "type": "string",
                                 "format": "date-time",
                                 "title": "Updated At",
                                 "readOnly": true,
-                                "default": "<function datetime.utcnow at 0x000001D6D92568E0>"
+                                "default": "<function datetime.utcnow at 0x000002DC54640FE0>"
                             }
                         },
                         "required": [
@@ -352,15 +415,16 @@
                                 "enum": [
                                     "ADDRESS",
                                     "CONTACT",
-                                    "REQUEST",
+                                    "RFP",
                                     "OFFER",
                                     "CONTRACT",
-                                    "APPLICATION",
+                                    "APPLICANT",
                                     "CV",
                                     "PROJECT",
                                     "INTERVIEW",
                                     "COMPANY",
                                     "EMPLOYEE",
+                                    "FREELANCER",
                                     "WORKPACKAGE",
                                     "CAPABILITIES"
                                 ],
@@ -389,7 +453,7 @@
                                 "format": "date-time",
                                 "title": "Created At",
                                 "readOnly": true,
-                                "default": "<function datetime.utcnow at 0x000001D6D9257EC0>"
+                                "default": "<function datetime.utcnow at 0x000002DC54642480>"
                             }
                         },
                         "required": [
@@ -428,15 +492,16 @@
                         "enum": [
                             "ADDRESS",
                             "CONTACT",
-                            "REQUEST",
+                            "RFP",
                             "OFFER",
                             "CONTRACT",
-                            "APPLICATION",
+                            "APPLICANT",
                             "CV",
                             "PROJECT",
                             "INTERVIEW",
                             "COMPANY",
                             "EMPLOYEE",
+                            "FREELANCER",
                             "WORKPACKAGE",
                             "CAPABILITIES"
                         ],
@@ -471,14 +536,14 @@
                         "format": "date-time",
                         "title": "Created At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000001D6D9256840>"
+                        "default": "<function datetime.utcnow at 0x000002DC54640F40>"
                     },
                     "updated_at": {
                         "type": "string",
                         "format": "date-time",
                         "title": "Updated At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000001D6D92568E0>"
+                        "default": "<function datetime.utcnow at 0x000002DC54640FE0>"
                     }
                 },
                 "required": [
@@ -507,15 +572,16 @@
                         "enum": [
                             "ADDRESS",
                             "CONTACT",
-                            "REQUEST",
+                            "RFP",
                             "OFFER",
                             "CONTRACT",
-                            "APPLICATION",
+                            "APPLICANT",
                             "CV",
                             "PROJECT",
                             "INTERVIEW",
                             "COMPANY",
                             "EMPLOYEE",
+                            "FREELANCER",
                             "WORKPACKAGE",
                             "CAPABILITIES"
                         ],
@@ -544,7 +610,7 @@
                         "format": "date-time",
                         "title": "Created At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000001D6D9257EC0>"
+                        "default": "<function datetime.utcnow at 0x000002DC54642480>"
                     }
                 },
                 "required": [

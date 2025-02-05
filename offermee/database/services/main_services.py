@@ -1,16 +1,26 @@
-# offermee/database/model_services.py
-from logging import Logger
-from typing import Any, Dict, List, Tuple, Optional
+"""
+This module provides generic CRUD services for our SQLAlchemy models.
+It includes helper functions for handling history, documents, relationship
+data separation, and generic CRUD operations in a BaseService class.
+All comments and code are in English.
+"""
+
 from datetime import datetime
-from enum import Enum as PyEnum
+import traceback
+from typing import Any, Dict, List, Tuple, Optional, Set
+from dateutil import parser
 
 from sqlalchemy import DateTime, UniqueConstraint, inspect
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from offermee.database.db_connection import session_scope
 from offermee.database.models.main_models import (
     AddressModel,
     ContactModel,
+    IndustryModel,
+    RFPModel,
+    RFPSource,
+    RegionModel,
     SchemaModel,
     DocumentModel,
     HistoryModel,
@@ -32,22 +42,23 @@ from offermee.database.models.main_models import (
 )
 from offermee.logger import CentralLogger
 
-service_logger: Logger = CentralLogger.getLogger("service")
+service_logger = CentralLogger.getLogger("service")
+
 
 # ------------------------------------------------------------
-# Hilfsfunktionen für Dokumente & Historien
+# Helper Functions for History and Documents
 # ------------------------------------------------------------
 
 
-def _create_history_entry(
+def create_history_entry(
     session: Session,
     related_type: str,
     related_id: int,
     description: str,
     created_by: str = "system",
-):
+) -> HistoryModel:
     """
-    Legt einen Eintrag in HistoryModel an.
+    Creates a new history entry.
     """
     history = HistoryModel(
         related_type=related_type,
@@ -57,18 +68,18 @@ def _create_history_entry(
         created_by=created_by,
     )
     session.add(history)
-    session.flush()  # damit history.id gesetzt wird
+    session.flush()  # Ensures history.id is set
     return history
 
 
-def _create_documents(
+def create_documents(
     session: Session,
     related_type: str,
     related_id: int,
     documents: List[Dict[str, Any]],
-):
+) -> List[DocumentModel]:
     """
-    Legt Dokumente in DocumentModel an, verknüpft mit related_type und related_id.
+    Creates document entries linked to a given related type and ID.
     """
     created_docs = []
     for doc_data in documents:
@@ -87,250 +98,201 @@ def _create_documents(
     return created_docs
 
 
-# -------------------------------------------------------------------------
-# Internal code
-# -------------------------------------------------------------------------
-def _expunge(
-    session: Session,
-    instance: Any,
-) -> Optional[Dict[str, Any]]:
+# ------------------------------------------------------------
+# Internal Helper Functions
+# ------------------------------------------------------------
+
+
+def expunge_instance(instance: Any, session: Session) -> Optional[Dict[str, Any]]:
+    """
+    Returns the instance's dictionary representation and expunges it from the session.
+    """
     if not instance:
         return None
-    expunged = instance.to_dict()
+    data = instance.to_dict()
     session.expunge(instance)
-    return expunged
+    return data
 
 
-def _expunge_all(
-    session: Session,
-    all,
-) -> List[Dict[str, Any]]:
-    if not all:
-        return []
-    all_expunged = []
-    for one in all:
-        if not one:
-            continue
-        one_expunged = one.to_dict()
-        session.expunge(one)
-        all_expunged.append(one_expunged)
-    return all_expunged
+def expunge_all(instances: List[Any], session: Session) -> List[Dict[str, Any]]:
+    """
+    Returns a list of dictionary representations for all instances,
+    expunging each one from the session.
+    """
+    result = []
+    for instance in instances:
+        if instance:
+            result.append(instance.to_dict())
+            session.expunge(instance)
+    return result
 
 
-def _separate_relationship_data(
-    model: Any,
-    data: Dict[str, Any],
+def separate_relationship_data(
+    model: Any, data: Dict[str, Any]
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
     """
-    Separates flat column data from nested relationship data and odd fields (data that do not belong
-    to the model and its related ones).
+    Separates flat column data from nested relationship data and extraneous fields.
 
-    :param session:      SQLAlchemy Session object
-    :param model:        SQLAlchemy model class
-    :param data:         Dictionary containing data that might include both direct columns and
-                         relationship data
-    :return:             A tuple with six elements:
-                         1) flat_fields: dict of non-relational fields belonging to the model
-                         2) relationships_dict_data: dict of nested single-relationship data
-                         3) relationships_list_data: dict of nested list-relationship data
-                         4) odd_fields: fields that do not match any column or relationship
+    :return: A tuple containing:
+             - flat_fields: dict of direct model fields
+             - relationships_dict_data: dict of single-relationship nested data (dict values)
+             - relationships_list_data: dict of list-based relationship data
+             - odd_fields: fields that do not match any column or relationship
     """
     mapper = inspect(model)
-
-    flat_fields = {}
-    relationships_dict_data = {}
-    relationships_list_data = {}
-    odd_fields = {}
+    flat_fields: Dict[str, Any] = {}
+    relationships_dict_data: Dict[str, Any] = {}
+    relationships_list_data: Dict[str, Any] = {}
+    odd_fields: Dict[str, Any] = {}
 
     for key, value in data.items():
+        # sanatize jsonized key name to ORMized one:
+        key = key.replace("-", "_")
         if key in mapper.columns.keys():
             flat_fields[key] = value
-        elif key in mapper.relationships.keys() and isinstance(value, dict):
-            # Collect nested dicts for relationships
-            relationships_dict_data[key] = value
-        elif key in mapper.relationships.keys() and isinstance(value, list):
-            # Collect nested lists for relationships
-            relationships_list_data[key] = value
+        elif key in mapper.relationships.keys():
+            if isinstance(value, dict):
+                relationships_dict_data[key] = value
+            elif isinstance(value, list):
+                relationships_list_data[key] = value
+            else:
+                odd_fields[key] = value
         else:
-            # If key isn't a direct column or a nested dict/list for a relationship, treat it as odd
             odd_fields[key] = value
 
-    return (
-        flat_fields,
-        relationships_dict_data,
-        relationships_list_data,
-        odd_fields,
-    )
+    return flat_fields, relationships_dict_data, relationships_list_data, odd_fields
 
 
-from sqlalchemy.orm import joinedload
-from typing import Any, Dict, Optional
-
-
-def _joined_load_by_id(session, model, record_id):
+def joined_load_by_id(session: Session, model: Any, record_id: int) -> Optional[Any]:
     """
-    Eager-load (joined load) all relationships for `model`.
-    Then fetch one record by ID. Return the record or None.
+    Eager-loads all relationships for the given model record.
     """
     mapper = inspect(model)
     query = session.query(model)
-
-    # For each relationship, apply a joinedload option
     for rel_name in mapper.relationships.keys():
-        # Optionally filter by only certain relationships
-        # or skip certain ones if you don't want them all.
         rel_prop = getattr(model, rel_name).property
         query = query.options(joinedload(rel_prop))
+    # Use session.get() when possible. Here we simulate a get with filtering by primary key.
+    # Assuming primary key column is 'id'
+    return query.filter(model.id == record_id).first()
 
-    return query.get(record_id)
 
-
-def _build_nested_dict(model: Any, record: Any, visited: set = None) -> Dict[str, Any]:
+def build_nested_dict(
+    model: Any, record: Any, visited: Optional[Set[Tuple[Any, int]]] = None
+) -> Dict[str, Any]:
     """
-    Recursively build a dictionary for `record`,
-    including all related objects.
+    Recursively builds a nested dictionary representing the record and its related objects.
     """
     if record is None:
         return {}
-
     if visited is None:
         visited = set()
 
-    # Avoid infinite recursion: if we've seen this object before, stop.
     rec_id = (record.__class__, record.id)
     if rec_id in visited:
         return {}
     visited.add(rec_id)
 
-    # Start with whatever your model's to_dict() does.
-    # Or do it manually via object attributes.
     data = record.to_dict()
-
     mapper = inspect(model)
     for rel_name in mapper.relationships.keys():
         related_value = getattr(record, rel_name)
         rel_prop = getattr(model, rel_name).property
         related_model = rel_prop.mapper.class_
-
         if related_value is None:
             data[rel_name] = None
         elif isinstance(related_value, list):
-            # This is a "one-to-many" or "many-to-many"
             data[rel_name] = [
-                _build_nested_dict(
-                    model=related_model,
-                    record=child,
-                    visited=visited,
-                )
+                build_nested_dict(related_model, child, visited)
                 for child in related_value
-                # If you expect large sets, you might want to limit or lazy-load here
             ]
         else:
-            # This is a "many-to-one" or "one-to-one"
-            data[rel_name] = _build_nested_dict(
-                model=related_model,
-                record=related_value,
-                visited=visited,
-            )
-
+            data[rel_name] = build_nested_dict(related_model, related_value, visited)
     return data
 
 
-def _get_record_with_relations(session, model, record_id):
+def get_record_with_relations(
+    session: Session, model: Any, record_id: int
+) -> Optional[Dict[str, Any]]:
     """
-    High-level function that:
-      1) does a joined-load for the given model/record_id
-      2) recursively builds a nested dict
+    Loads a record with all its relationships (via joined load) and returns a nested dictionary.
     """
-    record = _joined_load_by_id(session, model, record_id)
+    record = joined_load_by_id(session, model, record_id)
     if not record:
         return None
-
-    return _build_nested_dict(
-        model=model,
-        record=record,
-    )
+    return build_nested_dict(model, record)
 
 
-def _get_primary_keys(model: Any):
-    """Retrieves information about the model's primary key column(s).
-
-    Args:
-        model (Any): _description_
+def get_primary_keys(model: Any) -> List[str]:
+    """
+    Returns a list of primary key column names for the given model.
     """
     mapper = inspect(model)
-    # Bestimme Primärschlüssel-Felder
-    # In vielen Fällen gibt es nur einen Primärschlüssel,
-    # hier werden jedoch ggf. auch zusammengesetzte Primärschlüssel unterstützt.
     return [col.key for col in mapper.primary_key]
 
 
-def _get_primary_keyed_record(
-    session: Session, model: Any, data: Dict[str, Any], primary_keys: list
-):
+def get_primary_keyed_record(
+    session: Session, model: Any, data: Dict[str, Any], primary_keys: List[str]
+) -> Optional[Any]:
+    """
+    Checks if a record exists based on primary key values from data.
+    """
     if not primary_keys:
         return None
-    # check for primary key constraints to determine if to update or to create
-    check_if_exists_query = {}
-    for primary_key in primary_keys:
-        if primary_key in data.keys():
-            check_if_exists_query[primary_key] = data.get(primary_key)
-    if check_if_exists_query:
-        return session.query(model).filter_by(**check_if_exists_query).first()
+    query_kwargs = {}
+    for pk in primary_keys:
+        if pk in data:
+            query_kwargs[pk] = data.get(pk)
+    if query_kwargs:
+        return session.query(model).filter_by(**query_kwargs).first()
     return None
 
 
-def _get_unique_key_constraints(model: Any) -> Tuple[List[Dict[str, Any]], List[str]]:
-    """Retrieves information about the model's unique table constraints and columns marked as unique."""
+def get_unique_key_constraints(model: Any) -> Tuple[List[Dict[str, Any]], List[str]]:
+    """
+    Retrieves unique constraints for the model.
 
+    :return: A tuple with:
+             - List of multi-column unique constraints (each as a dict with name and columns)
+             - List of single-column unique keys
+    """
     mapper = inspect(model)
-
-    # 1) Single unique key names
-    single_unique_key_names = [
-        col.key for col in mapper.columns if getattr(col, "unique", False) is True
+    single_unique_keys = [
+        col.key for col in mapper.columns if getattr(col, "unique", False)
     ]
-
-    # 2) Multi unique constraints
-    table = mapper.local_table
     multi_unique_constraints = []
+    table = mapper.local_table
     if table is not None:
         for constraint in table.constraints:
             if isinstance(constraint, UniqueConstraint):
-                # Spalten aus diesem UniqueConstraint
-                constraint_cols = [c.name for c in constraint.columns]
+                cols = [c.name for c in constraint.columns]
                 constraint_name = constraint.name or "unnamed_unique_constraint"
-
-                if len(constraint_cols) > 1:
+                if len(cols) > 1:
                     multi_unique_constraints.append(
-                        {"name": constraint_name, "columns": constraint_cols}
+                        {"name": constraint_name, "columns": cols}
                     )
                 else:
-                    # Falls nur eine Spalte in diesem Constraint:
-                    single_col = constraint_cols[0]
-                    if single_col not in single_unique_key_names:
-                        single_unique_key_names.append(single_col)
-
-    return multi_unique_constraints, single_unique_key_names
+                    if cols[0] not in single_unique_keys:
+                        single_unique_keys.append(cols[0])
+    return multi_unique_constraints, single_unique_keys
 
 
-def _get_unique_record(
+def get_unique_record(
     session: Session,
     model: Any,
     data: Dict[str, Any],
     unique_key_constraints: Tuple[List[Dict[str, Any]], List[str]],
-):
+) -> Optional[Any]:
     """
-    Versucht für Single-Column-Constraints und Multi-Column-Constraints
-    jeweils herauszufinden, ob es einen passenden Datensatz gibt.
-
-    Gibt das erste gefundene Objekt zurück oder None, wenn keins passt.
+    Attempts to find a unique record matching the provided data using both single-column
+    and multi-column unique constraints.
     """
     if not unique_key_constraints:
         return None
 
-    multi_unique_constraints, single_unique_keys = unique_key_constraints
+    multi_constraints, single_unique_keys = unique_key_constraints
 
-    # 1) Single-Column-Unique-Check
+    # Single-column unique check
     for col in single_unique_keys:
         if col in data:
             service_logger.debug(
@@ -340,35 +302,29 @@ def _get_unique_record(
             if record:
                 return record
 
-    # 2) Multi-Column-Constraints
-    for muc in multi_unique_constraints:
-        cols = muc.get("columns", [])
-        # Prüfen, ob alle dieser Spalten im data-Dict vorhanden sind
+    # Multi-column unique check
+    for constraint in multi_constraints:
+        cols = constraint.get("columns", [])
         if all(c in data for c in cols):
-            # Filter auf alle diese Spalten (UND-Verknüpfung)
             filter_kwargs = {c: data[c] for c in cols}
             service_logger.debug(
-                f"Checking multi-unique '{muc['name']}' with columns {cols} -> {filter_kwargs}"
+                f"Checking multi-unique '{constraint['name']}' with columns {cols} -> {filter_kwargs}"
             )
             record = session.query(model).filter_by(**filter_kwargs).first()
             if record:
                 return record
 
-    # Nichts gefunden
     return None
 
 
-def _get_new_skills(
+def get_new_skills(
     incoming_skills: List[Dict[str, Any]], existing_skills: List[SkillModel]
 ) -> List[Dict[str, Any]]:
     """
-    Filtert aus der Liste incoming_skills jene Skills heraus, die nicht in existing_skills vorkommen.
-    Vergleicht hierbei anhand von 'name' und 'type'.
+    Filters out incoming skills that already exist in the existing skills list.
+    Comparison is based on 'name' and 'type'.
     """
-    # Erstelle ein Set von Tupeln (name, type) für alle existierenden Skills
     existing_set = {(skill.name, skill.type) for skill in existing_skills}
-
-    # Filtere die eingehenden Skills, die noch nicht existieren
     new_skills = [
         skill
         for skill in incoming_skills
@@ -377,13 +333,18 @@ def _get_new_skills(
     return new_skills
 
 
-_history_type_mapping = {
+# ------------------------------------------------------------
+# Mappings for History and Document Types
+# ------------------------------------------------------------
+
+_HISTORY_TYPE_MAPPING = {
     AddressModel: HistoryType.ADDRESS,
     ContactModel: HistoryType.CONTACT,
     OfferModel: HistoryType.OFFER,
     ContractModel: HistoryType.CONTRACT,
-    ApplicantModel: HistoryType.APPLICATION,
+    ApplicantModel: HistoryType.APPLICANT,
     CVModel: HistoryType.CV,
+    RFPModel: HistoryType.RFP,
     ProjectModel: HistoryType.PROJECT,
     InterviewModel: HistoryType.INTERVIEW,
     CompanyModel: HistoryType.COMPANY,
@@ -393,17 +354,21 @@ _history_type_mapping = {
 }
 
 
-def _get_history_type(model_cls: type) -> Optional[HistoryType]:
-    return _history_type_mapping.get(model_cls, None)
+def get_history_type(model_cls: type) -> Optional[HistoryType]:
+    """
+    Retrieves the history type for the given model class.
+    """
+    return _HISTORY_TYPE_MAPPING.get(model_cls, None)
 
 
-_document_related_type_mapping = {
+_DOCUMENT_RELATED_TYPE_MAPPING = {
     AddressModel: DocumentRelatedType.ADDRESS,
     ContactModel: DocumentRelatedType.CONTACT,
     OfferModel: DocumentRelatedType.OFFER,
     ContractModel: DocumentRelatedType.CONTRACT,
-    ApplicantModel: DocumentRelatedType.APPLICATION,
+    ApplicantModel: DocumentRelatedType.APPLICANT,
     CVModel: DocumentRelatedType.CV,
+    RFPModel: DocumentRelatedType.RFP,
     ProjectModel: DocumentRelatedType.PROJECT,
     InterviewModel: DocumentRelatedType.INTERVIEW,
     CompanyModel: DocumentRelatedType.COMPANY,
@@ -413,36 +378,40 @@ _document_related_type_mapping = {
 }
 
 
-def _get_document_related_type(model_cls: type) -> Optional[DocumentRelatedType]:
-    return _document_related_type_mapping.get(model_cls, None)
+def get_document_related_type(model_cls: type) -> Optional[DocumentRelatedType]:
+    """
+    Retrieves the document related type for the given model class.
+    """
+    return _DOCUMENT_RELATED_TYPE_MAPPING.get(model_cls, None)
 
 
-def _handle_related_data(
+def handle_related_data(
     session: Session,
     model: Any,
     instance: Any,
     relationships_data: Dict[str, Any],
     handled_by: str,
-):
-    # Process nested relationships (one-to-one assumed) for updates
+) -> None:
+    """
+    Processes nested relationship data (assumed to be one-to-one or one-to-many)
+    and updates or creates related records.
+    """
     for rel_name, rel_data in relationships_data.items():
         rel_prop = getattr(model, rel_name).property
         related_model = rel_prop.mapper.class_
-        unique_key_constraints = _get_unique_key_constraints(model=related_model)
-        primary_keys = _get_primary_keys(model=related_model)
+        unique_constraints = get_unique_key_constraints(related_model)
+        primary_keys = get_primary_keys(related_model)
+
         if isinstance(rel_data, dict):
-            related_documents = (
-                rel_data.pop("documents") if rel_data.get("documents") else None
-            )
-            # identify by primary keys constraints
-            related_instance = _get_primary_keyed_record(
+            related_documents = rel_data.pop("documents", None)
+            related_instance = get_primary_keyed_record(
                 session=session,
                 model=related_model,
                 data=rel_data,
                 primary_keys=primary_keys,
             )
             if related_instance:
-                related_instance = _update(
+                related_instance = update_record(
                     session=session,
                     model=related_model,
                     record_id=related_instance.id,
@@ -451,15 +420,14 @@ def _handle_related_data(
                     updated_by=handled_by,
                 )
             else:
-                # identify by unique key constraints
-                related_instance = _get_unique_record(
+                related_instance = get_unique_record(
                     session=session,
                     model=related_model,
                     data=rel_data,
-                    unique_key_constraints=unique_key_constraints,
+                    unique_key_constraints=unique_constraints,
                 )
                 if related_instance:
-                    related_instance = _update(
+                    related_instance = update_record(
                         session=session,
                         model=related_model,
                         record_id=related_instance.id,
@@ -468,8 +436,7 @@ def _handle_related_data(
                         updated_by=handled_by,
                     )
                 else:
-                    # is a create related data request
-                    related_instance = _create(
+                    related_instance = create_record(
                         session=session,
                         model=related_model,
                         data=rel_data,
@@ -477,67 +444,54 @@ def _handle_related_data(
                         created_by=handled_by,
                     )
             service_logger.debug(
-                f"Appending related instance '{related_model.__name__}' to relation '{model.__name__}.{rel_name}' ..."
+                f"Appending related instance '{related_model.__name__}' to relationship '{model.__name__}.{rel_name}'"
             )
-            rel = inspect(model).relationships[rel_name]  # get relationship-definition
-            if rel.uselist:
-                # list relationship (One-to-Many / Many-to-Many)
+            if rel_prop.uselist:
                 getattr(instance, rel_name).append(related_instance)
             else:
-                # single relationship (One-to-One / Many-to-One)
                 setattr(instance, rel_name, related_instance)
-            service_logger.debug(
-                f"Appended related instance '{related_model.__name__}' to relation '{model.__name__}.{rel_name}'."
-            )
             session.flush()
 
         elif isinstance(rel_data, list):
-            related_instances = getattr(instance, rel_name)
-            if not related_instances:
-                related_instances = []
-            unique_key_constraints = _get_unique_key_constraints(model=related_model)
-            primary_keys = _get_primary_keys(model=related_model)
-            for rel_list_entry in rel_data:
-                if isinstance(rel_list_entry, dict):
-                    # identify by primary keys constraints
-                    related_instance = _get_primary_keyed_record(
+            related_instances = getattr(instance, rel_name) or []
+            for rel_item in rel_data:
+                if isinstance(rel_item, dict):
+                    related_instance = get_primary_keyed_record(
                         session=session,
                         model=related_model,
-                        data=rel_list_entry,
+                        data=rel_item,
                         primary_keys=primary_keys,
                     )
                     if related_instance:
-                        related_instance = _update(
+                        related_instance = update_record(
                             session=session,
                             model=related_model,
                             record_id=related_instance.id,
-                            data=rel_list_entry,
+                            data=rel_item,
                             documents=None,
                             updated_by=handled_by,
                         )
                     else:
-                        # identify by unique key constraints
-                        related_instance = _get_unique_record(
+                        related_instance = get_unique_record(
                             session=session,
                             model=related_model,
-                            data=rel_list_entry,
-                            unique_key_constraints=unique_key_constraints,
+                            data=rel_item,
+                            unique_key_constraints=unique_constraints,
                         )
                         if related_instance:
-                            related_instance = _update(
+                            related_instance = update_record(
                                 session=session,
                                 model=related_model,
                                 record_id=related_instance.id,
-                                data=rel_list_entry,
+                                data=rel_item,
                                 documents=None,
                                 updated_by=handled_by,
                             )
                         else:
-                            # is a create related data request
-                            related_instance = _create(
+                            related_instance = create_record(
                                 session=session,
                                 model=related_model,
-                                data=rel_list_entry,
+                                data=rel_item,
                                 documents=None,
                                 created_by=handled_by,
                             )
@@ -545,233 +499,163 @@ def _handle_related_data(
                     session.flush()
                 else:
                     raise ValueError(
-                        f"Unsupported list entry type: type '{type(rel_list_entry)}' of name '{rel_name}[]' with data '{rel_list_entry}'."
+                        f"Unsupported list entry type for relationship '{rel_name}': {type(rel_item)}"
                     )
-            service_logger.debug(
-                f"Appending related instance '{related_model.__name__}' to relation '{model.__name__}.{rel_name}' ... "
-            )
             setattr(instance, rel_name, related_instances)
-            service_logger.debug(
-                f"Appended related instance '{related_model.__name__}' to relation '{model.__name__}.{rel_name}'."
-            )
             session.flush()
-
         else:
             raise ValueError(
-                f"Unsupported value type: type '{type(rel_data)}' of name '{rel_name}' with data '{rel_data}'."
+                f"Unsupported type for relationship '{rel_name}': {type(rel_data)}"
             )
 
 
-def _update(
+def update_record(
     session: Session,
-    model: Any,  # the model
+    model: Any,
     record_id: int,
     data: Dict[str, Any],
     documents: Optional[List[Dict[str, Any]]] = None,
     updated_by: str = "system",
-) -> Any:  # The Model
-    """Basic model update (flat + history + documents)
-
-    Args:
-        session (Session): _description_
-        model (Any): _description_
-        data (Dict[str, Any]): _description_
-        documents (Optional[List[Dict[str, Any]]], optional): _description_. Defaults to None.
-        updated_by (str, optional): _description_. Defaults to "system".
-
-    Returns:
-        Any: _description_
+) -> Optional[Any]:
+    """
+    Updates a record (flat fields, history, documents, and relationships) for the given model.
     """
     service_logger.info(
-        f"Request to update {model.__name__} with ID={record_id}:\nData:\n{data}\nDocuments\n{documents}"
+        f"Request to update {model.__name__} with ID={record_id}. Data: {data}, Documents: {documents}"
     )
-    instance = session.query(model).get(record_id)
+    instance = session.get(model, record_id)
     if not instance:
         service_logger.error(f"{model.__name__} with ID={record_id} not found.")
         return None
 
-    # 1. separate into flat, related and odd data
-    flat_fields, relationships_dict_data, relationships_list_data, odd_fields = (
-        _separate_relationship_data(
-            model=model,
-            data=data,
-        )
+    flat_fields, rel_dict_data, rel_list_data, odd_fields = separate_relationship_data(
+        model, data
     )
 
-    # 2. Update flat fields
-    for k, v in flat_fields.items():
-        prop = getattr(model, k).property
-        col_type = prop.columns[0].type
-        if isinstance(col_type, DateTime) and isinstance(v, str):
+    # Update flat fields
+    for key, value in flat_fields.items():
+        col = getattr(model, key).property.columns[0]
+        if isinstance(col.type, DateTime) and isinstance(value, str):
             try:
-                # Expects an ISO 8601 conform string
-                v = datetime.fromisoformat(v)
+                value = datetime.fromisoformat(value)
             except ValueError as e:
-                service_logger.error(
-                    f"ERROR while parsing the date time of {k}='{v}': {e}"
-                )
+                service_logger.error(f"Error parsing datetime for field {key}: {e}")
                 continue
-        setattr(instance, k, v)
-        print(f"Set {k} to {v}")
+        setattr(instance, key, value)
+        service_logger.debug(f"Set {key} to {value}")
     session.flush()
 
-    # 3.1 Update or create related dict data
-    _handle_related_data(
-        session=session,
-        model=model,
-        instance=instance,
-        relationships_data=relationships_dict_data,
-        handled_by=updated_by,
-    )
+    # Process relationship data (both dict and list)
+    handle_related_data(session, model, instance, rel_dict_data, handled_by=updated_by)
+    handle_related_data(session, model, instance, rel_list_data, handled_by=updated_by)
 
-    # 3.2 Update or create related list data
-    _handle_related_data(
-        session=session,
-        model=model,
-        instance=instance,
-        relationships_data=relationships_list_data,
-        handled_by=updated_by,
-    )
-
-    # 4. Handle odd data
     if odd_fields:
-        msg = f"{model.__name__} with ID={record_id} odd fields found:\n{odd_fields}"
+        msg = f"Odd fields found in {model.__name__} update (ID={record_id}): {odd_fields}"
         service_logger.error(msg)
         raise ValueError(msg)
 
-    # 5. Handle History
-    description = (
-        f"Updated {model.__name__} with ID={record_id}:" f"\nModel Data:\n{data}"
-    )
-    # find history type from model
-    history_type = _get_history_type(model_cls=model)
+    # Create history entry if applicable
+    description = f"Updated {model.__name__} (ID={record_id}). Data: {data}"
+    history_type = get_history_type(model)
     if history_type:
-        _create_history_entry(
-            session=session,
+        create_history_entry(
+            session,
             related_type=history_type,
             related_id=record_id,
             description=description,
             created_by=updated_by,
         )
 
-    # 6. Handle Documents
+    # Process documents if provided
     if documents:
-        # find document type from model
-        document_type = _get_document_related_type(model_cls=model)
+        document_type = get_document_related_type(model)
         if document_type:
-            _create_documents(
-                session=session,
+            create_documents(
+                session,
                 related_type=document_type,
                 related_id=record_id,
                 documents=documents,
             )
 
-    # session.commit()
     service_logger.info(description)
     return instance
 
 
-def _create(
+def create_record(
     session: Session,
-    model: Any,  # the Model
+    model: Any,
     data: Dict[str, Any],
     documents: Optional[List[Dict[str, Any]]] = None,
     created_by: str = "system",
 ) -> Any:
+    """
+    Creates a new record for the given model, including handling relationships, history, and documents.
+    """
     service_logger.info(
-        f"Request to create {model.__name__}:\nData:\n{data}\nDocuments\n{documents}"
+        f"Request to create {model.__name__}. Data: {data}, Documents: {documents}"
     )
 
-    # 1. separate into flat, related and odd data
-    flat_fields, relationships_dict_data, relationships_list_data, odd_fields = (
-        _separate_relationship_data(
-            model=model,
-            data=data,
-        )
+    flat_fields, rel_dict_data, rel_list_data, odd_fields = separate_relationship_data(
+        model, data
     )
 
-    # 2. Create main instance with flat fields
     instance = model(**flat_fields)
     session.add(instance)
-    session.flush()  # Assigns primary key
+    session.flush()  # Assign primary key
     record_id = instance.id
 
-    # 3.1 Update or create related data
-    _handle_related_data(
-        session=session,
-        model=model,
-        instance=instance,
-        relationships_data=relationships_dict_data,
-        handled_by=created_by,
-    )
+    # Process related data
+    handle_related_data(session, model, instance, rel_dict_data, handled_by=created_by)
+    handle_related_data(session, model, instance, rel_list_data, handled_by=created_by)
 
-    # 3.2 Update or create related data
-    _handle_related_data(
-        session=session,
-        model=model,
-        instance=instance,
-        relationships_data=relationships_list_data,
-        handled_by=created_by,
-    )
-
-    # 4. Handle odd data
     if odd_fields:
-        msg = f"{model.__name__} with ID={record_id} odd fields found:\n{odd_fields}"
+        msg = f"Odd fields found in {model.__name__} creation (ID={record_id}): {odd_fields}"
         service_logger.error(msg)
         raise ValueError(msg)
 
-    # 5. Handle History
-    description = (
-        f"Created {model.__name__} with ID={record_id}" f"\nModel Data:\n{data}"
-    )
-    # find history type from model
-    history_type = _get_history_type(model_cls=model)
+    description = f"Created {model.__name__} (ID={record_id}). Data: {data}"
+    history_type = get_history_type(model)
     if history_type:
-        _create_history_entry(
-            session=session,
+        create_history_entry(
+            session,
             related_type=history_type,
             related_id=record_id,
             description=description,
             created_by=created_by,
         )
 
-    # 6. Handle Documents
     if documents:
-        # find document type from model
-        document_type = _get_document_related_type(model_cls=model)
+        document_type = get_document_related_type(model)
         if document_type:
-            if documents:
-                _create_documents(
-                    session=session,
-                    related_type=document_type,
-                    related_id=record_id,
-                    documents=documents,
-                )
+            create_documents(
+                session,
+                related_type=document_type,
+                related_id=record_id,
+                documents=documents,
+            )
 
-    # session.commit()
     service_logger.info(description)
     return instance
 
 
 # ------------------------------------------------------------
-# Generische CRUD-Basis-Klasse
+# Base Service for Generic CRUD Operations
 # ------------------------------------------------------------
 
 
 class BaseService:
     """
-    Bietet generische CRUD-Methoden für ein beliebiges Model.
-    Erwartet, dass in den Kindklassen der Klassen-Variablen
-    MODEL, HISTORY_TYPE und DOCUMENT_TYPE korrekt gesetzt sind.
+    Provides generic CRUD methods for any model.
+    Child classes should set the class variables:
+      - MODEL: the SQLAlchemy model (e.g., AddressModel)
+      - HISTORY_TYPE: the corresponding history type (if applicable)
+      - DOCUMENT_TYPE: the corresponding document type (if applicable)
     """
 
-    MODEL = None  # z.B. AddressModel
-    HISTORY_TYPE = None  # z.B. "ADDRESS" oder HistoryType.ADDRESS.value
-    DOCUMENT_TYPE = None  # z.B. "ADDRESS" oder DocumentRelatedType.ADDRESS.value
+    MODEL = None  # e.g., AddressModel
+    HISTORY_TYPE = None
+    DOCUMENT_TYPE = None
 
-    # ----------------------------------------------------------------------------
-    # CRUDs
-    # -----------------------------------------------------------------------------
     @classmethod
     def create(
         cls,
@@ -780,50 +664,38 @@ class BaseService:
         created_by: str = "system",
     ) -> Optional[Dict[str, Any]]:
         with session_scope() as session:
-
-            instance = _create(
+            instance = create_record(
                 session=session,
                 model=cls.MODEL,
                 data=data,
                 documents=documents,
                 created_by=created_by,
             )
-
             if not instance:
                 service_logger.error(
-                    f"{cls.MODEL.__name__} not created. Unable to create or upadte:\n{data}\n{documents}"
+                    f"{cls.MODEL.__name__} not created. Data: {data}, Documents: {documents}"
                 )
                 return None
-
             session.commit()
-            return _expunge(
-                session=session,
-                instance=instance,
-            )
+            return expunge_instance(instance, session)
 
     @classmethod
     def get_by_id(cls, record_id: int) -> Optional[Dict[str, Any]]:
         """
-        Holt einen Datensatz anhand seiner ID.
+        Retrieves a record by its ID.
         """
         with session_scope() as session:
-            record = session.query(cls.MODEL).get(record_id)
-            return _expunge(
-                session=session,
-                instance=record,
-            )
+            record = session.get(cls.MODEL, record_id)
+            return expunge_instance(record, session)
 
     @classmethod
     def get_all(cls, limit: int = 1000) -> List[Dict[str, Any]]:
         """
-        Holt alle Datensätze, optional mit Limit.
+        Retrieves all records, with an optional limit.
         """
         with session_scope() as session:
-            all = session.query(cls.MODEL).limit(limit).all()
-            return _expunge_all(
-                session=session,
-                all=all,
-            )
+            instances = session.query(cls.MODEL).limit(limit).all()
+            return expunge_all(instances, session)
 
     @classmethod
     def get_all_by(
@@ -831,42 +703,27 @@ class BaseService:
     ) -> List[Dict[str, Any]]:
         with session_scope() as session:
             query = session.query(cls.MODEL)
-
-            # Dynamisch Filter anwenden
             for key, value in pattern.items():
                 query = query.filter(getattr(cls.MODEL, key) == value)
-
-            all = query.limit(limit).all()
-            return _expunge_all(
-                session=session,
-                all=all,
-            )
+            instances = query.limit(limit).all()
+            return expunge_all(instances, session)
 
     @classmethod
     def get_first_by(cls, pattern: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         with session_scope() as session:
             query = session.query(cls.MODEL)
-
-            # Dynamisch Filter anwenden
             for key, value in pattern.items():
-                # print(f"{cls.MODEL}.{key}: {getattr(cls.MODEL, key) == value}")
                 query = query.filter(getattr(cls.MODEL, key) == value)
-
-            first = query.first()
-            return _expunge(
-                session=session,
-                instance=first,
-            )
+            instance = query.first()
+            return expunge_instance(instance, session)
 
     @classmethod
-    def get_by_id_with_relations(cls, record_id: int):
-        """Eager loading"""
+    def get_by_id_with_relations(cls, record_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves a record by ID with all related objects loaded (eager loading).
+        """
         with session_scope() as session:
-            return _get_record_with_relations(
-                session=session,
-                model=cls.MODEL,
-                record_id=record_id,
-            )
+            return get_record_with_relations(session, cls.MODEL, record_id)
 
     @classmethod
     def update(
@@ -877,8 +734,7 @@ class BaseService:
         updated_by: str = "system",
     ) -> Optional[Dict[str, Any]]:
         with session_scope() as session:
-
-            instance = _update(
+            instance = update_record(
                 session=session,
                 model=cls.MODEL,
                 record_id=record_id,
@@ -888,143 +744,21 @@ class BaseService:
             )
             if not instance:
                 service_logger.error(
-                    f"{cls.MODEL.__name__} with ID={record_id} not found. Unable to update:\n{data}\n{documents}"
+                    f"{cls.MODEL.__name__} with ID={record_id} not found. Data: {data}, Documents: {documents}"
                 )
                 return None
 
-            rel_name = ""
-            rel_data = {}
-            related_model = None
-            if rel_name == "":
-                pass
-            elif rel_name == "capabilities":
-                cap_data = rel_data.copy()
-                soft_skills = cap_data.pop("soft_skills", [])
-                tech_skills = cap_data.pop("tech_skills", [])
-                capabilities_instance = (
-                    session.query(CapabilitiesModel).filter_by(**cap_data).first()
-                )
-                # Associate soft_skills
-                if not capabilities_instance:
-                    capabilities_instance = related_model(**cap_data)
-                    session.add(capabilities_instance)
-                    session.flush()
-                new_soft_skills = _get_new_skills(
-                    incoming_skills=soft_skills,
-                    existing_skills=capabilities_instance.soft_skills,
-                )
-                for skill_dict in new_soft_skills:
-                    skill = (
-                        session.query(SkillModel)
-                        .filter_by(name=skill_dict["name"], type=skill_dict["type"])
-                        .first()
-                    )
-                    if not skill:
-                        skill = SkillModel(**skill_dict)
-                        session.add(skill)
-                        session.flush()
-                    capabilities_instance.soft_skills.append(skill)
-                    session.flush()
-
-                # Associate tech_skills
-                new_tech_skills = _get_new_skills(
-                    incoming_skills=tech_skills,
-                    existing_skills=capabilities_instance.tech_skills,
-                )
-                for skill_dict in new_tech_skills:
-                    skill = (
-                        session.query(SkillModel)
-                        .filter_by(name=skill_dict["name"], type=skill_dict["type"])
-                        .first()
-                    )
-                    if not skill:
-                        skill = SkillModel(**skill_dict)
-                        session.add(skill)
-                        session.flush()
-                    capabilities_instance.tech_skills.append(skill)
-                    session.flush()
-
-                setattr(instance, rel_name, capabilities_instance)
-                session.flush()
-
-            elif rel_name == "contact":
-                # Handle contact and nested address
-                contact_data = rel_data.copy()
-                address_data = contact_data.pop("address", None)
-                contact_instance = (
-                    session.query(ContactModel).filter_by(**contact_data).first()
-                )
-                if not contact_instance:
-                    contact_instance = related_model(**contact_data)
-                    session.add(contact_instance)
-                    session.flush()
-
-                if address_data:
-                    # Try to find existing address or create new
-                    address_instance = (
-                        session.query(AddressModel).filter_by(**address_data).first()
-                    )
-                    if not address_instance:
-                        address_instance = AddressModel(**address_data)
-                        session.add(address_instance)
-                        session.flush()
-                    contact_data["address_id"] = address_instance.id
-                    session.flush()
-                setattr(instance, rel_name, contact_instance)
-                session.flush()
-            elif rel_name == "offers":
-                service_logger.debug(
-                    f"Updating or Creating an Offer by {cls.MODEL.__name__} with ID={record_id}"
-                )
-                # handle offer
-                offer_data: Dict[str, Any] = rel_data.copy()
-                offer_search = {}
-                offer_id = offer_data.get("id")
-                if offer_id:
-                    offer_search["id"] = offer_id
-                offer_project_id = offer_data.get("project_id")
-                if offer_project_id:
-                    offer_search["project_id"] = offer_project_id
-                offer_number = offer_data.get("offer_number")
-                if offer_number:
-                    offer_search["offer_number"] = offer_number
-                offer_instance = (
-                    session.query(OfferModel).filter_by(**offer_search).first()
-                )
-                if not offer_instance:
-                    offer_instance = related_model(**offer_data)
-                    session.add(offer_instance)
-                    session.flush()
-                setattr(instance, rel_name, offer_instance)
-                session.flush()
-            else:
-                # Fallback generic one-to-one creation
-                related_instance = (
-                    session.query(related_model).filter_by(**rel_data).first()
-                )
-                if not related_instance:
-                    related_instance = related_model(**rel_data)
-                    session.add(related_instance)
-                    session.flush()
-                setattr(instance, rel_name, related_instance)
-                session.flush()
-
+            # Additional relationship-specific handling could go here if needed.
             session.commit()
-            return _expunge(
-                session=session,
-                instance=instance,
-            )
+            return expunge_instance(instance, session)
 
     @classmethod
-    def delete(
-        cls, record_id: int, deleted_by: str = "system"
-    ) -> bool:  # TODO  soft_delete: bool = False,
+    def delete(cls, record_id: int, deleted_by: str = "system") -> bool:
         """
-        Löscht einen Datensatz anhand seiner ID (Hard Delete).
-        Legt zuvor einen History-Eintrag an, um DSGVO-konform das Löschen zu dokumentieren.
+        Deletes a record by its ID (hard delete). Prior to deletion, a history entry is created.
         """
         with session_scope() as session:
-            instance = session.query(cls.MODEL).get(record_id)
+            instance = session.get(cls.MODEL, record_id)
             if not instance:
                 service_logger.error(
                     f"{cls.MODEL.__name__} with ID={record_id} not found."
@@ -1032,14 +766,9 @@ class BaseService:
                 return False
 
             description = f"Deleted {cls.MODEL.__name__} with ID={record_id}"
-            _create_history_entry(
-                session,
-                cls.HISTORY_TYPE,
-                record_id,
-                description,
-                created_by=deleted_by,
+            create_history_entry(
+                session, cls.HISTORY_TYPE, record_id, description, created_by=deleted_by
             )
-
             session.delete(instance)
             session.commit()
             service_logger.info(description)
@@ -1047,148 +776,154 @@ class BaseService:
 
 
 # ------------------------------------------------------------
-# Einzelne Services pro Modell
+# Specific Service Classes per Model
 # ------------------------------------------------------------
 
 
-# Beispiel: Address
 class AddressService(BaseService):
     MODEL = AddressModel
-    # Du kannst hier "ADDRESS" (String) verwenden oder das Enum.
-    HISTORY_TYPE = "ADDRESS"
-    DOCUMENT_TYPE = "ADDRESS"
+    HISTORY_TYPE = HistoryType.ADDRESS
+    DOCUMENT_TYPE = DocumentRelatedType.ADDRESS
 
 
 class ContactService(BaseService):
     MODEL = ContactModel
-    HISTORY_TYPE = "CONTACT"
-    DOCUMENT_TYPE = "CONTACT"
+    HISTORY_TYPE = HistoryType.CONTACT
+    DOCUMENT_TYPE = DocumentRelatedType.CONTACT
 
 
 class SchemaService(BaseService):
     MODEL = SchemaModel
-    HISTORY_TYPE = "SCHEMA"  # so etwas gibt es im Code noch nicht - ggf. anpassen
-    DOCUMENT_TYPE = "SCHEMA"  # dito
+    HISTORY_TYPE = None
+    DOCUMENT_TYPE = None
 
 
 class DocumentService(BaseService):
     MODEL = DocumentModel
-    HISTORY_TYPE = "DOCUMENT"  # ggf. anpassen
-    DOCUMENT_TYPE = "DOCUMENT"  # selten genutzt, da Documents zu sich selbst?
+    HISTORY_TYPE = None
+    DOCUMENT_TYPE = None
 
 
 class HistoryService(BaseService):
     MODEL = HistoryModel
-    HISTORY_TYPE = "HISTORY"
-    DOCUMENT_TYPE = "HISTORY"
+    HISTORY_TYPE = None
+    DOCUMENT_TYPE = None
 
 
 class SkillService(BaseService):
     MODEL = SkillModel
-    HISTORY_TYPE = "SKILL"  # so etwas gibt es noch nicht - bei Bedarf anlegen
-    DOCUMENT_TYPE = "SKILL"
+    HISTORY_TYPE = None
+    DOCUMENT_TYPE = None
 
 
 class CapabilitiesService(BaseService):
     MODEL = CapabilitiesModel
-    HISTORY_TYPE = "CAPABILITIES"
-    DOCUMENT_TYPE = "CAPABILITIES"
+    HISTORY_TYPE = HistoryType.CAPABILITIES
+    DOCUMENT_TYPE = DocumentRelatedType.CAPABILITIES
 
 
 class FreelancerService(BaseService):
     MODEL = FreelancerModel
-    HISTORY_TYPE = "FREELANCER"
-    DOCUMENT_TYPE = "FREELANCER"
+    HISTORY_TYPE = HistoryType.FREELANCER
+    DOCUMENT_TYPE = DocumentRelatedType.FREELANCER
 
 
 class CVService(BaseService):
     MODEL = CVModel
-    HISTORY_TYPE = "CV"
-    DOCUMENT_TYPE = "CV"
+    HISTORY_TYPE = HistoryType.CV
+    DOCUMENT_TYPE = DocumentRelatedType.CV
 
 
 class EmployeeService(BaseService):
     MODEL = EmployeeModel
-    HISTORY_TYPE = "EMPLOYEE"
-    DOCUMENT_TYPE = "EMPLOYEE"
+    HISTORY_TYPE = HistoryType.EMPLOYEE
+    DOCUMENT_TYPE = DocumentRelatedType.EMPLOYEE
 
 
 class ApplicantService(BaseService):
     MODEL = ApplicantModel
-    HISTORY_TYPE = "APPLICANT"
-    DOCUMENT_TYPE = "APPLICANT"
+    HISTORY_TYPE = HistoryType.APPLICANT
+    DOCUMENT_TYPE = DocumentRelatedType.APPLICANT
+
+
+class IndustryService(BaseService):
+    MODEL = IndustryModel
+    HISTORY_TYPE = None
+    DOCUMENT_TYPE = None
+
+
+class RegionService(BaseService):
+    MODEL = RegionModel
+    HISTORY_TYPE = None
+    DOCUMENT_TYPE = None
 
 
 class CompanyService(BaseService):
     MODEL = CompanyModel
-    HISTORY_TYPE = "COMPANY"
-    DOCUMENT_TYPE = "COMPANY"
+    HISTORY_TYPE = HistoryType.COMPANY
+    DOCUMENT_TYPE = DocumentRelatedType.COMPANY
+
+
+class RFPService(BaseService):
+    MODEL = RFPModel
+    HISTORY_TYPE = HistoryType.RFP
+    DOCUMENT_TYPE = DocumentRelatedType.RFP
 
 
 class ProjectService(BaseService):
     MODEL = ProjectModel
-    HISTORY_TYPE = "PROJECT"
-    DOCUMENT_TYPE = "PROJECT"
+    HISTORY_TYPE = HistoryType.PROJECT
+    DOCUMENT_TYPE = DocumentRelatedType.PROJECT
 
 
 class InterviewService(BaseService):
     MODEL = InterviewModel
-    HISTORY_TYPE = "INTERVIEW"
-    DOCUMENT_TYPE = "INTERVIEW"
+    HISTORY_TYPE = HistoryType.INTERVIEW
+    DOCUMENT_TYPE = DocumentRelatedType.INTERVIEW
 
 
 class ContractService(BaseService):
     MODEL = ContractModel
-    HISTORY_TYPE = "CONTRACT"
-    DOCUMENT_TYPE = "CONTRACT"
+    HISTORY_TYPE = HistoryType.CONTRACT
+    DOCUMENT_TYPE = DocumentRelatedType.CONTRACT
 
 
 class WorkPackageService(BaseService):
     MODEL = WorkPackageModel
-    HISTORY_TYPE = "WORKPACKAGE"
-    DOCUMENT_TYPE = "WORKPACKAGE"
+    HISTORY_TYPE = HistoryType.WORKPACKAGE
+    DOCUMENT_TYPE = DocumentRelatedType.WORKPACKAGE
 
 
 class OfferService(BaseService):
     MODEL = OfferModel
-    HISTORY_TYPE = "OFFER"
-    DOCUMENT_TYPE = "OFFER"
+    HISTORY_TYPE = HistoryType.OFFER
+    DOCUMENT_TYPE = DocumentRelatedType.OFFER
 
 
-# ----------------------------------------------------------
-# SPEZIFISCHE Lese-Hilfsmethoden
-# ----------------------------------------------------------
+# ------------------------------------------------------------
+# Additional Read and Transform Services
+# ------------------------------------------------------------
 
 
 class ReadService:
     """
-    Dienst-Klasse zum Auslesen spezieller verknüpfter Entitäten,
-    z.B. Dokumente, History, Soft-/Tech-Skills etc.
+    Service class for retrieving related entities such as documents, history, and skills.
     """
 
     @staticmethod
     def get_documents_for(
         related_type: DocumentRelatedType, record_id: int
     ) -> List[Dict[str, Any]]:
-        """
-        Liest alle Dokumente aus, die mit einer bestimmten Instanz verknüpft sind.
-        """
         with session_scope() as session:
-            documents = (
+            docs = (
                 session.query(DocumentModel)
                 .filter_by(related_type=related_type, related_id=record_id)
                 .all()
             )
-            return _expunge_all(
-                session=session,
-                all=documents,
-            )
+            return expunge_all(docs, session)
 
     @staticmethod
     def get_history_for(hist_type: HistoryType, record_id: int) -> List[Dict[str, Any]]:
-        """
-        Liest alle History-Einträge aus, die mit einer bestimmten Instanz verknüpft sind.
-        """
         with session_scope() as session:
             if not hist_type:
                 return []
@@ -1197,78 +932,40 @@ class ReadService:
                 .filter_by(related_type=hist_type, related_id=record_id)
                 .all()
             )
-            return _expunge_all(
-                session=session,
-                all=histories,
-            )
+            return expunge_all(histories, session)
 
     @staticmethod
     def get_soft_skills(capabilities_id: int) -> List[Dict[str, Any]]:
-        """
-        Gibt alle Soft-Skills (SkillModel.type == 'soft') zurück,
-        die einer CapabilitiesModel-Instanz zugeordnet sind.
-        Hinweis: In main_models.py verknüpfen wir CapabilitiesModel und SkillModel
-        über die Tabelle `soft_skills`.
-        """
         with session_scope() as session:
-            capabilities: CapabilitiesModel = session.query(CapabilitiesModel).get(
-                capabilities_id
+            capabilities: CapabilitiesModel = session.get(
+                CapabilitiesModel, capabilities_id
             )
             if not capabilities:
                 return []
-            # Durch die Relationship in main_models.py können wir direkt zugreifen:
-            #   capabilities.soft_skills -> List[SkillModel]
-            # Alternativ könnte man filtern, wenn SkillModel.type == "soft"
-            soft_skills = capabilities.soft_skills
-            return _expunge_all(
-                session=session,
-                all=soft_skills,
-            )
+            return expunge_all(capabilities.soft_skills, session)
 
     @staticmethod
     def get_tech_skills(capabilities_id: int) -> List[Dict[str, Any]]:
-        """
-        Analog zu get_soft_skills, nur für tech_skills.
-        """
         with session_scope() as session:
-            capabilities: CapabilitiesModel = session.query(CapabilitiesModel).get(
-                capabilities_id
+            capabilities: CapabilitiesModel = session.get(
+                CapabilitiesModel, capabilities_id
             )
             if not capabilities:
                 return []
-            tech_skills = capabilities.tech_skills
-            return _expunge_all(
-                session=session,
-                all=tech_skills,
-            )
+            return expunge_all(capabilities.tech_skills, session)
 
     @staticmethod
-    def get_freelancer_by_name(name: str) -> Dict[str, Any]:
-        """
-        Retrieve a FreelancerModel instance by name.
-
-        If no session is provided, a new one is created for this query.
-        """
+    def get_freelancer_by_name(name: str) -> Optional[Dict[str, Any]]:
         with session_scope() as session:
             try:
-                freelencaer = (
-                    session.query(FreelancerModel).filter_by(name=name).first()
-                )
-                return _expunge(
-                    session=session,
-                    instance=freelencaer,
-                )
+                freelancer = session.query(FreelancerModel).filter_by(name=name).first()
+                return expunge_instance(freelancer, session)
             except Exception as e:
                 service_logger.error(f"Unable to get freelancer by name '{name}': {e}")
                 return None
 
     @staticmethod
     def get_cv_by_freelancer_id(freelancer_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Retrieve a CVModel instance by freelancer_id.
-
-        If no session is provided, a new one is created for this query.
-        """
         with session_scope() as session:
             try:
                 cv = (
@@ -1276,10 +973,7 @@ class ReadService:
                     .filter_by(freelancer_id=freelancer_id)
                     .first()
                 )
-                return _expunge(
-                    session=session,
-                    instance=cv,
-                )
+                return expunge_instance(cv, session)
             except Exception as e:
                 service_logger.error(
                     f"Unable to get CV by freelancer id '{freelancer_id}': {e}"
@@ -1289,21 +983,175 @@ class ReadService:
     @staticmethod
     def get_all_projects_from_db(
         project_status: ProjectStatus = ProjectStatus.NEW,
-    ) -> list[ProjectModel]:
+    ) -> Optional[List[Dict[str, Any]]]:
         with session_scope() as session:
             try:
-                projects: list[ProjectModel] = (
+                projects = (
                     session.query(ProjectModel)
                     .filter(ProjectModel.status == project_status)
                     .all()
                 )
-                return _expunge_all(
-                    session=session,
-                    all=projects,
-                )
+                return expunge_all(projects, session)
             except Exception as e:
                 service_logger.error(
-                    __name__,
-                    f"Error loading projects from db for status {project_status}: {e}",
+                    f"Error loading projects from DB for status {project_status}: {e}"
                 )
                 return None
+
+    @staticmethod
+    def get_source_rule_unique_rfp_record(
+        source: RFPSource,
+        contact_person_email: Optional[str] = None,
+        title: Optional[str] = None,
+        original_link: Optional[str] = None,
+        provider: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Gets depending on the source rule an unique rfp record.
+
+            required_fields_map = {
+                RFPSource.EMAIL: {"contact_person_email": contact_person_email, "title": title},
+                RFPSource.ONLINE: {"original_link": original_link},
+                RFPSource.MANUAL: {"provider": provider, "title": title},
+            }
+
+        Args:
+            source (RFPSource): The RFPSource.
+            contact_person_email (Optional[str], optional): The RFP contact person email. Defaults to None.
+            title (Optional[str], optional): The RFP title. Defaults to None.
+            original_link (Optional[str], optional): The RFP original link. Defaults to None.
+            provider (Optional[str], optional): The RFP provider. Defaults to None.
+
+        Raises:
+            ValueError: If the source is unknown.
+            ValueError: IF one of the mandatory arguments depending on the source rule above are missing.
+            error: Any error. (traceback will be printed.)
+
+        Returns:
+            Optional[Dict[str, Any]]: The indentified rfp or None if none.
+        """
+        try:
+            # Mapping which defines the required fields and their values depending on the source
+            required_fields_map = {
+                RFPSource.EMAIL: {
+                    "contact_person_email": contact_person_email,
+                    "title": title,
+                },
+                RFPSource.ONLINE: {"original_link": original_link},
+                RFPSource.MANUAL: {"provider": provider, "title": title},
+            }
+
+            # Check if the provided source value is valid
+            if source not in required_fields_map:
+                raise ValueError(f"Unknown RFP source: {source}")
+
+            # Validate the required parameters
+            required_fields = required_fields_map[source]
+            for field_name, value in required_fields.items():
+                if not value:
+                    raise ValueError(
+                        f"If matching for {source}, argument '{field_name}' must not be None"
+                    )
+
+            # Use the validated dictionary as query parameters
+            return RFPService.get_first_by(pattern=required_fields)
+        except Exception as error:
+            service_logger.error(
+                f"Error retrieving RFP record for source: {source}, query: {required_fields}. Exception: {error}"
+            )
+            traceback.print_exception(type(error), error, error.__traceback__)
+            raise error  # do not hide critical exceptions here
+
+
+class TransformService:
+    """
+    Provides helper functions for transforming data, such as date parsing and converting lists to text.
+    """
+
+    @classmethod
+    def parse_date(cls, date_str: str) -> Optional[Any]:
+        """
+        Parses a date string (formats like "dd.mm.yyyy" or "mm.yyyy") and returns a date object.
+        """
+        if not date_str:
+            return None
+        try:
+            return parser.parse(date_str, dayfirst=True).date()
+        except Exception as e:
+            service_logger.error(f"Error parsing date '{date_str}': {e}")
+            return None
+
+    @classmethod
+    def convert_list_to_text(cls, lst: List[str]) -> str:
+        """
+        Converts a list of strings to a comma-separated string.
+        """
+        if not lst:
+            return ""
+        return ", ".join(lst)
+
+    @classmethod
+    def create_project_from_rfp(
+        cls,
+        rfp: Dict[str, Any],
+        company_id: Optional[int] = None,
+        created_by: str = "system",
+    ) -> Dict[str, Any]:
+        """
+        Creates a ProjectModel record from an RFP dictionary.
+        """
+        project = ProjectModel()
+        project.title = rfp.get("title")
+        project.description = rfp.get("description")
+        project.location = str(rfp.get("location")) if rfp.get("location") else None
+
+        company: Optional[Dict[str, Any]] = None
+        if company_id:
+            company = CompanyService.get_by_id(record_id=company_id)
+        if not company:
+            company_data = {
+                "name": rfp.get("provider"),
+                "industries": [rfp.get("industry")],
+                "regions": [rfp.get("region")],
+                "website": rfp.get("provider_link"),
+            }
+            company_id = CompanyService.create(
+                data=company_data, documents=None, created_by=created_by
+            )
+        project.company_id = company_id
+
+        project.must_haves = cls.convert_list_to_text(rfp.get("must_have_requirements"))
+        project.nice_to_haves = cls.convert_list_to_text(
+            rfp.get("nice_to_have_requirements")
+        )
+        project.tasks = cls.convert_list_to_text(rfp.get("tasks"))
+        project.responsibilities = cls.convert_list_to_text(rfp.get("responsibilities"))
+        project.hourly_rate = rfp.get("max_hourly_rate")
+        project.other_conditions = rfp.get("other_conditions")
+        project.contact_person = rfp.get("contact_person")
+        project.contact_person_email = rfp.get("contact_person_email")
+        project.provider = rfp.get("provider")
+        project.provider_link = rfp.get("provider_link")
+        project.original_link = rfp.get("original_link")
+        project.start_date = cls.parse_date(rfp.get("start_date"))
+        project.end_date = cls.parse_date(rfp.get("end_date"))
+
+        if rfp.get("duration"):
+            project.duration = str(rfp.get("duration"))
+        elif project.start_date and project.end_date:
+            delta_months = (project.end_date.year - project.start_date.year) * 12 + (
+                project.end_date.month - project.start_date.month
+            )
+            project.duration = str(delta_months)
+        else:
+            project.duration = None
+
+        project.extension_option = (
+            str(rfp.get("extension_option")) if rfp.get("extension_option") else None
+        )
+        project.status = ProjectStatus.NEW
+        project_data = project.to_dict()
+        project_data.pop("id")
+        return ProjectService.create(
+            data=project_data,
+            created_by=created_by,
+        )

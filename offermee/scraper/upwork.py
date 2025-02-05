@@ -17,7 +17,7 @@ class UpworkScraper(BaseScraper):
         super().__init__(self.BASE_URL)
         # Upwork-specific configurations could be added here.
 
-    def fetch_projects(self, query, max_results=10):
+    def fetch_rfps(self, query, max_results=10):
         """
         Fetches projects from Upwork based on the search query.
         """
@@ -55,7 +55,7 @@ class UpworkScraper(BaseScraper):
             self.logger.error(f"Allgemeiner Fehler beim Abrufen von Projekten: {e}")
             return []
 
-    def fetch_projects_paginated(
+    def fetch_rfps_paginated(
         self,
         query=None,
         categories=None,
@@ -75,7 +75,7 @@ class UpworkScraper(BaseScraper):
         all_projects = []
         for page in range(1, max_pages + 1):
             current_query = f"{query} page:{page}"
-            projects = self.fetch_projects(query=current_query, max_results=max_results)
+            projects = self.fetch_rfps(query=current_query, max_results=max_results)
 
             if not projects:
                 break  # No more projects found

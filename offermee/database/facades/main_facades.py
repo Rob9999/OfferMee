@@ -6,6 +6,7 @@ from offermee.database.models.main_models import (
     DocumentRelatedType,
     HistoryType,
     ProjectStatus,
+    RFPSource,
 )
 from offermee.database.services.main_services import (
     AddressService,
@@ -23,9 +24,11 @@ from offermee.database.services.main_services import (
     InterviewService,
     OfferService,
     ProjectService,
+    RFPService,
     ReadService,
     SchemaService,
     SkillService,
+    TransformService,
     WorkPackageService,
 )
 from offermee.logger import CentralLogger
@@ -125,105 +128,110 @@ class BaseFacade:
 # Beispiel: Address
 class AddressFacade(BaseFacade):
     SERVICE = AddressService
-    # Du kannst hier "ADDRESS" (String) verwenden oder das Enum.
-    HISTORY_TYPE = "ADDRESS"
-    DOCUMENT_TYPE = "ADDRESS"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class ContactFacade(BaseFacade):
     SERVICE = ContactService
-    HISTORY_TYPE = "CONTACT"
-    DOCUMENT_TYPE = "CONTACT"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class SchemaFacade(BaseFacade):
     SERVICE = SchemaService
-    HISTORY_TYPE = "SCHEMA"  # so etwas gibt es im Code noch nicht - ggf. anpassen
-    DOCUMENT_TYPE = "SCHEMA"  # dito
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class DocumentFacade(BaseFacade):
     SERVICE = DocumentService
-    HISTORY_TYPE = "DOCUMENT"  # ggf. anpassen
-    DOCUMENT_TYPE = "DOCUMENT"  # selten genutzt, da Documents zu sich selbst?
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class HistoryFacade(BaseFacade):
     SERVICE = HistoryService
-    HISTORY_TYPE = "HISTORY"
-    DOCUMENT_TYPE = "HISTORY"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class SkillFacade(BaseFacade):
     SERVICE = SkillService
-    HISTORY_TYPE = "SKILL"  # so etwas gibt es noch nicht - bei Bedarf anlegen
-    DOCUMENT_TYPE = "SKILL"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class CapabilitiesFacade(BaseFacade):
     SERVICE = CapabilitiesService
-    HISTORY_TYPE = "CAPABILITIES"
-    DOCUMENT_TYPE = "CAPABILITIES"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class FreelancerFacade(BaseFacade):
     SERVICE = FreelancerService
-    HISTORY_TYPE = "FREELANCER"
-    DOCUMENT_TYPE = "FREELANCER"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class CVFacade(BaseFacade):
     SERVICE = CVService
-    HISTORY_TYPE = "CV"
-    DOCUMENT_TYPE = "CV"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class EmployeeFacade(BaseFacade):
     SERVICE = EmployeeService
-    HISTORY_TYPE = "EMPLOYEE"
-    DOCUMENT_TYPE = "EMPLOYEE"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class ApplicantFacade(BaseFacade):
     SERVICE = ApplicantService
-    HISTORY_TYPE = "APPLICANT"
-    DOCUMENT_TYPE = "APPLICANT"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class CompanyFacade(BaseFacade):
     SERVICE = CompanyService
-    HISTORY_TYPE = "COMPANY"
-    DOCUMENT_TYPE = "COMPANY"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
+
+
+class RFPFacade(BaseFacade):
+    SERVICE = RFPService
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class ProjectFacade(BaseFacade):
     SERVICE = ProjectService
-    HISTORY_TYPE = "PROJECT"
-    DOCUMENT_TYPE = "PROJECT"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class InterviewFacade(BaseFacade):
     SERVICE = InterviewService
-    HISTORY_TYPE = "INTERVIEW"
-    DOCUMENT_TYPE = "INTERVIEW"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class ContractFacade(BaseFacade):
     SERVICE = ContractService
-    HISTORY_TYPE = "CONTRACT"
-    DOCUMENT_TYPE = "CONTRACT"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class WorkPackageFacade(BaseFacade):
     SERVICE = WorkPackageService
-    HISTORY_TYPE = "WORKPACKAGE"
-    DOCUMENT_TYPE = "WORKPACKAGE"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 class OfferFacade(BaseFacade):
     SERVICE = OfferService
-    HISTORY_TYPE = "OFFER"
-    DOCUMENT_TYPE = "OFFER"
+    HISTORY_TYPE = SERVICE.HISTORY_TYPE
+    DOCUMENT_TYPE = SERVICE.DOCUMENT_TYPE
 
 
 # ----------------------------------------------------------
@@ -313,6 +321,45 @@ class ReadFacade:
         return ReadService.get_all_projects_from_db(project_status=project_status)
 
     @staticmethod
+    def get_source_rule_unique_rfp_record(
+        source: RFPSource,
+        contact_person_email: Optional[str] = None,
+        title: Optional[str] = None,
+        original_link: Optional[str] = None,
+        provider: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Gets depending on the source rule an unique rfp record.
+
+            required_fields_map = {
+                RFPSource.EMAIL: {"contact_person_email": contact_person_email, "title": title},
+                RFPSource.ONLINE: {"original_link": original_link},
+                RFPSource.MANUAL: {"provider": provider, "title": title},
+            }
+
+        Args:
+            source (RFPSource): The RFPSource.
+            contact_person_email (Optional[str], optional): The RFP contact person email. Defaults to None.
+            title (Optional[str], optional): The RFP title. Defaults to None.
+            original_link (Optional[str], optional): The RFP original link. Defaults to None.
+            provider (Optional[str], optional): The RFP provider. Defaults to None.
+
+        Raises:
+            ValueError: If the source is unknown.
+            ValueError: IF one of the mandatory arguments depending on the source rule above are missing.
+            error: Any error. (traceback will be printed.)
+
+        Returns:
+            Optional[Dict[str, Any]]: The indentified rfp or None if none.
+        """
+        return ReadService.get_source_rule_unique_rfp_record(
+            source=source,
+            contact_person_email=contact_person_email,
+            title=title,
+            original_link=original_link,
+            provider=provider,
+        )
+
+    @staticmethod
     def load_cv_from_db(freelancer_id: int):
         cv = ReadService.get_cv_by_freelancer_id(freelancer_id=freelancer_id)
         if not cv:
@@ -328,3 +375,42 @@ class ReadFacade:
                     f"Error parsing JSON CV for freelancer_id #{freelancer_id}: {e1} {e2}",
                 )
                 return None
+
+
+# ----------------------------------------------------------
+# SPEZIFISCHE Transformation-Hilfsmethoden
+# ----------------------------------------------------------
+class TransformFacade:
+    """
+    Provides helper functions for transforming data, such as date parsing and converting lists to text.
+    """
+
+    @classmethod
+    def parse_date(cls, date_str: str) -> Optional[Any]:
+        """
+        Parses a date string (formats like "dd.mm.yyyy" or "mm.yyyy") and returns a date object.
+        """
+        return TransformService.parse_date(date_str=date_str)
+
+    @classmethod
+    def convert_list_to_text(cls, lst: List[str]) -> str:
+        """
+        Converts a list of strings to a comma-separated string.
+        """
+        return TransformService.convert_list_to_text(lst=lst)
+
+    @classmethod
+    def create_project_from_rfp(
+        cls,
+        rfp: Dict[str, Any],
+        company_id: Optional[int] = None,
+        created_by: str = "system",
+    ) -> Dict[str, Any]:
+        """
+        Creates a Project record from an RFP dictionary.
+        """
+        return TransformService.create_project_from_rfp(
+            rfp=rfp,
+            company_id=company_id,
+            created_by=created_by,
+        )

@@ -95,14 +95,14 @@
 					],
 					"description": "Email of the contact person for the project (if available)"
 				},
-				"project-provider": {
+				"provider": {
 					"type": [
 						"string",
 						"null"
 					],
 					"description": "Project provider (if available)"
 				},
-				"project-provider-link": {
+				"provider-link": {
 					"type": [
 						"string",
 						"null"

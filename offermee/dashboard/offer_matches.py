@@ -2,6 +2,7 @@ from asyncio import sleep
 import datetime
 import json
 from typing import Any, Dict, List, Optional
+import base64
 import streamlit as st
 from offermee.config import Config
 from offermee.exporter.pdf_exporter import export_cv_to_pdf
@@ -20,9 +21,11 @@ from offermee.database.facades.main_facades import (
     CapabilitiesFacade,
     FreelancerFacade,
     ProjectFacade,
+    RFPFacade,
     ReadFacade,
+    TransformFacade,
 )
-from offermee.database.models.main_models import OfferStatus, ProjectStatus
+from offermee.database.models.main_models import OfferStatus, ProjectStatus, RFPStatus
 from offermee.enums.process_status import Status
 from offermee.matcher.skill_matcher import SkillMatcher
 from offermee.matcher.price_matcher import PriceMatcher
@@ -105,27 +108,27 @@ def offer_matcher_render():
             )
             == False
         ):
-            # fetch for new RFPs
-            projects: List[Dict[str, Any]] = ProjectFacade.get_all_by(
-                {"status": ProjectStatus.NEW}
+            # fetch for new RFPs in database
+            rfp_records: List[Dict[str, Any]] = RFPFacade.get_all_by(
+                {"status": RFPStatus.NEW}
             )
-            projects_count = len(projects)
-            for new_rfp in projects:
+            rfp_count = len(rfp_records)
+            for new_rfp_record in rfp_records:
                 new_rfp = {
-                    "data": new_rfp,
+                    "data": new_rfp_record,
                     "offered_cvs": [],
                     "offer": None,
                     "status": Status.NEW,
                 }
                 rfps.append(new_rfp)
-            if projects_count <= 0:
+            if rfp_count <= 0:
                 log_info(
-                    __name__, "No new projects in db. User must go to scrap some first."
+                    __name__, "No new RFPs in db. User must go to scrap some first."
                 )
                 st.warning(_T("No new RFPs stored, let’s start scraping projects!"))
                 st.stop()
             else:
-                log_info(__name__, f"Current new stored RFPs': {projects_count}")
+                log_info(__name__, f"Current new stored RFPs': {rfp_count}")
                 st.rerun()
 
         else:  # new RPS are available
@@ -178,17 +181,17 @@ def offer_matcher_render():
                 __name__, f"Freelancer #{current_process.get('freelancer-id')} is found"
             )
             st.success(f"{_T('Freelancer')} {freelancer.get('name')} {_T('is found')}")
-            for new_rfp_entry in new_rfps:
-                new_rfp = new_rfp_entry.get("data")
-                log_info(__name__, f"Matching project {new_rfp.get('title')}")
-                key_rfp = f"rfp#{new_rfp.get('id')}"
+            for new_rfp in new_rfps:
+                new_rfp_record = new_rfp.get("data")
+                log_info(__name__, f"Matching project {new_rfp_record.get('title')}")
+                key_rfp = f"rfp#{new_rfp_record.get('id')}"
                 match_score, skill_details = SkillMatcher.match_skills(
-                    new_rfp, freelancer_tech_skills
+                    new_rfp_record, freelancer_tech_skills
                 )
-                if new_rfp.get("hourly_rate"):
+                if new_rfp_record.get("hourly_rate"):
                     if freelancer_desired_rate:
                         price_score = PriceMatcher.match_price(
-                            new_rfp, freelancer_desired_rate
+                            new_rfp_record, freelancer_desired_rate
                         )
                     else:
                         # freelancer would accept any rate
@@ -199,11 +202,13 @@ def offer_matcher_render():
                     price_score * 0.3
                 )  # Gewichtung anpassen
 
-                st.subheader(new_rfp.get("title"))
-                st.write(f"**{_T('Description')}:** {new_rfp.get('description')}")
+                st.subheader(new_rfp_record.get("title"))
+                st.write(
+                    f"**{_T('Description')}:** {new_rfp_record.get('description')}"
+                )
                 st.write(f"**{_T('Match Score')}:** {total_score:.2f}%")
                 st.write(
-                    f"[{_T('Link to the Project')}]({new_rfp.get('original_link')})"
+                    f"[{_T('Link to the Project')}]({new_rfp_record.get('original_link')})"
                 )
 
                 with st.expander(_T("Details")):
@@ -211,27 +216,27 @@ def offer_matcher_render():
                     for skill, details in skill_details.items():
                         if (
                             details["matched"]
-                            and new_rfp.get("must_haves")
-                            and skill in new_rfp.get("must_haves").lower()
+                            and new_rfp_record.get("must_haves")
+                            and skill in new_rfp_record.get("must_haves").lower()
                         ):
                             st.write(f"- {skill} ({_T('Score')}: {details['score']})")
                     st.write(f"**{_T('Nice-To-Have Skills')}:**")
                     for skill, details in skill_details.items():
                         if (
                             details["matched"]
-                            and new_rfp.get("nice_to_haves")
-                            and skill in new_rfp.get("nice_to_haves").lower()
+                            and new_rfp_record.get("nice_to_haves")
+                            and skill in new_rfp_record.get("nice_to_haves").lower()
                         ):
                             st.write(f"- {skill} ({_T('Score')}: {details['score']})")
                     st.write(f"**{_T('Preis-Matching-Score')}:** {price_score:.2f}%")
 
                 if st.button(
-                    f"{_T('Make an offer for RFP')}: {new_rfp.get('title')}",
-                    key=f"make_offer_for_rfp_{new_rfp.get('id')}",
+                    f"{_T('Make an offer for RFP')}: {new_rfp_record.get('title')}",
+                    key=f"make_offer_for_rfp_{new_rfp_record.get('id')}",
                 ):
-                    current_process["rfp-id"] = new_rfp.get("id")
+                    current_process["rfp-id"] = new_rfp_record.get("id")
 
-                if current_process.get("rfp-id") == new_rfp.get("id"):
+                if current_process.get("rfp-id") == new_rfp_record.get("id"):
                     key_rfp_offer = key_rfp + "_offer"
                     key_rfp_offer_freelancer = (
                         key_rfp_offer + f"_freelancer#{freelancer.get('id')}"
@@ -239,7 +244,7 @@ def offer_matcher_render():
                     key_rfp_offer_cvs = key_rfp_offer_freelancer + f"_cvs"
                     path_offer_process = join_container_path(
                         path_current_process,
-                        f"offer_process_freelancer-id#{freelancer.get('id')}_rfp-id#{new_rfp.get('id')}",
+                        f"offer_process_freelancer-id#{freelancer.get('id')}_rfp-id#{new_rfp_record.get('id')}",
                     )
                     if freelancer_entry:
                         st.button(
@@ -286,7 +291,7 @@ def offer_matcher_render():
                         if not freelancer_desired_rate_min:
                             freelancer_desired_rate_min = 0.0
                         st.markdown(
-                            f"***{_T('Making Offer for RFP')}: {new_rfp.get('title')}***"
+                            f"***{_T('Making Offer for RFP')}: {new_rfp_record.get('title')}***"
                         )
                         adjusts_widget = st.container(
                             key=key_rfp_offer_freelancer + "_adjusts"
@@ -440,7 +445,7 @@ def offer_matcher_render():
                                         path_offer_template,
                                         freelancer.get("offer_template"),
                                     ),
-                                    rfp=new_rfp,
+                                    rfp=new_rfp_record,
                                     freelancer=freelancer,
                                     rates={
                                         "hourly_rate_remote": container.get_value(
@@ -487,14 +492,15 @@ def offer_matcher_render():
                                 key=path_offer_process,
                                 on_click=send_offer_callback,
                                 args=(
-                                    new_rfp_entry,
                                     new_rfp,
+                                    new_rfp_record,
                                     container.get_value(path_offer_content),
                                     [
                                         container.get_value(
                                             path_offer_selected_cv_pdf_path_name
                                         )
                                     ],
+                                    operator,
                                 ),
                             )
     except Exception as e:
@@ -512,10 +518,6 @@ def export_selected_cv(selected_cv_id: int, cvs: List[Dict[str, Any]]):
         selected_cv.get("name"),
         json.loads(selected_cv.get("cv_structured_data")),
     )
-
-
-import base64
-import streamlit as st
 
 
 def show_pdf(file_path):
@@ -576,6 +578,7 @@ def send_offer_callback(
     new_rfp: Dict[str, Any],
     final_content: str,
     attachments: List[str],
+    operator: str,
 ):
     log_info(__name__, f"Generated offer: \n{final_content}")
 
@@ -597,9 +600,14 @@ def send_offer_callback(
     )
     st.success(_T("Offer successfully sended!"))
 
-    # Daten updaten:
-    new_rfp["status"] = ProjectStatus.IN_PROGRESS
-    new_rfp["offers"] = {
+    # convert rfp to project
+    new_project = TransformFacade.create_project_from_rfp(
+        rfp=new_rfp,
+        created_by=operator,
+    )
+    # prepare update:
+    new_project["status"] = ProjectStatus.OFFER_SENT
+    new_project["offers"] = {
         "project_id": new_rfp.get("id"),
         "offer_number": datetime.date.today().isoformat(),
         "title": new_rfp.get("title"),
@@ -609,8 +617,14 @@ def send_offer_callback(
         "offer_text": final_content,
         "sent_date": datetime.datetime.now(),
     }
-    ProjectFacade.update(new_rfp.get("id"), new_rfp)
+    # update project and offer records
+    ProjectFacade.update(
+        record_id=new_project.get("id"),
+        data=new_project,
+        created_by=operator,
+    )
     new_rfp_entry["offer_written"] = True
     new_rfp_entry["sent"] = datetime.datetime.now()
     new_rfp_entry["status"] = Status.SAVED
+    st.success(_T("New Project and Offer successfully saved."))
     # sleep(3)

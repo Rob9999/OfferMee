@@ -14,7 +14,7 @@ from offermee.dashboard.helpers.web_dashboard import (
     log_info,
     log_error,
 )
-from offermee.AI.project_processor import ProjectProcessor
+from offermee.AI.project_processor import RFPProcessor
 from offermee.dashboard.widgets.db_utils import save_to_db
 from offermee.enums.process_status import Status
 from offermee.schemas.json.schema_loader import get_schema, validate_json
@@ -112,8 +112,8 @@ def rfp_manual_input_render():
     if rfp["raw_text"].strip() and rfp["status"] not in ["analyzed", "validated"]:
         if st.button("Analyze Raw Input (AI)"):
             try:
-                processor = ProjectProcessor()
-                result = processor.analyze_project(rfp["raw_text"])
+                processor = RFPProcessor()
+                result = processor.analyze_rfp(rfp["raw_text"])
                 if not result or "project" not in result:
                     st.error("AI analysis did not return a valid 'project' structure.")
                 else:

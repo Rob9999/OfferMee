@@ -13,15 +13,16 @@
             "enum": [
                 "ADDRESS",
                 "CONTACT",
-                "REQUEST",
+                "RFP",
                 "OFFER",
                 "CONTRACT",
-                "APPLICATION",
+                "APPLICANT",
                 "CV",
                 "PROJECT",
                 "INTERVIEW",
                 "COMPANY",
                 "EMPLOYEE",
+                "FREELANCER",
                 "WORKPACKAGE",
                 "CAPABILITIES"
             ],
@@ -50,7 +51,7 @@
             "format": "date-time",
             "title": "Created At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000001D6D9257EC0>"
+            "default": "<function datetime.utcnow at 0x000002DC54642480>"
         }
     },
     "required": [

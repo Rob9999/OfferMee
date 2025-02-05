@@ -20,13 +20,19 @@
             "type": "string",
             "title": "Location"
         },
+        "company_id": {
+            "type": "integer",
+            "title": "Company ID"
+        },
         "must_haves": {
             "type": "string",
-            "title": "Must Haves"
+            "title": "Must Haves",
+            "description": "Comma-separated values"
         },
         "nice_to_haves": {
             "type": "string",
-            "title": "Nice to Haves"
+            "title": "Nice to Haves",
+            "description": "Comma-separated values"
         },
         "tasks": {
             "type": "string",
@@ -101,14 +107,14 @@
             "format": "date-time",
             "title": "Created At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000001D6D92FA7A0>"
+            "default": "<function datetime.utcnow at 0x000002DC546DBD80>"
         },
         "updated_at": {
             "type": "string",
             "format": "date-time",
             "title": "Updated At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000001D6D92FA840>"
+            "default": "<function datetime.utcnow at 0x000002DC546DBE20>"
         },
         "address_id": {
             "type": "integer",

@@ -12,9 +12,10 @@ from offermee.dashboard.helpers.web_dashboard import (
     log_info,
     stop_if_not_logged_in,
 )
-from offermee.database.facades.main_facades import ProjectFacade
+from offermee.database.facades.main_facades import RFPFacade
 from offermee.utils.international import _T
 from offermee.utils.container import Container
+from offermee.utils.utils import to_comma_separated_string
 
 
 def get_title() -> str:
@@ -31,7 +32,7 @@ def rfp_view_all_render():
     operator = Config.get_instance().get_current_user()
 
     try:
-        rfps = ProjectFacade.get_all()
+        rfps = RFPFacade.get_all()
         log_info(__name__, f"Fetched {len(rfps)} RFPs:\n{rfps}")
         if rfps:
             # Definiere die Spalten, die du anzeigen möchtest
@@ -56,6 +57,7 @@ def rfp_view_all_render():
                 _T("Extension Option"),
                 _T("Original Link"),
                 _T("Status"),
+                _T("Source"),
                 _T("Created At"),
                 _T("Updated At"),
             ]
@@ -69,8 +71,12 @@ def rfp_view_all_render():
                         _T("Title"): rfp.get("title"),
                         _T("Description"): rfp.get("description"),
                         _T("Location"): rfp.get("location"),
-                        _T("Must Haves"): rfp.get("must_haves"),
-                        _T("Nice to Haves"): rfp.get("nice_to_haves"),
+                        _T("Must Haves"): to_comma_separated_string(
+                            rfp.get("must_haves")
+                        ),
+                        _T("Nice to Haves"): to_comma_separated_string(
+                            rfp.get("nice_to_haves")
+                        ),
                         _T("Tasks"): rfp.get("tasks"),
                         _T("Responsibilities"): rfp.get("responsibilities"),
                         _T("Hourly Rate"): rfp.get("hourly_rate"),
@@ -85,6 +91,7 @@ def rfp_view_all_render():
                         _T("Extension Option"): rfp.get("extension_option"),
                         _T("Original Link"): rfp.get("original_link"),
                         _T("Status"): rfp.get("status"),
+                        _T("Source"): rfp.get("source"),
                         _T("Created At"): rfp.get("created_at"),
                         _T("Updated At"): rfp.get("updated_at"),
                     }

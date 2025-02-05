@@ -17,11 +17,11 @@ from offermee.dashboard.helpers.web_dashboard import (
     log_info,
     log_error,
 )
-from offermee.AI.project_processor import ProjectProcessor
-from offermee.database.facades.main_facades import ProjectFacade
+from offermee.AI.project_processor import RFPProcessor
+from offermee.database.facades.main_facades import RFPFacade, ReadFacade
+from offermee.database.models.main_models import RFPSource
 from offermee.schemas.json.schema_loader import get_schema, validate_json
 from offermee.schemas.json.schema_keys import SchemaKey
-from offermee.database.transformers.project_model_transformer import json_to_db
 from offermee.dashboard.widgets.to_sreamlit import (
     create_streamlit_edit_form_from_json_schema,
 )
@@ -47,7 +47,7 @@ def rfp_scrap_from_email_render():
     # 1. Verwende die Python-Bibliothek imaplib, um auf das E-Mail-Konto zuzugreifen.
     # 2. Verwende die Python-Bibliothek email, um die E-Mails zu parsen.
     # 3. Filtere die E-Mails nach dem Betreff oder dem Absender.
-    # 3.1 Prüfe durch die ProjectFacade.get_first_by-Methode, ob das Projekt bereits in der Datenbank existiert. -->original_link, contact_person, contact_email
+    # 3.1 Prüfe durch die RFPFacade.get_first_by-Methode, ob das Projekt bereits in der Datenbank existiert. -->original_link, contact_person, contact_email
     # 3.2 Nehme nur die E-Mails, die noch nicht in der Datenbank existieren.
     # 4. Extrahiere den Text aus den E-Mails und gebe diese dem ProjektProcessor zu AI Analyse
     # 4.1 Speichere alle Daten zur verifizierenden Abarbeitung durch den Anwender in dem rfp-Dictionary
@@ -82,7 +82,7 @@ def rfp_scrap_from_email_render():
     )
 
     rfps: List[Dict[str, Any]] = container.get_value(path_rfps_root, [])
-    print(any(rfp.get("status") in ["new", "analyzed", "validated"] for rfp in rfps))
+    # print(any(rfp.get("status") in ["new", "analyzed", "validated"] for rfp in rfps))
 
     # Check if there is a need to scrap new RFPs from the email account
     if (
@@ -213,8 +213,8 @@ def rfp_scrap_from_email_render():
             if st.button(_T("Analyze Raw Input (AI)")):
                 try:
                     log_info(__name__, f"Analyzing project with AI ...")
-                    processor = ProjectProcessor()
-                    result = processor.analyze_project(rfp["raw_text"])
+                    processor = RFPProcessor()
+                    result = processor.analyze_rfp(rfp["raw_text"])
                     if not result or "project" not in result:
                         st.error(
                             "AI analysis did not return a valid 'project' structure."
@@ -266,22 +266,24 @@ def rfp_scrap_from_email_render():
             if rfp["status"] == Status.VALIDATED:
                 if st.button("Save to DB"):
                     try:
-                        final_data = rfp["data"]
-                        original_link = final_data["project"].get("original-link")
-                        if original_link:
-                            existing = ProjectFacade.get_first_by(
-                                {"original_link": original_link}
+                        rfp = rfp["data"]["project"]
+                        rfp["source"] = RFPSource.EMAIL
+                        rfp_record = ReadFacade.get_source_rule_unique_rfp_record(
+                            source=RFPSource.EMAIL,
+                            contact_person_email=rfp.get("contact_person_email"),
+                            title=rfp.get("title"),
+                        )
+                        if rfp_record:
+                            st.warning(
+                                f"{_T('Similar RFP already exists')}: '{rfp.get('title')}', '{rfp.get('contact_person_email')}'."
                             )
-                            if existing:
-                                st.warning(
-                                    "A project with that 'original-link' already exists."
-                                )
-                                return
+                            return
                         # create and save
-                        new_project = json_to_db(final_data).to_dict()
-                        ProjectFacade.create(new_project, operator)
+                        RFPFacade.create(rfp, operator)
                         rfps[rfp_index]["status"] = Status.SAVED
-                        st.success(f"Project '{new_project.get('title')}' saved to DB.")
+                        st.success(
+                            f"{_T('Saved RFP')}:' {rfp.get('title')}', '{rfp.get('contact_person_email')}'."
+                        )
                     except Exception as e:
                         log_error(__name__, f"Error saving to DB: {e}")
                         st.error(f"Error while saving: {e}")

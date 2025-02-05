@@ -1,0 +1,631 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "IndustryModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
+        },
+        "name": {
+            "type": "string",
+            "title": "Industry"
+        },
+        "companies": {
+            "type": "array",
+            "items": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "CompanyModel",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "ID",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "website": {
+                        "type": "string",
+                        "title": "Website"
+                    },
+                    "contact_id": {
+                        "type": "integer",
+                        "title": "Contact ID"
+                    },
+                    "industries": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "title": "IndustryModel (Already Included)"
+                        }
+                    },
+                    "regions": {
+                        "type": "array",
+                        "items": {
+                            "$schema": "http://json-schema.org/draft-07/schema#",
+                            "title": "RegionModel",
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "title": "ID",
+                                    "readOnly": true
+                                },
+                                "name": {
+                                    "type": "string",
+                                    "title": "Region"
+                                },
+                                "companies": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "title": "CompanyModel (Already Included)"
+                                    }
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "name"
+                            ]
+                        }
+                    },
+                    "contact": {
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "title": "ContactModel",
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "title": "ID",
+                                "readOnly": true
+                            },
+                            "first_name": {
+                                "type": "string",
+                                "title": "First Name"
+                            },
+                            "last_name": {
+                                "type": "string",
+                                "title": "Last Name"
+                            },
+                            "phone": {
+                                "type": "string",
+                                "title": "Phone"
+                            },
+                            "email": {
+                                "type": "string",
+                                "title": "Email"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "BUSINESS",
+                                    "EMPLOYEE",
+                                    "FREELANCER",
+                                    "APPLICANT",
+                                    "COMPANY",
+                                    "SUPPLIER"
+                                ],
+                                "title": "Type"
+                            },
+                            "address_id": {
+                                "type": "integer",
+                                "title": "Address ID"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "title": "Created At",
+                                "readOnly": true,
+                                "default": "<function datetime.utcnow at 0x000002DC5460A020>"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "title": "Updated At",
+                                "readOnly": true,
+                                "default": "<function datetime.utcnow at 0x000002DC5460A0C0>"
+                            },
+                            "address": {
+                                "$schema": "http://json-schema.org/draft-07/schema#",
+                                "title": "AddressModel",
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "title": "ID",
+                                        "readOnly": true
+                                    },
+                                    "street": {
+                                        "type": "string",
+                                        "title": "Street"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "title": "City"
+                                    },
+                                    "zip_code": {
+                                        "type": "string",
+                                        "title": "Zip Code"
+                                    },
+                                    "country": {
+                                        "type": "string",
+                                        "title": "Country"
+                                    },
+                                    "documents": {
+                                        "type": "array",
+                                        "items": {
+                                            "$schema": "http://json-schema.org/draft-07/schema#",
+                                            "title": "DocumentModel",
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "title": "ID",
+                                                    "readOnly": true
+                                                },
+                                                "related_type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "ADDRESS",
+                                                        "CONTACT",
+                                                        "RFP",
+                                                        "OFFER",
+                                                        "CONTRACT",
+                                                        "APPLICANT",
+                                                        "CV",
+                                                        "PROJECT",
+                                                        "INTERVIEW",
+                                                        "COMPANY",
+                                                        "EMPLOYEE",
+                                                        "FREELANCER",
+                                                        "WORKPACKAGE",
+                                                        "CAPABILITIES"
+                                                    ],
+                                                    "title": "Related Type"
+                                                },
+                                                "related_id": {
+                                                    "type": "integer",
+                                                    "title": "Related ID"
+                                                },
+                                                "document_name": {
+                                                    "type": "string",
+                                                    "title": "Document Name"
+                                                },
+                                                "document_link": {
+                                                    "type": "string",
+                                                    "title": "Document Link"
+                                                },
+                                                "document_raw_text": {
+                                                    "type": "string",
+                                                    "title": "Document Raw Text"
+                                                },
+                                                "document_structured_text": {
+                                                    "type": "string",
+                                                    "title": "Document Structured Text"
+                                                },
+                                                "document_schema_reference_id": {
+                                                    "type": "integer",
+                                                    "title": "Document Schema Reference ID"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "title": "Created At",
+                                                    "readOnly": true,
+                                                    "default": "<function datetime.utcnow at 0x000002DC54640F40>"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "title": "Updated At",
+                                                    "readOnly": true,
+                                                    "default": "<function datetime.utcnow at 0x000002DC54640FE0>"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "related_type",
+                                                "related_id",
+                                                "document_name",
+                                                "document_link"
+                                            ]
+                                        }
+                                    },
+                                    "histories": {
+                                        "type": "array",
+                                        "items": {
+                                            "$schema": "http://json-schema.org/draft-07/schema#",
+                                            "title": "HistoryModel",
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "title": "ID",
+                                                    "readOnly": true
+                                                },
+                                                "related_type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "ADDRESS",
+                                                        "CONTACT",
+                                                        "RFP",
+                                                        "OFFER",
+                                                        "CONTRACT",
+                                                        "APPLICANT",
+                                                        "CV",
+                                                        "PROJECT",
+                                                        "INTERVIEW",
+                                                        "COMPANY",
+                                                        "EMPLOYEE",
+                                                        "FREELANCER",
+                                                        "WORKPACKAGE",
+                                                        "CAPABILITIES"
+                                                    ],
+                                                    "title": "Related Type"
+                                                },
+                                                "related_id": {
+                                                    "type": "integer",
+                                                    "title": "Related ID"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "title": "Description"
+                                                },
+                                                "event_date": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "title": "Event Date"
+                                                },
+                                                "created_by": {
+                                                    "type": "string",
+                                                    "title": "Created By",
+                                                    "readOnly": true
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "title": "Created At",
+                                                    "readOnly": true,
+                                                    "default": "<function datetime.utcnow at 0x000002DC54642480>"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "related_type",
+                                                "related_id",
+                                                "event_date",
+                                                "created_by"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "street",
+                                    "city",
+                                    "zip_code",
+                                    "country"
+                                ]
+                            },
+                            "documents": {
+                                "type": "array",
+                                "items": {
+                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                    "title": "DocumentModel",
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "title": "ID",
+                                            "readOnly": true
+                                        },
+                                        "related_type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "ADDRESS",
+                                                "CONTACT",
+                                                "RFP",
+                                                "OFFER",
+                                                "CONTRACT",
+                                                "APPLICANT",
+                                                "CV",
+                                                "PROJECT",
+                                                "INTERVIEW",
+                                                "COMPANY",
+                                                "EMPLOYEE",
+                                                "FREELANCER",
+                                                "WORKPACKAGE",
+                                                "CAPABILITIES"
+                                            ],
+                                            "title": "Related Type"
+                                        },
+                                        "related_id": {
+                                            "type": "integer",
+                                            "title": "Related ID"
+                                        },
+                                        "document_name": {
+                                            "type": "string",
+                                            "title": "Document Name"
+                                        },
+                                        "document_link": {
+                                            "type": "string",
+                                            "title": "Document Link"
+                                        },
+                                        "document_raw_text": {
+                                            "type": "string",
+                                            "title": "Document Raw Text"
+                                        },
+                                        "document_structured_text": {
+                                            "type": "string",
+                                            "title": "Document Structured Text"
+                                        },
+                                        "document_schema_reference_id": {
+                                            "type": "integer",
+                                            "title": "Document Schema Reference ID"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "title": "Created At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002DC54640F40>"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "title": "Updated At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002DC54640FE0>"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "related_type",
+                                        "related_id",
+                                        "document_name",
+                                        "document_link"
+                                    ]
+                                }
+                            },
+                            "histories": {
+                                "type": "array",
+                                "items": {
+                                    "$schema": "http://json-schema.org/draft-07/schema#",
+                                    "title": "HistoryModel",
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "title": "ID",
+                                            "readOnly": true
+                                        },
+                                        "related_type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "ADDRESS",
+                                                "CONTACT",
+                                                "RFP",
+                                                "OFFER",
+                                                "CONTRACT",
+                                                "APPLICANT",
+                                                "CV",
+                                                "PROJECT",
+                                                "INTERVIEW",
+                                                "COMPANY",
+                                                "EMPLOYEE",
+                                                "FREELANCER",
+                                                "WORKPACKAGE",
+                                                "CAPABILITIES"
+                                            ],
+                                            "title": "Related Type"
+                                        },
+                                        "related_id": {
+                                            "type": "integer",
+                                            "title": "Related ID"
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "title": "Description"
+                                        },
+                                        "event_date": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "title": "Event Date"
+                                        },
+                                        "created_by": {
+                                            "type": "string",
+                                            "title": "Created By",
+                                            "readOnly": true
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "title": "Created At",
+                                            "readOnly": true,
+                                            "default": "<function datetime.utcnow at 0x000002DC54642480>"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "related_type",
+                                        "related_id",
+                                        "event_date",
+                                        "created_by"
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "first_name",
+                            "last_name",
+                            "phone",
+                            "email",
+                            "type"
+                        ]
+                    },
+                    "documents": {
+                        "type": "array",
+                        "items": {
+                            "$schema": "http://json-schema.org/draft-07/schema#",
+                            "title": "DocumentModel",
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "title": "ID",
+                                    "readOnly": true
+                                },
+                                "related_type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ADDRESS",
+                                        "CONTACT",
+                                        "RFP",
+                                        "OFFER",
+                                        "CONTRACT",
+                                        "APPLICANT",
+                                        "CV",
+                                        "PROJECT",
+                                        "INTERVIEW",
+                                        "COMPANY",
+                                        "EMPLOYEE",
+                                        "FREELANCER",
+                                        "WORKPACKAGE",
+                                        "CAPABILITIES"
+                                    ],
+                                    "title": "Related Type"
+                                },
+                                "related_id": {
+                                    "type": "integer",
+                                    "title": "Related ID"
+                                },
+                                "document_name": {
+                                    "type": "string",
+                                    "title": "Document Name"
+                                },
+                                "document_link": {
+                                    "type": "string",
+                                    "title": "Document Link"
+                                },
+                                "document_raw_text": {
+                                    "type": "string",
+                                    "title": "Document Raw Text"
+                                },
+                                "document_structured_text": {
+                                    "type": "string",
+                                    "title": "Document Structured Text"
+                                },
+                                "document_schema_reference_id": {
+                                    "type": "integer",
+                                    "title": "Document Schema Reference ID"
+                                },
+                                "created_at": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "title": "Created At",
+                                    "readOnly": true,
+                                    "default": "<function datetime.utcnow at 0x000002DC54640F40>"
+                                },
+                                "updated_at": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "title": "Updated At",
+                                    "readOnly": true,
+                                    "default": "<function datetime.utcnow at 0x000002DC54640FE0>"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "related_type",
+                                "related_id",
+                                "document_name",
+                                "document_link"
+                            ]
+                        }
+                    },
+                    "histories": {
+                        "type": "array",
+                        "items": {
+                            "$schema": "http://json-schema.org/draft-07/schema#",
+                            "title": "HistoryModel",
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "title": "ID",
+                                    "readOnly": true
+                                },
+                                "related_type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ADDRESS",
+                                        "CONTACT",
+                                        "RFP",
+                                        "OFFER",
+                                        "CONTRACT",
+                                        "APPLICANT",
+                                        "CV",
+                                        "PROJECT",
+                                        "INTERVIEW",
+                                        "COMPANY",
+                                        "EMPLOYEE",
+                                        "FREELANCER",
+                                        "WORKPACKAGE",
+                                        "CAPABILITIES"
+                                    ],
+                                    "title": "Related Type"
+                                },
+                                "related_id": {
+                                    "type": "integer",
+                                    "title": "Related ID"
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "title": "Description"
+                                },
+                                "event_date": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "title": "Event Date"
+                                },
+                                "created_by": {
+                                    "type": "string",
+                                    "title": "Created By",
+                                    "readOnly": true
+                                },
+                                "created_at": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "title": "Created At",
+                                    "readOnly": true,
+                                    "default": "<function datetime.utcnow at 0x000002DC54642480>"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "related_type",
+                                "related_id",
+                                "event_date",
+                                "created_by"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "website"
+                ]
+            }
+        }
+    },
+    "required": [
+        "id",
+        "name"
+    ]
+}

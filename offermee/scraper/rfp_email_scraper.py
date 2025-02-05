@@ -4,14 +4,14 @@ from email.header import decode_header
 import datetime
 from typing import List, Dict, Any, Optional
 
-# Deine projektspezifischen Importe
+# Project-specific imports
 from offermee.config import Config
-from offermee.AI.project_processor import ProjectProcessor
-from offermee.database.facades.main_facades import ProjectFacade
-from offermee.database.transformers.project_model_transformer import json_to_db
+from offermee.AI.project_processor import RFPProcessor
+from offermee.database.facades.main_facades import RFPFacade, ReadFacade
+from offermee.database.models.main_models import RFPSource
 from offermee.logger import CentralLogger
 
-# Konfiguriere Logging
+# Configure logging
 logger = CentralLogger.getLogger(__name__)
 
 
@@ -21,11 +21,11 @@ def connect_to_email(
     """Connects to the specified email server and mailbox.
 
     Args:
-        server (str): _description_
-        port (int): _description_
-        email_user (str): _description_
-        email_pass (str): _description_
-        mailbox (str, optional): _description_. Defaults to "INBOX".
+        server (str): The email server address.
+        port (int): The email server port.
+        email_user (str): The email user.
+        email_pass (str): The email password.
+        mailbox (str, optional): The mailbox to connect to. Defaults to "INBOX".
 
     Returns:
         Optional[imaplib.IMAP4_SSL]: The IMAP4_SSL object if successful, None otherwise.
@@ -34,14 +34,13 @@ def connect_to_email(
         mail = imaplib.IMAP4_SSL(server, port)
         mail.login(email_user, email_pass)
         mail.select(mailbox)
-        logger.info(f"Erfolgreich mit dem Postfach '{mailbox}' verbunden.")
+        logger.info(f"Successfully connected to the mailbox '{mailbox}'.")
         return mail
     except imaplib.IMAP4.error as e:
-        logger.error(f"Fehler beim Verbinden mit dem E-Mail-Server: {e}")
-        # sys.exit(1)
+        logger.error(f"Error connecting to the email server: {e}")
         return None
     except Exception as e:
-        logger.error(f"Fehler beim Verbinden mit dem E-Mail-Server: {e}")
+        logger.error(f"Error connecting to the email server: {e}")
         return None
 
 
@@ -52,34 +51,34 @@ def fetch_emails(
     sender_filter: str = None,
 ) -> List[bytes]:
     try:
-        # Suche nach E-Mails seit dem angegebenen Datum
+        # Search for emails since the specified date
         status, messages = mail.search(None, f'(SINCE "{since_date}")')
         if status != "OK":
-            logger.error("Fehler beim Suchen von E-Mails.")
+            logger.error("Error searching for emails.")
             return []
 
         email_ids = messages[0].split()
-        logger.info(f"Gefundene E-Mails seit {since_date}: {len(email_ids)}")
+        logger.info(f"Found emails since {since_date}: {len(email_ids)}")
 
         filtered_emails = []
         for eid in email_ids:
             status, msg_data = mail.fetch(eid, "(RFC822)")
             if status != "OK":
-                logger.warning(f"Fehler beim Abrufen der E-Mail-ID {eid}. Überspringe.")
+                logger.warning(f"Error fetching email ID {eid}. Skipping.")
                 continue
             msg = email.message_from_bytes(msg_data[0][1])
 
-            # Dekodiere den Betreff
+            # Decode the subject
             subject, encoding = decode_header(msg.get("Subject"))[0]
             if isinstance(subject, bytes):
                 subject = subject.decode(encoding if encoding else "utf-8")
 
-            # Dekodiere den Absender
+            # Decode the sender
             from_, encoding = decode_header(msg.get("From"))[0]
             if isinstance(from_, bytes):
                 from_ = from_.decode(encoding if encoding else "utf-8")
 
-            # Filtere nach Betreff und Absender, falls angegeben
+            # Filter by subject and sender if specified
             if subject_filter and subject_filter not in subject:
                 continue
             if sender_filter and sender_filter not in from_:
@@ -87,10 +86,10 @@ def fetch_emails(
 
             filtered_emails.append(msg_data[0][1])
 
-        logger.info(f"Nach Filterung übriggebliebene E-Mails: {len(filtered_emails)}")
+        logger.info(f"Remaining emails after filtering: {len(filtered_emails)}")
         return filtered_emails
     except Exception as e:
-        logger.error(f"Fehler beim Abrufen von E-Mails: {e}")
+        logger.error(f"Error fetching emails: {e}")
         return []
 
 
@@ -98,28 +97,26 @@ def parse_email(msg_bytes: bytes) -> Dict[str, Any]:
     try:
         msg = email.message_from_bytes(msg_bytes)
 
-        # Betreff dekodieren
+        # Decode the subject
         subject, encoding = decode_header(msg.get("Subject"))[0]
         if isinstance(subject, bytes):
             subject = subject.decode(encoding if encoding else "utf-8")
 
-        # Absender dekodieren
+        # Decode the sender
         from_, encoding = decode_header(msg.get("From"))[0]
         if isinstance(from_, bytes):
             from_ = from_.decode(encoding if encoding else "utf-8")
 
-        # Datum extrahieren
+        # Extract the date
         date_str = msg.get("Date")
         try:
-            # Parse das Datum in ein datetime-Objekt
+            # Parse the date into a datetime object
             email_date = email.utils.parsedate_to_datetime(date_str)
         except Exception as e:
-            logger.warning(
-                f"Unbekanntes Datumsformat in E-Mail: {date_str}. Fehler: {e}"
-            )
+            logger.warning(f"Unknown date format in email: {date_str}. Error: {e}")
             email_date = None
 
-        # Inhalt der E-Mail extrahieren
+        # Extract the email content
         if msg.is_multipart():
             parts = msg.walk()
             body = ""
@@ -143,43 +140,46 @@ def parse_email(msg_bytes: bytes) -> Dict[str, Any]:
             "subject": subject,
             "from": from_,
             "body": body,
-            "date": str(email_date),  # Zeitstempel hinzufügen
+            "date": str(email_date),  # Add timestamp
         }
     except Exception as e:
-        logger.error(f"Fehler beim Parsen der E-Mail: {e}")
+        logger.error(f"Error parsing the email: {e}")
         return {}
 
 
 def process_email(rfp_data: Dict[str, Any], operator: str):
     try:
-        processor = ProjectProcessor()
-        result = processor.analyze_project(rfp_data["body"])
+        processor = RFPProcessor()
+        result = processor.analyze_rfp(rfp_data["body"])
         if not result or "project" not in result:
-            logger.warning("AI-Analyse lieferte keine gültige 'project'-Struktur.")
+            logger.warning("AI analysis did not return a valid 'project' structure.")
             return
 
-        # Überprüfe, ob das Projekt bereits existiert
-        original_link = result["project"].get("original-link")
-        if original_link:
-            existing = ProjectFacade.get_first_by({"original_link": original_link})
-            if existing:
-                logger.info(
-                    f"Projekt mit original_link '{original_link}' existiert bereits. Überspringe."
-                )
-                return
+        rfp: Dict[str, Any] = result["project"]
+        # Check if the RFP already exists
+        rfp_record = ReadFacade.get_source_rule_unique_rfp_record(
+            source=RFPSource.EMAIL,
+            contact_person_email=rfp.get("contact_person_email"),
+            title=rfp.get("title"),
+        )
+        if rfp_record:
+            logger.info(
+                f"Skipping RFP '{rfp.get('title')}' of '{rfp.get('contact_person_email')}' that already exists in db."
+            )
+            return
 
-        # Transformiere und speichere das neue Projekt
-        new_project = json_to_db({"project": result["project"]}).to_dict()
-        ProjectFacade.create(new_project, operator)
+        # Transform and save the new project
+        rfp["source"] = RFPSource.EMAIL
+        RFPFacade.create(rfp, operator)
         logger.info(
-            f"Neues Projekt '{new_project.get('title')}' wurde erfolgreich gespeichert."
+            f"New RFP '{rfp.get('title')}' of '{rfp.get('contact_person_email')}' successfully saved to db."
         )
     except Exception as e:
-        logger.error(f"Fehler beim Verarbeiten der E-Mail: {e}")
+        logger.error(f"ERROR while processing the Email: {e}")
 
 
 def scrap_rfps_from_email(since_days: int = 2):
-    # Lade Konfiguration
+    # Load configuration
     config = Config.get_instance().get_config_data()
     email_user = config.imap_email
     email_pass = config.imap_password
@@ -190,23 +190,23 @@ def scrap_rfps_from_email(since_days: int = 2):
     sender_filter = config.rfp_email_sender_filter
     operator = config.current_user
 
-    # Verbinde mit dem E-Mail-Server
+    # Connect to the email server
     mail = connect_to_email(server, port, email_user, email_pass, mailbox)
 
-    # Definiere das Datum (letzte 48 Stunden)
+    # Define the date (last 48 hours)
     since_date = (
         datetime.datetime.now() - datetime.timedelta(days=since_days)
     ).strftime("%d-%b-%Y")
 
-    # Hole relevante E-Mails
+    # Fetch relevant emails
     emails = fetch_emails(mail, since_date, subject_filter, sender_filter)
 
-    # Verarbeite jede E-Mail
+    # Process each email
     for msg_bytes in emails:
         rfp_data = parse_email(msg_bytes)
         if rfp_data:
             process_email(rfp_data, operator)
 
-    # Logout vom E-Mail-Server
+    # Logout from the email server
     mail.logout()
-    logger.info("E-Mail-Scraping abgeschlossen.")
+    logger.info("Email scraping completed.")

@@ -39,7 +39,7 @@ class TestFreelanceMapScraper(unittest.TestCase):
             "description": "A project requiring Python and SQL skills.",
         }
 
-        scraper.process_project(project)
+        scraper.process_rfp(project)
 
         # Assertions
         mock_llm_instance.analyze_project.assert_called_once_with(
@@ -83,7 +83,7 @@ class TestFreelanceMapScraper(unittest.TestCase):
             "description": "A project requiring Python and SQL skills.",
         }
 
-        scraper.process_project(project)
+        scraper.process_rfp(project)
 
         # Assertions
         mock_llm_instance.analyze_project.assert_called_once_with(
@@ -98,7 +98,7 @@ class TestFreelanceMapScraper(unittest.TestCase):
         mock_get.side_effect = requests.exceptions.ConnectionError("Netzwerkfehler")
 
         scraper = FreelanceMapScraper()
-        projects = scraper.fetch_projects(query="Test", max_results=5)
+        projects = scraper.fetch_rfps(query="Test", max_results=5)
 
         self.assertEqual(projects, [])
         mock_get.assert_called_once()

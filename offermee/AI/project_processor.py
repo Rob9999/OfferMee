@@ -5,7 +5,7 @@ from offermee.schemas.json.schema_keys import SchemaKey
 from offermee.schemas.json.schema_loader import get_schema
 
 
-class ProjectProcessor:
+class RFPProcessor:
     def __init__(self):
         self.logger = CentralLogger.getLogger(__name__)
         # prompt and json response format definitions
@@ -22,7 +22,7 @@ class ProjectProcessor:
     def set_prompt(self, prompt: str):
         self.prompt_project_analyze = prompt
 
-    def analyze_project(self, project_text: str) -> dict:
+    def analyze_rfp(self, project_text: str) -> dict:
         """
         Sends the Project text to the LLM for analysis and returns the extracted data.
         """

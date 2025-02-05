@@ -1,4 +1,3 @@
-from offermee.database.transformers.project_model_transformer import json_to_db
 from offermee.enums.process_status import Status
 from offermee.utils.international import _T
 import json
@@ -9,11 +8,11 @@ from offermee.dashboard.helpers.web_dashboard import log_error, log_info
 from offermee.database.facades.main_facades import (
     CVFacade,
     FreelancerFacade,
-    ProjectFacade,
+    RFPFacade,
     ReadFacade,
     SchemaFacade,
 )
-from offermee.database.models.main_models import ContactRole
+from offermee.database.models.main_models import ContactRole, RFPSource
 from offermee.utils.utils import safe_type
 
 
@@ -216,7 +215,11 @@ def save_cv_to_db(
     log_info(__name__, f"CV for {name} has been saved successfully.")
 
 
-def save_to_db(rfp_entry: Dict[str, Any], operator: str):
+def save_to_db(
+    rfp_entry: Dict[str, Any],
+    allow_updating: bool = False,
+    operator: str = "system",
+):
     try:
         if not rfp_entry:
             raise ValueError("Missing RFP Entry")
@@ -228,19 +231,41 @@ def save_to_db(rfp_entry: Dict[str, Any], operator: str):
         rfp: Dict[str, Any] = final_data.get("project")
         if not rfp:
             raise ValueError("Missing RFP")
-        original_link = rfp.get("original-link")
-        if not original_link:
-            raise ValueError("Missing RFP Original Link")
-        if original_link:
-            existing = ProjectFacade.get_first_by({"original_link": original_link})
-            if existing:
-                st.warning(_T("A project with that 'original-link' already exists."))
-                return
-        # create and save
-        new_project = json_to_db(final_data).to_dict()
-        ProjectFacade.create(new_project, operator)
+        source = rfp.get("source")
+        if not source:
+            raise ValueError(f"Missing RFP Source, see {RFPSource}")
+        rfp_record = ReadFacade.get_source_rule_unique_rfp_record(
+            source=source,
+            contact_person_email=rfp.get("contact_person_email"),
+            title=rfp.get("title"),
+            original_link=rfp.get("orginal_link"),
+            provider=rfp.get("provider"),
+        )
+        update_record: bool = False
+        if rfp_record:
+            st.warning(
+                f"{_T('Similar RFP already exists')}: '{rfp.get('source')}', '{rfp.get('title')}', '{rfp.get('contact_person_email')}', '{rfp.get('provider')}', '{rfp.get('orginal_link')}'."
+            )
+            update_record = st.checkbox(
+                _T("Update Record"),
+                key=f"Update_RFP_Record_#{rfp_record.get('id')}",
+                value=allow_updating,
+                disabled=not allow_updating,
+            )
+            return
+        if update_record:
+            RFPFacade.update(
+                record_id=rfp_record.get("id"),
+                data=rfp,
+                updated_by=operator,
+            )
+        else:
+            RFPFacade.create(
+                data=rfp,
+                created_by=operator,
+            )
         rfp_entry["status"] = Status.SAVED
         st.success(f"{_T('Saved RFP')}: '{rfp.get('title')}'.")
     except Exception as e:
-        log_error(__name__, f"Error saving to DB: {e}")
-        st.error(f"{_T('Error while saving')}: {e}")
+        log_error(__name__, f"ERROR saving to DB: {e}")
+        st.error(f"{_T('ERROR while saving')}: {e}")

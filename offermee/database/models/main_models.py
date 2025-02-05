@@ -65,15 +65,16 @@ class TaskStatus(PyEnum):
 class DocumentRelatedType(PyEnum):
     ADDRESS = "ADDRESS"
     CONTACT = "CONTACT"
-    REQUEST = "REQUEST"
+    RFP = "RFP"
     OFFER = "OFFER"
     CONTRACT = "CONTRACT"
-    APPLICATION = "APPLICATION"
+    APPLICANT = "APPLICANT"
     CV = "CV"
     PROJECT = "PROJECT"
     INTERVIEW = "INTERVIEW"
     COMPANY = "COMPANY"
     EMPLOYEE = "EMPLOYEE"
+    FREELANCER = "FREELANCER"
     WORKPACKAGE = "WORKPACKAGE"
     CAPABILITIES = "CAPABILITIES"
 
@@ -96,20 +97,125 @@ class ProjectRole(PyEnum):
     ASSISTANT = "ASSISTANT"
 
 
+class Industry(PyEnum):
+    INFORMATION_TECHNOLOGY = "Information Technology"
+    FINANCE = "Finance"
+    HEALTHCARE = "Healthcare"
+    EDUCATION = "Education"
+    RETAIL = "Retail"
+    MANUFACTURING = "Manufacturing"
+    TRANSPORTATION = "Transportation"
+    ENERGY = "Energy"
+    AGRICULTURE = "Agriculture"
+    TELECOMMUNICATIONS = "Telecommunications"
+    REAL_ESTATE = "Real Estate"
+    HOSPITALITY = "Hospitality"
+    CONSTRUCTION = "Construction"
+    ENTERTAINMENT = "Entertainment"
+    AUTOMOTIVE = "Automotive"
+    FOOD_AND_BEVERAGE = "Food & Beverage"
+    CHEMICALS = "Chemicals"
+    AEROSPACE = "Aerospace"
+    BIOTECHNOLOGY = "Biotechnology"
+    INSURANCE = "Insurance"
+    MEDIA = "Media"
+    LEGAL = "Legal"
+    ENVIRONMENTAL = "Environmental"
+    SPORTS = "Sports"
+    GOVERNMENT = "Government"
+    OTHER = "Other"
+
+
+class Region(PyEnum):
+    # German Regions (States)
+    GER_BADEN_WUERTTEMBERG = ("German", "Baden-Württemberg")
+    GER_BAYERN = ("German", "Bavaria")
+    GER_BERLIN = ("German", "Berlin")
+    GER_BRANDENBURG = ("German", "Brandenburg")
+    GER_BREMEN = ("German", "Bremen")
+    GER_HAMBURG = ("German", "Hamburg")
+    GER_HESSEN = ("German", "Hesse")
+    GER_MECKLENBURG_VORPOMMERN = ("German", "Mecklenburg-Vorpommern")
+    GER_NIEDERSACHSEN = ("German", "Lower Saxony")
+    GER_NORDRHEIN_WESTFALEN = ("German", "North Rhine-Westphalia")
+    GER_RHEINLAND_PFALZ = ("German", "Rhineland-Palatinate")
+    GER_SAARLAND = ("German", "Saarland")
+    GER_SACHSEN = ("German", "Saxony")
+    GER_SACHSEN_ANHALT = ("German", "Saxony-Anhalt")
+    GER_SCHLESWIG_HOLSTEIN = ("German", "Schleswig-Holstein")
+    GER_THUERINGEN = ("German", "Thuringia")
+
+    # DACH Regions (Countries)
+    DACH_GERMANY = ("DACH", "Germany")
+    DACH_AUSTRIA = ("DACH", "Austria")
+    DACH_SWITZERLAND = ("DACH", "Switzerland")
+
+    # EU Regions (Countries)
+    EU_GERMANY = ("EU", "Germany")
+    EU_FRANCE = ("EU", "France")
+    EU_ITALY = ("EU", "Italy")
+    EU_SPAIN = ("EU", "Spain")
+    EU_NETHERLANDS = ("EU", "Netherlands")
+    EU_BELGIUM = ("EU", "Belgium")
+    EU_POLAND = ("EU", "Poland")
+    EU_SWEDEN = ("EU", "Sweden")
+    EU_DENMARK = ("EU", "Denmark")
+    EU_FINLAND = ("EU", "Finland")
+    EU_IRELAND = ("EU", "Ireland")
+
+    # Earth Regions (Continents)
+    WORLD_EUROPE = ("Earth", "Europe")
+    WORLD_ASIA = ("Earth", "Asia")
+    WORLD_AFRICA = ("Earth", "Africa")
+    WORLD_NORTH_AMERICA = ("Earth", "North America")
+    WORLD_SOUTH_AMERICA = ("Earth", "South America")
+    WORLD_OCEANIA = ("Earth", "Oceania")
+    WORLD_ANTARCTICA = ("Earth", "Antarctica")
+
+    # Space Regions
+    SPACE_LEO = ("Space", "LEO")
+    SPACE_MOON = ("Space", "Moon")
+
+    # Other
+    OTHER = ("Other", "Other")
+
+    @property
+    def group(self):
+        return self.value[0]
+
+    @property
+    def display_name(self):
+        return self.value[1]
+
+
 class HistoryType(PyEnum):
     ADDRESS = "ADDRESS"
     CONTACT = "CONTACT"
-    REQUEST = "REQUEST"
+    RFP = "RFP"
     OFFER = "OFFER"
     CONTRACT = "CONTRACT"
-    APPLICATION = "APPLICATION"
+    APPLICANT = "APPLICANT"
     CV = "CV"
     PROJECT = "PROJECT"
     INTERVIEW = "INTERVIEW"
     COMPANY = "COMPANY"
     EMPLOYEE = "EMPLOYEE"
+    FREELANCER = "FREELANCER"
     WORKPACKAGE = "WORKPACKAGE"
     CAPABILITIES = "CAPABILITIES"
+
+
+class RFPSource(PyEnum):
+    ONLINE = "ONLINE"
+    EMAIL = "EMAIL"
+    MANUAL = "MANUAL"
+
+
+class RFPStatus(PyEnum):
+    NEW = "NEW"
+    OFFERED = "OFFERED"
+    OUTDATED = "OUTDATED"
+    REJECTED = "REJECTED"
 
 
 # Main Models
@@ -142,9 +248,6 @@ class AddressModel(Base):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
 
 
 class ContactModel(Base):
@@ -191,9 +294,6 @@ class ContactModel(Base):
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
 
 class SchemaModel(Base):
     __tablename__ = "schemas"
@@ -220,9 +320,6 @@ class SchemaModel(Base):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
 
 
 class DocumentModel(Base):
@@ -269,9 +366,6 @@ class DocumentModel(Base):
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
 
 class HistoryModel(Base):
     __tablename__ = "histories"
@@ -295,9 +389,6 @@ class HistoryModel(Base):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
 
 
 class SkillModel(Base):
@@ -323,9 +414,6 @@ class SkillModel(Base):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
 
 
 soft_skills_table = Table(
@@ -413,9 +501,6 @@ class CapabilitiesModel(Base):
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
 
 class FreelancerModel(Base):
     __tablename__ = "freelancers"
@@ -475,9 +560,6 @@ class FreelancerModel(Base):
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
 
 class CVModel(Base):
     __tablename__ = "cvs"
@@ -532,9 +614,6 @@ class CVModel(Base):
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
 
 class EmployeeModel(Base):
     __tablename__ = "employees"
@@ -577,9 +656,6 @@ class EmployeeModel(Base):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
 
 
 class ApplicantModel(Base):
@@ -626,17 +702,70 @@ class ApplicantModel(Base):
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
+
+# Assoziationstabellen für Many-to-Many Beziehungen
+company_industries = Table(
+    "company_industries",
+    Base.metadata,
+    Column("company_id", Integer, ForeignKey("companies.id"), primary_key=True),
+    Column("industry_id", Integer, ForeignKey("industries.id"), primary_key=True),
+)
+
+company_regions = Table(
+    "company_regions",
+    Base.metadata,
+    Column("company_id", Integer, ForeignKey("companies.id"), primary_key=True),
+    Column("region_id", Integer, ForeignKey("regions.id"), primary_key=True),
+)
+
+
+class IndustryModel(Base):
+    __tablename__ = "industries"
+    id = Column(Integer, primary_key=True, info={"label": _T("ID"), "read_only": True})
+    name = Column(String, nullable=False, unique=True, info={"label": _T("Industry")})
+
+    def __repr__(self):
+        return f"<Industry(name='{self.name}')>"
+
+
+class RegionModel(Base):
+    __tablename__ = "regions"
+    id = Column(Integer, primary_key=True, info={"label": _T("ID"), "read_only": True})
+    name = Column(String, nullable=False, unique=True, info={"label": _T("Region")})
+
+    def __repr__(self):
+        return f"<Region(name='{self.name}')>"
 
 
 class CompanyModel(Base):
     __tablename__ = "companies"
-    id = Column(Integer, primary_key=True, info={"label": _T("ID"), "read_only": True})
-    name = Column(String, nullable=False, info={"label": _T("Name")})
-    website = Column(String, nullable=False, info={"label": _T("Website")})
+    id = Column(
+        Integer,
+        primary_key=True,
+        info={"label": _T("ID"), "read_only": True},
+    )
+    name = Column(
+        String,
+        nullable=False,
+        info={"label": _T("Name")},
+    )
+    website = Column(
+        String,
+        nullable=False,
+        info={"label": _T("Website")},
+    )
+    # Many-to-Many Beziehung zu IndustryModel
+    industries = relationship(
+        "IndustryModel", secondary=company_industries, backref="companies"
+    )
+    # Many-to-Many Beziehung zu RegionModel
+    regions = relationship(
+        "RegionModel", secondary=company_regions, backref="companies"
+    )
     contact_id = Column(
-        Integer, ForeignKey("contacts.id"), info={"label": _T("Contact ID")}
+        Integer,
+        ForeignKey("contacts.id"),
+        info={"label": _T("Contact ID")},
     )
     contact = relationship("ContactModel")
     documents = relationship(
@@ -655,9 +784,6 @@ class CompanyModel(Base):
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
 
 class RFPModel(Base):
     """
@@ -675,7 +801,7 @@ class RFPModel(Base):
         info={"label": _T("ID"), "read_only": True},
     )
     # "title" (required, non-null)
-    project_title = Column(
+    title = Column(
         String,
         nullable=False,
         comment="The project title",
@@ -694,6 +820,20 @@ class RFPModel(Base):
         nullable=True,
         comment="Expected working modality: Remote, On-site or Hybrid",
         info={"label": _T("Location")},
+    )
+    industry = Column(
+        Enum(Industry),
+        nullable=False,
+        default=Industry.OTHER,
+        comment="The industry, defaulting to Other if not specified",
+        info={"label": _T("Industry")},
+    )
+    region = Column(
+        Enum(Region),
+        nullable=False,
+        default=Region.OTHER,
+        comment="The region, defaulting to Other if not specified",
+        info={"label": _T("Region")},
     )
     # "must-have-requirements" (required, array not null -> default=list)
     must_have_requirements = Column(
@@ -780,14 +920,14 @@ class RFPModel(Base):
     end_date = Column(
         String,
         nullable=True,
-        comment="End date in format dd.mm.yyyy or mm.yyyy",
+        comment="End date in format dd.mm.yyyy or mm.yyyy (in case of none, calculate if possible)",
         info={"label": _T("End Date")},
     )
     # "duration" (optional, integer | null, minimum=1)
     duration = Column(
         Integer,
         nullable=True,
-        comment="Duration in months",
+        comment="Duration in months (in case of none, calculate if possible)",
         info={"label": _T("Duration")},
     )
     # "extension-option" (optional, can be "Yes", "No", or null)
@@ -804,27 +944,48 @@ class RFPModel(Base):
         comment="Link to the original source of the project",
         info={"label": _T("Original Link")},
     )
+    source = Column(
+        Enum(RFPSource),
+        nullable=False,
+        comment=f"The RFP Source, must be one of [{RFPSource.ONLINE.name}, {RFPSource.EMAIL.name}, {RFPSource.MANUAL.name}]",
+        info={
+            "label": _T("Source"),
+        },
+    )
+    status = Column(
+        Enum(RFPStatus),
+        nullable=False,
+        default=RFPStatus.NEW,
+        comment=f"The RFP Status, must be one of [{RFPStatus.NEW.name}, {RFPStatus.OFFERED.name}, {RFPStatus.OUTDATED.name}, {RFPStatus.REJECTED.name}]",
+        info={
+            "label": _T("Status"),
+        },
+    )
 
     def to_dict(self):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
 
 class ProjectModel(Base):
+    """A Project record has a life time cycle from the first written offer to the last accomplished work package. An early opt out is in every state possible."""
+
     __tablename__ = "projects"
     id = Column(Integer, primary_key=True, info={"label": _T("ID"), "read_only": True})
     title = Column(String, nullable=False, info={"label": _T("Title")})
     description = Column(Text, info={"label": _T("Description")})
     location = Column(String, info={"label": _T("Location")})
+    company_id = Column(
+        Integer,
+        ForeignKey("companies.id"),
+        info={"label": _T("Company ID")},
+    )
     must_haves = Column(
-        Text, info={"label": _T("Must Haves")}
+        Text, comment="Comma-separated values", info={"label": _T("Must Haves")}
     )  # Comma-separated values
     nice_to_haves = Column(
-        Text, info={"label": _T("Nice to Haves")}
+        Text, comment="Comma-separated values", info={"label": _T("Nice to Haves")}
     )  # Comma-separated values
     tasks = Column(Text, info={"label": _T("Tasks")})
     responsibilities = Column(Text, info={"label": _T("Responsibilities")})
@@ -885,9 +1046,6 @@ class ProjectModel(Base):
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
 
 class InterviewModel(Base):
     __tablename__ = "interviews"
@@ -916,9 +1074,6 @@ class InterviewModel(Base):
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
 
 class ContractModel(Base):
     __tablename__ = "contracts"
@@ -932,8 +1087,8 @@ class ContractModel(Base):
     signed_by_client = Column(
         Boolean, default=False, info={"label": _T("Signed by Client")}
     )
-    signed_by_freelancer = Column(
-        Boolean, default=False, info={"label": _T("Signed by Freelancer")}
+    signed_by_contractor = Column(
+        Boolean, default=False, info={"label": _T("Signed by Contractor")}
     )
     project = relationship("ProjectModel", back_populates="contracts")
     documents = relationship(
@@ -951,9 +1106,6 @@ class ContractModel(Base):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
 
 
 class WorkPackageModel(Base):
@@ -985,9 +1137,6 @@ class WorkPackageModel(Base):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
 
 
 class OfferModel(Base):
@@ -1044,6 +1193,3 @@ class OfferModel(Base):
         return {
             column.name: getattr(self, column.name) for column in self.__table__.columns
         }
-
-    def to_json(self):
-        return json.dumps(self.to_dict())

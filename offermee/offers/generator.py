@@ -26,7 +26,7 @@ class OfferGenerator:
         freelancer: Dict[str, Any],
         rates: Dict[str, float],
         language: str = "en",
-        currency: str = "USD",
+        currency: str = "EUR",
     ) -> str:
         """
         Renders an internationalized HTML offer using the provided template and data.

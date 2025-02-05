@@ -1,4 +1,3 @@
-import logging
 import requests
 from bs4 import BeautifulSoup
 
@@ -43,16 +42,16 @@ class BaseScraper(Scraper):
         """
         return BeautifulSoup(html_content, "html.parser")
 
-    def fetch_projects(self, *args, **kwargs):
+    def fetch_rfps(self, *args, **kwargs):
         """
         Default implementation, can be overridden by subclasses.
         """
-        raise NotImplementedError("fetch_projects must be overridden in the subclass.")
+        raise NotImplementedError("fetch_rfps must be overridden in the subclass.")
 
-    def fetch_projects_paginated(self, *args, **kwargs):
+    def fetch_rfps_paginated(self, *args, **kwargs):
         """
         Default implementation, can be overridden by subclasses.
         """
         raise NotImplementedError(
-            "fetch_projects_paginated must be overridden in the subclass."
+            "fetch_rfps_paginated must be overridden in the subclass."
         )

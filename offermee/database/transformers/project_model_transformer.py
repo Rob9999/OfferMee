@@ -1,7 +1,7 @@
 from datetime import datetime
 from dateutil import parser
 
-from offermee.database.models.main_models import ProjectModel, ProjectStatus
+from offermee.database.models.main_models import ProjectModel, ProjectStatus, RFPModel
 
 
 def parse_date(date_str):
@@ -24,57 +24,6 @@ def parse_date(date_str):
                 return parser.parse(date_str).date()
             except Exception:
                 return None
-
-
-def json_to_db(json_data) -> ProjectModel:
-    """
-    Transform JSON data conforming to the Project schema to a ProjectModel instance.
-    Assumes json_data is a dict containing a "project" key with the relevant data.
-    """
-    project_data: dict = json_data.get("project", {})
-
-    # Create a new ProjectModel instance
-    project = ProjectModel()
-    project.title = project_data.get("title")
-    project.description = project_data.get("description")
-    project.location = project_data.get("location")
-
-    # Convert lists to comma-separated strings (simple approach)
-    project.must_haves = (
-        ", ".join(project_data.get("must-have-requirements", []))
-        if project_data.get("must-have-requirements")
-        else None
-    )
-    project.nice_to_haves = (
-        ", ".join(project_data.get("nice-to-have-requirements", []))
-        if project_data.get("nice-to-have-requirements")
-        else None
-    )
-    project.tasks = (
-        ", ".join(project_data.get("tasks", [])) if project_data.get("tasks") else None
-    )
-    project.responsibilities = (
-        ", ".join(project_data.get("responsibilities", []))
-        if project_data.get("responsibilities")
-        else None
-    )
-
-    project.hourly_rate = project_data.get("max-hourly-rate")
-    project.other_conditions = project_data.get("other-conditions")
-    project.contact_person = project_data.get("contact-person")
-    project.contact_person_email = project_data.get("contact-person-email")
-    project.provider = project_data.get("project-provider")
-    project.provider_link = project_data.get("project-provider-link")
-
-    # Parse dates from strings
-    project.start_date = parse_date(project_data.get("start-date"))
-    project.end_date = parse_date(project_data.get("end-date"))
-
-    project.duration = project_data.get("duration")
-    project.extension_option = project_data.get("extension-option")
-    project.original_link = project_data.get("original-link")
-
-    return project
 
 
 def db_to_json(project: ProjectModel) -> dict:

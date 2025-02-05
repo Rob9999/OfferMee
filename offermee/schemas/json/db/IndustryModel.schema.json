@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "IndustryModel",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "title": "ID",
+            "readOnly": true
+        },
+        "name": {
+            "type": "string",
+            "title": "Industry"
+        }
+    },
+    "required": [
+        "id",
+        "name"
+    ]
+}

@@ -1,39 +1,36 @@
-import os
-from urllib.parse import urlparse
-from sqlalchemy.orm import sessionmaker
-
-from offermee.AI.project_processor import ProjectProcessor
-from offermee.database.facades.main_facades import ProjectFacade
-from offermee.database.transformers.project_model_transformer import json_to_db
+from typing import List, Tuple, Dict, Any, Optional
+from offermee.AI.project_processor import RFPProcessor
+from offermee.config import Config
+from offermee.database.facades.main_facades import RFPFacade, ReadFacade
+from offermee.database.models.main_models import RFPSource
 from offermee.htmls.save_utils import generate_filename_from_url, save_html
 from offermee.logger import CentralLogger
 from offermee.scraper.base_scraper import BaseScraper
-from offermee.database.database_manager import DatabaseManager
-import requests
-from bs4 import BeautifulSoup, Tag
-import json
+from bs4 import BeautifulSoup
+
+from offermee.utils.international import _T
 
 
 class FreelanceMapScraper(BaseScraper):
     """
-    This class is designed to scrape projects from the FreelancerMap platform.
+    Scrapes RFPs (Requests For Proposals -> Projects) from the FreelancerMap platform.
 
-    It supports searching with multiple parameters, such as query terms, categories, contract types,
-    remote options, industries, matching skills, and location-based filtering. The class handles
-    mapping human-readable values (like country names) to the identifiers expected by FreelancerMap.
+    Supports searching with various parameters such as query terms, categories, contract types,
+    remote options, industries, matching skills and location-based filtering. Also maps human-readable
+    values to the identifiers expected by FreelancerMap.
 
-    The scraper includes functionality for:
-    - Logging and error handling for invalid or missing parameters.
-    - Paginated fetching of projects.
-    - Extraction of project details (title, description, and link).
-    - Analysis of project descriptions using LLM (GPT-4).
-    - Storing structured project data in the database.
+    Features:
+    - Parameter mapping with error logging for invalid/missing values.
+    - Pagination support.
+    - Extraction of project details (title, description, link, etc.).
+    - Analysis of project descriptions via an LLM (e.g. GPT-4).
+    - Storage of structured project data in the database.
     """
 
     BASE_URL = "https://www.freelancermap.de"
     SEARCH_URL = "https://www.freelancermap.de/projektboerse.html"
 
-    # Mapping for countries, contract types, and remote options
+    # Mappings for countries, contract types, and remote options
     COUNTRY_MAPPING = {
         "Deutschland": 1,
         "Österreich": 2,
@@ -56,33 +53,32 @@ class FreelanceMapScraper(BaseScraper):
         "hybrid": 50,
     }
 
-    def __init__(self):
-        # Call the constructor of the base class
+    def __init__(self) -> None:
         super().__init__(self.BASE_URL)
         self.logger = CentralLogger.getLogger(__name__)
-        self.project_processor = ProjectProcessor()
+        self.project_processor = RFPProcessor()
 
-    def map_params(self, contract_types, remote, countries):
+    def map_params(
+        self,
+        contract_types: Optional[List[str]],
+        remote: Optional[List[str]],
+        countries: Optional[List[str]],
+    ) -> Tuple[List[Any], List[Any], List[Any]]:
         """
-        Maps Enum values to the IDs or strings expected by FreelancerMap.
+        Maps enum values to IDs or strings expected by FreelancerMap.
 
         Parameters:
-        - contract_types (list): List of contract types to be mapped.
-        - remote (list): List of remote work options to be mapped.
-        - countries (list): List of country names to be mapped.
+            contract_types (List[str]): List of contract types.
+            remote (List[str]): List of remote work options.
+            countries (List[str]): List of country names.
 
         Returns:
-        - tuple: Mapped contract types, remote options, and country identifiers.
-
-        This function ensures:
-        - Invalid or missing values are skipped.
-        - Warnings for invalid values are logged for later review.
-
-        Example:
-        If an invalid contract type is provided, such as "InvalidType", it will be ignored and logged as a warning.
-        Valid entries like "Contractor" will be mapped correctly to "contracting".
+            Tuple containing:
+                - List of mapped contract types.
+                - List of mapped remote options.
+                - List of mapped country identifiers.
         """
-        mapped_contract_types = []
+        mapped_contract_types: List[Any] = []
         if contract_types:
             for ct in contract_types:
                 if ct in self.CONTRACT_TYPE_MAPPING:
@@ -90,7 +86,7 @@ class FreelanceMapScraper(BaseScraper):
                 else:
                     self.logger.warning(f"Invalid contract type value: {ct}")
 
-        mapped_remote = []
+        mapped_remote: List[Any] = []
         if remote:
             for r in remote:
                 if r in self.REMOTE_MAPPING:
@@ -98,7 +94,7 @@ class FreelanceMapScraper(BaseScraper):
                 else:
                     self.logger.warning(f"Invalid remote value: {r}")
 
-        mapped_countries = []
+        mapped_countries: List[Any] = []
         if countries:
             for country in countries:
                 mapped_value = self.COUNTRY_MAPPING.get(country)
@@ -111,109 +107,91 @@ class FreelanceMapScraper(BaseScraper):
 
         return mapped_contract_types, mapped_remote, mapped_countries
 
-    def parse_search_page_html(self, html_content, max_results=None):
+    def parse_search_page_html(
+        self, html_content: str, max_results: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         self.logger.info(
-            f"Start parsing search page html content (max_results={max_results})."
+            f"Start parsing search page HTML content (max_results={max_results})."
         )
-        projects = []
+        rfps: List[Dict[str, Any]] = []
         try:
-            # HTML parsen
-            search_page_soup = BeautifulSoup(html_content, "html.parser")
-            # Projekte aus der Liste extrahieren
-            for item in search_page_soup.find_all(
+            soup = BeautifulSoup(html_content, "html.parser")
+            rfp_items = soup.find_all(
                 "div", class_="project-container project card box", limit=max_results
-            ):
+            )
+            for item in rfp_items:
                 title_tag = item.find("a", class_="project-title")
-                title = title_tag.text.strip() if title_tag else "No title"
+                title = title_tag.get_text(strip=True) if title_tag else "No title"
                 link = (
                     f"https://www.freelancermap.de{title_tag['href']}"
-                    if title_tag
+                    if title_tag and title_tag.get("href")
                     else "No link"
                 )
                 description_tag = item.find("div", class_="description")
                 short_description = (
-                    description_tag.text.strip()
+                    description_tag.get_text(strip=True)
                     if description_tag
                     else "No description"
                 )
-                project = {
+                rfp = {
                     "title": title,
                     "link": link,
                     "short-description": short_description,
                 }
-                projects.append(project)
-                self.logger.info(
-                    f"Parsed from html content the project: {str(project)}"
-                )
+                rfps.append(rfp)
+                self.logger.info(f"Parsed RFP: {rfp}")
         except Exception as e:
-            self.logger.error(f"Error while parsing html: {e}")
-        finally:
-            return projects
+            self.logger.exception(f"Error while parsing search HTML: {e}")
+        return rfps
 
-    def parse_project_page_html(self, html_content, project):
+    def parse_rfp_page_html(
+        self, html_content: str, rfp: Dict[str, Any]
+    ) -> Dict[str, Any]:
         self.logger.info(
-            f"Start parsing project page html content (count: {str(project)}, html size: {len(html_content)})."
+            f"Start parsing RFP page HTML (RFP: {rfp.get('title', 'No title')}, HTML size: {len(html_content)})."
         )
-
-        # save html to disk
-        save_html(html_content, filename=generate_filename_from_url(project["link"]))
-
+        # Save HTML to disk
+        save_html(html_content, filename=generate_filename_from_url(rfp["link"]))
         try:
-            # HTML parsen
-            project_page_soup = BeautifulSoup(html_content, "html.parser")
-
-            # Titel extrahieren
-            title_header_tag = project_page_soup.find("h1", class_="m-t-1 h2")
+            soup = BeautifulSoup(html_content, "html.parser")
+            title_header_tag = soup.find("h1", class_="m-t-1 h2")
             title_header = (
                 title_header_tag.get_text(strip=True)
                 if title_header_tag
                 else "No title header"
             )
 
-            # Get project content description
-            description_div = project_page_soup.find(
+            description_div = soup.find(
                 "div", class_="projectcontent", itemprop="description"
             )
-
-            # Beschreibung extrahieren
-            # Hier suchen wir nach dem h2 mit Text "Beschreibung"
-            # und holen uns den nächsten div.content
             description = ""
-            keywords = []
+            keywords: List[str] = []
             if description_div:
-                description_divs: list[Tag] = description_div.find_all("div")
-                for desc_div in description_divs:
-                    class_attributes = desc_div.get_attribute_list("class")
-                    for class_attribute in class_attributes:
-                        if (
-                            class_attribute
-                            == "keywords-container"  # keywords-container content
+                # Iterate over all child divs to extract keywords and description content
+                for desc_div in description_div.find_all("div"):
+                    class_attributes = desc_div.get("class", [])
+                    if "keywords-container" in class_attributes:
+                        for kw_span in desc_div.find_all(
+                            "span", class_="keyword no-truncate"
                         ):
-                            # Extract keywords
-                            # print(f"FOUND keywords-container content:\n{desc_div}")
-                            keyword_spans = desc_div.find_all(
-                                "span", class_="keyword no-truncate"
-                            )
-                            for kw_span in keyword_spans:
-                                keywords.append(kw_span.get_text(strip=True))
-                        elif class_attribute == "content":
-                            # Extract description
-                            # print(f"FOUND content:\n{desc_div}")
-                            description = desc_div.get_text(strip=False).replace(
-                                '<h2 class="h4">Beschreibung</h2>',
-                                "",  # remove header and take raw text
-                            )
-            # Details aus dem <dl>-Bereich extrahieren (unverändert)
-            details = {}
-            details_section = project_page_soup.find_all("dl", class_="m-t-1")
-            for dl in details_section:
-                for dt, dd in zip(dl.find_all("dt"), dl.find_all("dd")):
+                            keywords.append(kw_span.get_text(strip=True))
+                    elif "content" in class_attributes:
+                        # Remove the header if present and get the rest of the text
+                        description = desc_div.get_text(strip=False).replace(
+                            '<h2 class="h4">Beschreibung</h2>', ""
+                        )
+
+            # Extract details from <dl> sections
+            details: Dict[str, str] = {}
+            for dl in soup.find_all("dl", class_="m-t-1"):
+                dts = dl.find_all("dt")
+                dds = dl.find_all("dd")
+                for dt, dd in zip(dts, dds):
                     label = dt.get_text(strip=True).replace(":", "")
                     value = dd.get_text(strip=True)
                     details[label] = value
 
-            # Projekt-Daten sammeln
-            project.update(
+            rfp.update(
                 {
                     "title-header": title_header,
                     "description": description,
@@ -238,53 +216,34 @@ class FreelanceMapScraper(BaseScraper):
                     },
                 }
             )
-
-            self.logger.info(f"Parsed from html content the project: {str(project)}")
+            self.logger.info(f"Parsed project details: {rfp}")
         except Exception as e:
-            self.logger.error(f"Error while parsing html: {e}")
-        finally:
-            return project
+            self.logger.exception(f"Error while parsing project HTML: {e}")
+        return rfp
 
-    def fetch_projects(
+    def fetch_rfps(
         self,
-        query=None,
-        categories=None,
-        contract_types=None,
-        remote=None,
-        industries=None,
-        matching_skills=None,
-        countries=None,
-        states=None,
-        sort=1,
-        page=1,
-        max_results=10,
-    ) -> list:
+        query: Optional[str] = None,
+        categories: Optional[List[Any]] = None,
+        contract_types: Optional[List[str]] = None,
+        remote: Optional[List[str]] = None,
+        industries: Optional[List[Any]] = None,
+        matching_skills: Optional[List[Any]] = None,
+        countries: Optional[List[str]] = None,
+        states: Optional[List[Any]] = None,
+        sort: int = 1,
+        page: int = 1,
+        max_results: int = 10,
+        progress: Any = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Fetches projects from FreelancerMap based on detailed parameters.
-
-        Parameters:
-        - query (str): Search terms.
-        - categories (list): List of category IDs.
-        - contract_types (list): List of contract type identifiers.
-        - remote (list): List of remote work options.
-        - industries (list): List of industry IDs.
-        - matching_skills (list): List of skill IDs.
-        - countries (list): List of country identifiers.
-        - states (list): List of state identifiers.
-        - sort (int): Sorting option.
-        - page (int): Page number for pagination.
-        - max_results (int): Maximum number of projects to fetch.
-
-        Returns:
-        - list: List of project dictionaries with title, link, and description.
+        Fetches RFPs from FreelancerMap based on detailed parameters.
         """
         try:
-            # Map the Enum values
             mapped_contract_types, mapped_remote, mapped_countries = self.map_params(
                 contract_types, remote, countries
             )
-
-            params = {
+            params: Dict[str, Any] = {
                 "query": query,
                 "categories[]": categories,
                 "projectContractTypes[]": mapped_contract_types,
@@ -297,101 +256,103 @@ class FreelanceMapScraper(BaseScraper):
                 "pagenr": page,
                 "hideAppliedProjects": "true",
             }
-
-            # Filter empty parameters
-            params = {key: value for key, value in params.items() if value}
+            # Filter out empty parameters (keep zeros and non-empty lists)
+            params = {
+                key: value
+                for key, value in params.items()
+                if value not in (None, [], {})
+            }
 
             search_page_html_content = self.fetch_page(self.SEARCH_URL, params=params)
             if not search_page_html_content:
-                self.logger.error("No content received from the page.")
+                self.logger.error("No content received from search page.")
                 return []
-            # parse for projects
-            projects = self.parse_search_page_html(
+            rfps = self.parse_search_page_html(
                 search_page_html_content, max_results=max_results
             )
-            for project in projects:
-                # fetch project page
+            count = len(rfps)
+            current: int = 0
+            for project in rfps:
+                current += 1
                 project_page_html_content = self.fetch_page(project["link"])
                 if not project_page_html_content:
                     self.logger.error(
-                        f"No project page for '{str(project)}' available. SKIP"
+                        f"No project page available for {project.get('title')}. Skipping."
                     )
                     continue
-                # parse each project html page
-                project = self.parse_project_page_html(
-                    project_page_html_content, project=project
+                project = self.parse_rfp_page_html(
+                    project_page_html_content, rfp=project
                 )
-                self.process_project(project)  # Analyze and store to db
-            return projects
+                if progress:
+                    progress.progress(
+                        current / count,
+                        f"{_T('Processing RFPs')}: {current} of {count}",
+                    )
+                self.process_rfp(project)  # llm analysis and store in db
+                if progress:
+                    progress.progress(
+                        current / count, f"{_T('Processed RFPs')}: {current} of {count}"
+                    )
+            return rfps
         except AttributeError as e:
-            self.logger.error(f"AttributeError beim Parsen eines Projekts: {e}")
+            self.logger.exception(f"AttributeError while parsing project: {e}")
             return []
         except Exception as e:
-            self.logger.error(f"Allgemeiner Fehler beim Abrufen von Projekten: {e}")
+            self.logger.exception(f"General error while fetching projects: {e}")
             return []
 
-    def process_project(self, project):
+    def process_rfp(self, project: Dict[str, Any]) -> None:
         """
-        Analyzes the project description with the LLM and stores the extracted data.
-
-        Args:
-            project (dict): Dictionary with project information (title, link, description).
+        Analyzes the rfp (request for proposal) description with an LLM and stores the extracted data.
         """
-        self.logger.info(f"Processing project:\n{str(project)}")
-        analysis = self.project_processor.analyze_project(str(project))
-        if not (analysis and analysis.get("project")):
-            self.logger.error(f"Analysis failed for project: {project['title']}")
+        self.logger.info(f"Processing project: {project.get('title', 'No title')}")
+        analysis = self.project_processor.analyze_rfp(str(project))
+        new_rfp = analysis.get("project") if analysis else {}
+        if not new_rfp:
+            self.logger.error(
+                f"Analysis failed for project: {project.get('title', 'No title')}"
+            )
             return
-
         try:
-            existing_project = ProjectFacade.get_first_by(original_link=project["link"])
+            original_link = new_rfp["original_link"] = new_rfp.get(
+                "original_link", project["link"]
+            )
+            existing_project = ReadFacade.get_source_rule_unique_rfp_record(
+                source=RFPSource.ONLINE, original_link=original_link
+            )
             if existing_project:
-                self.logger.info(f"Project already exists: {project['title']}")
+                self.logger.info(f"RFP already exists: {new_rfp.get('title')}")
                 return
-            # enrich analysis
-            self.logger.info(f"AI project analysis:\n{analysis}")
-            new_project = json_to_db(analysis)
-            ProjectFacade.create(new_project)
-            self.logger.info(f"Project saved: {new_project.title}")
+            self.logger.info(f"AI RFP analysis: {new_rfp}")
+            new_rfp["source"] = RFPSource.ONLINE
+            RFPFacade.create(
+                new_rfp, created_by=Config.get_instance().get_current_user()
+            )
+            self.logger.info(f"RFP saved: {new_rfp.get('title')}")
         except Exception as e:
-            self.logger.error(f"Error saving project: {e}")
+            self.logger.exception(f"Error saving RFP: {e}")
 
-    def fetch_projects_paginated(
+    def fetch_rfps_paginated(
         self,
-        query=None,
-        categories=None,
-        contract_types=None,
-        remote=None,
-        industries=None,
-        matching_skills=None,
-        countries=None,
-        states=None,
-        sort=1,
-        max_pages=5,
-        max_results=50,
-    ):
+        query: Optional[str] = None,
+        categories: Optional[List[Any]] = None,
+        contract_types: Optional[List[str]] = None,
+        remote: Optional[List[str]] = None,
+        industries: Optional[List[Any]] = None,
+        matching_skills: Optional[List[Any]] = None,
+        countries: Optional[List[str]] = None,
+        states: Optional[List[Any]] = None,
+        sort: int = 1,
+        max_pages: int = 5,
+        max_results: int = 50,
+        progress: Any = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Fetches multiple pages of projects and aggregates them.
-
-        Parameters:
-        - query (str): Search terms.
-        - categories (list): List of category IDs.
-        - contract_types (list): List of contract type identifiers.
-        - remote (list): List of remote work options.
-        - industries (list): List of industry IDs.
-        - matching_skills (list): List of skill IDs.
-        - countries (list): List of country identifiers.
-        - states (list): List of state identifiers.
-        - sort (int): Sorting option.
-        - max_pages (int): Maximum number of pages to fetch.
-        - max_results (int): Maximum number of projects to return.
-
-        Returns:
-        - list: List of aggregated project dictionaries.
+        Fetches multiple pages of RFPs and aggregates them.
         """
-        all_projects = []
+        all_rfps: List[Dict[str, Any]] = []
         for page in range(1, max_pages + 1):
-            projects: list = self.fetch_projects(
+            rfps = self.fetch_rfps(
                 query=query,
                 categories=categories,
                 contract_types=contract_types,
@@ -402,19 +363,15 @@ class FreelanceMapScraper(BaseScraper):
                 states=states,
                 sort=sort,
                 page=page,
-                max_results=max_results,
+                max_results=max_results,  # max results per page can be controlled if needed
+                progress=progress,
             )
-
-            if not projects:
-                break  # No more projects found
-
-            for project in projects:
-                all_projects.append(project)
-                # self.logger.info(f"Found Project: {project}")
-                if len(all_projects) >= max_results:
-                    break  # Maximum number reached
-
-            if len(all_projects) >= max_results:
+            if not rfps:
+                break  # No more RFPs found
+            for rfp in rfps:
+                all_rfps.append(rfp)
+                if len(all_rfps) >= max_results:
+                    break
+            if len(all_rfps) >= max_results:
                 break
-
-        return all_projects
+        return all_rfps

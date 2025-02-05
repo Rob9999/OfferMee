@@ -42,7 +42,7 @@ def rfp_scrap_online_render():
     if st.button("Start Scraping"):
         if platform == "FreelancerMap":
             scraper = FreelanceMapScraper()  # "https://www.freelancermap.de"
-            projects = scraper.fetch_projects_paginated(
+            projects = scraper.fetch_rfps_paginated(
                 query=query,
                 categories=None,
                 contract_types=ContractType(contract_type_selection).name,
@@ -54,6 +54,7 @@ def rfp_scrap_online_render():
                 sort=1,
                 max_pages=max_pages,
                 max_results=max_results,
+                progress=st.progress(0),
             )
             # log_debug(__name__, f"Found Projects:\n{projects}")
             # Display and save results

@@ -8,14 +8,14 @@ class Scraper(ABC):
     """
 
     @abstractmethod
-    def fetch_projects(self, *args, **kwargs):
+    def fetch_rfps(self, *args, **kwargs):
         """
         Fetches projects (single page).
         """
         pass
 
     @abstractmethod
-    def fetch_projects_paginated(self, *args, **kwargs):
+    def fetch_rfps_paginated(self, *args, **kwargs):
         """
         Fetches projects (multiple pages, paginated).
         """

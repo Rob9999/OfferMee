@@ -22,9 +22,9 @@
             "title": "Signed by Client",
             "default": false
         },
-        "signed_by_freelancer": {
+        "signed_by_contractor": {
             "type": "boolean",
-            "title": "Signed by Freelancer",
+            "title": "Signed by Contractor",
             "default": false
         }
     },
