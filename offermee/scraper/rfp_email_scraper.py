@@ -5,11 +5,11 @@ import datetime
 from typing import List, Dict, Any, Optional
 
 # Project-specific imports
-from offermee.config import Config
-from offermee.AI.project_processor import RFPProcessor
+from offermee.utils.config import Config
+from offermee.AI.rfp_processor import RFPProcessor
 from offermee.database.facades.main_facades import RFPFacade, ReadFacade
 from offermee.database.models.main_models import RFPSource
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 
 # Configure logging
 logger = CentralLogger.getLogger(__name__)

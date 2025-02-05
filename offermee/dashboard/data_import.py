@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict, Optional
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.dashboard.widgets.db_utils import save_cv_to_db
 from offermee.dashboard.widgets.selectors import render_cv_selection_form
 from offermee.database.facades.main_facades import FreelancerFacade

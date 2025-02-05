@@ -17,14 +17,14 @@
             "format": "date-time",
             "title": "Created At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000002DC54669080>"
+            "default": "<function datetime.utcnow at 0x000001B2F5831800>"
         },
         "updated_at": {
             "type": "string",
             "format": "date-time",
             "title": "Updated At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000002DC546691C0>"
+            "default": "<function datetime.utcnow at 0x000001B2F5831940>"
         },
         "soft_skills": {
             "type": "array",
@@ -143,14 +143,14 @@
                         "format": "date-time",
                         "title": "Created At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000002DC54640F40>"
+                        "default": "<function datetime.utcnow at 0x000001B2F58096C0>"
                     },
                     "updated_at": {
                         "type": "string",
                         "format": "date-time",
                         "title": "Updated At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000002DC54640FE0>"
+                        "default": "<function datetime.utcnow at 0x000001B2F5809760>"
                     }
                 },
                 "required": [
@@ -217,7 +217,7 @@
                         "format": "date-time",
                         "title": "Created At",
                         "readOnly": true,
-                        "default": "<function datetime.utcnow at 0x000002DC54642480>"
+                        "default": "<function datetime.utcnow at 0x000001B2F580AC00>"
                     }
                 },
                 "required": [

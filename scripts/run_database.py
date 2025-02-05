@@ -1,7 +1,7 @@
 import traceback
 from offermee.database.database_manager import DatabaseManager
 from offermee.database.facades.main_facades import RFPFacade
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 
 
 def main():

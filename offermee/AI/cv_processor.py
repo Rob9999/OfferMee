@@ -3,8 +3,8 @@ from datetime import date
 import json
 import os
 from offermee.AI.ai_manager import AIManager
-from offermee.config import Config
-from offermee.logger import CentralLogger
+from offermee.utils.config import Config
+from offermee.utils.logger import CentralLogger
 from offermee.schemas.json.schema_keys import SchemaKey
 from offermee.schemas.json.schema_loader import get_schema
 

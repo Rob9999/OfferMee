@@ -1,5 +1,5 @@
 # dynamic_price_suggestions.py
-from offermee.config import Config
+from offermee.utils.config import Config
 import datetime
 
 from offermee.database.models.main_models import Industry

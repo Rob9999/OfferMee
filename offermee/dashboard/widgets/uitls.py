@@ -1,7 +1,7 @@
 import traceback
 from typing import Optional
 import streamlit as st
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 from offermee.utils.container import Container
 
 key_number = 0

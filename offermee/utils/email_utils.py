@@ -13,9 +13,9 @@ from email.mime.multipart import MIMEMultipart
 import urllib
 from typing import List, Optional, Tuple, Dict, Any
 
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.htmls.save_utils import save_html
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 
 
 class EmailStatus(enum.Enum):

@@ -14,8 +14,8 @@ from platformdirs import (
 import tempfile
 
 from offermee.AI.ai_manager import AIManager
-from offermee.local_settings import LocalSettings
-from offermee.logger import CentralLogger
+from offermee.utils.local_settings import LocalSettings
+from offermee.utils.logger import CentralLogger
 
 
 APP_NAME = "OfferMee"

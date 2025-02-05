@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 from offermee.scraper.scraper_interface import Scraper
 
 

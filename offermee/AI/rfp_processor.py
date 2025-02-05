@@ -1,6 +1,6 @@
 import json
 from offermee.AI.ai_manager import AIManager
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 from offermee.schemas.json.schema_keys import SchemaKey
 from offermee.schemas.json.schema_loader import get_schema
 

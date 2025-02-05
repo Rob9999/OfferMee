@@ -4,7 +4,7 @@ from offermee.AI.llm_client import LLMClient
 # Import the LLMClient classes
 from offermee.AI.openai_client import OpenAIClient
 from offermee.AI.genai_client import GenAIClient
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 
 
 class AIManager:

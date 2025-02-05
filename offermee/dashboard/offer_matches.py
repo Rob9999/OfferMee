@@ -4,7 +4,7 @@ import json
 from typing import Any, Dict, List, Optional
 import base64
 import streamlit as st
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.exporter.pdf_exporter import export_cv_to_pdf
 from offermee.utils.international import _T
 from offermee.dashboard.helpers.web_dashboard import (

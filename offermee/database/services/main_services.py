@@ -40,7 +40,7 @@ from offermee.database.models.main_models import (
     DocumentRelatedType,
     ProjectStatus,
 )
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 
 service_logger = CentralLogger.getLogger("service")
 

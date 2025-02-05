@@ -1,7 +1,7 @@
 import traceback
 from typing import Any, List, Type, TypeVar, Optional
 
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 
 T = TypeVar("T")
 
@@ -48,7 +48,7 @@ def to_comma_separated_string(
     :return: A comma-separated string representation of the list or the default value.
     """
     try:
-        return ", ".join(map(str, lst))
+        return ", ".join(map(str, lst)) if lst else ""
     except Exception as error:
         utils_logger.error(
             f"ERROR while transforming to comma separated list string: {error}"

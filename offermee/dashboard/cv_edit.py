@@ -2,7 +2,7 @@ import json
 import os
 from typing import Any, Dict
 import streamlit as st
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.utils.international import _T
 from offermee.dashboard.widgets.selectors import render_cv_selection_form
 from offermee.dashboard.widgets.to_sreamlit import (

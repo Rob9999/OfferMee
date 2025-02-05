@@ -8,7 +8,7 @@ import streamlit as st
 from jsonschema import ValidationError
 
 # Deine Projektspezifischen Importe
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.dashboard.helpers.web_dashboard import (
     get_app_container,
     join_container_path,
@@ -17,7 +17,7 @@ from offermee.dashboard.helpers.web_dashboard import (
     log_info,
     log_error,
 )
-from offermee.AI.project_processor import RFPProcessor
+from offermee.AI.rfp_processor import RFPProcessor
 from offermee.database.facades.main_facades import RFPFacade, ReadFacade
 from offermee.database.models.main_models import RFPSource
 from offermee.schemas.json.schema_loader import get_schema, validate_json

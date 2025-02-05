@@ -2,8 +2,8 @@ import os
 from urllib.parse import urlparse
 import re
 
-from offermee.config import Config
-from offermee.logger import CentralLogger
+from offermee.utils.config import Config
+from offermee.utils.logger import CentralLogger
 
 save_utils_logger = CentralLogger.getLogger(__name__)
 

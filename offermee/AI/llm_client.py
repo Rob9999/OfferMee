@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 
 
 class LLMClient(ABC):

@@ -3,7 +3,7 @@ import traceback
 from typing import Any, Dict, List
 import streamlit as st
 
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.AI.cv_processor import CVProcessor
 from offermee.dashboard.widgets.db_utils import save_cv_to_db
 from offermee.dashboard.widgets.to_sreamlit import (

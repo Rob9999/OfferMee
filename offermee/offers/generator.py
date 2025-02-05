@@ -3,7 +3,7 @@ from typing import Any, Dict
 from jinja2 import Environment, BaseLoader
 from babel import dates, numbers
 
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 from offermee.utils.international import _T  # Übersetzungen einbinden
 
 

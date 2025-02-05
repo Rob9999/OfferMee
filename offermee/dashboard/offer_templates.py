@@ -1,7 +1,7 @@
 import traceback
 from typing import Any, Dict, List
 import streamlit as st
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.utils.international import _T
 from offermee.dashboard.helpers.web_dashboard import (
     get_app_container,

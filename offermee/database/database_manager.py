@@ -8,12 +8,12 @@ import logging
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.database.transformers.to_json_schema import (
     build_full_json_schema,
     db_model_to_json_schema,
 )
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 
 
 class DatabaseManager:

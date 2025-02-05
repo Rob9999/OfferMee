@@ -1,7 +1,7 @@
 import os
 import json
 from jsonschema import validate, ValidationError
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 from offermee.schemas.json.schema_keys import SchemaKey
 
 # Directory where schema files are stored

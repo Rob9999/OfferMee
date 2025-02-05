@@ -5,7 +5,7 @@ import streamlit as st
 import pandas as pd
 
 # Deine Projektspezifischen Importe
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.dashboard.helpers.web_dashboard import (
     get_app_container,
     log_error,

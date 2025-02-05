@@ -1,10 +1,10 @@
 from typing import List, Tuple, Dict, Any, Optional
-from offermee.AI.project_processor import RFPProcessor
-from offermee.config import Config
+from offermee.AI.rfp_processor import RFPProcessor
+from offermee.utils.config import Config
 from offermee.database.facades.main_facades import RFPFacade, ReadFacade
 from offermee.database.models.main_models import RFPSource
 from offermee.htmls.save_utils import generate_filename_from_url, save_html
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 from offermee.scraper.base_scraper import BaseScraper
 from bs4 import BeautifulSoup
 

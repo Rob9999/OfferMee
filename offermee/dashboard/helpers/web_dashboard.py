@@ -1,13 +1,13 @@
 import streamlit_authenticator as stauth
 import streamlit as st
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.dashboard.widgets.uitls import (
     del_session_container,
     get_or_create_session_container,
     has_session_container,
 )
 from offermee.users.credential_loader import load_credentials_from_db
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 from offermee.utils.container import Container
 
 g_web_logger = CentralLogger.getLogger(name="web")

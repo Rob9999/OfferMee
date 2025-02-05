@@ -31,7 +31,7 @@ from offermee.database.services.main_services import (
     TransformService,
     WorkPackageService,
 )
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 
 facade_logger = CentralLogger.getLogger(__name__)
 

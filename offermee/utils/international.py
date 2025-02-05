@@ -1,6 +1,6 @@
 import os
 import gettext
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 
 international_logger = CentralLogger.getLogger("international")
 

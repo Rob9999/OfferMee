@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, List, Optional
 from offermee.utils.international import _T
 import streamlit as st
-from offermee.config import Config
+from offermee.utils.config import Config
 from offermee.dashboard.helpers.web_dashboard import log_info
 from offermee.dashboard.widgets.uitls import log_error
 from offermee.database.facades.main_facades import CVFacade, FreelancerFacade

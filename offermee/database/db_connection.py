@@ -2,7 +2,7 @@
 from contextlib import contextmanager
 
 from offermee.database.database_manager import DatabaseManager
-from offermee.logger import CentralLogger
+from offermee.utils.logger import CentralLogger
 from sqlalchemy.orm import Session
 
 db_logger = CentralLogger.getLogger("db")

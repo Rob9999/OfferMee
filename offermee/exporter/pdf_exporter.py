@@ -10,8 +10,8 @@ from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfbase.ttfonts import TTFont
-from offermee.config import Config
-from offermee.logger import CentralLogger
+from offermee.utils.config import Config
+from offermee.utils.logger import CentralLogger
 
 
 pdf_exporter_logger = CentralLogger.getLogger(__name__)
