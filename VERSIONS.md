@@ -1,3 +1,7 @@
+## v0.0.6686 - 2025-02-05T13:44:33.831Z
+
+- Refactored db layer
+
 ## v0.0.6685 - 2025-02-04T15:53:33.359Z
 
 - Merge branch 'main' of https://github.com/Rob9999/OfferMee
