@@ -28,7 +28,7 @@ jobs:
           # Get the email address of the last commit
           LAST_COMMIT_AUTHOR_EMAIL="$(git log -1 --pretty=format:'%ae')"
           echo "Last commit author email: $LAST_COMMIT_AUTHOR_EMAIL"
-          # If this email == GitHub Actions? Then abort
+          # If this email is from GitHub Actions, abort to prevent infinite loop.
           if [ "$LAST_COMMIT_AUTHOR_EMAIL" = "41898282+github-actions[bot]@users.noreply.github.com" ]; then
             echo "Commit was made by GitHub Action, skipping..."
             echo "::set-output name=skip::true"
@@ -45,11 +45,11 @@ jobs:
             echo "Is a rebumping, skip ..."
             exit 0
           fi
-          # Try to find the line that starts with '## v', e.g. "## v1.2.3 - 2025-01-21"
+          # Find the first line starting with '## v' (e.g. "## v1.2.3 - 2025-01-21")
           CURRENT_VERSION="$(grep -m1 '^## v' VERSIONS.md | sed -E 's/^## v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')"
           
           if [ -z "$CURRENT_VERSION" ]; then
-            echo "No version found in VERSIONS.md - default=0.0.0"
+            echo "No version found in VERSIONS.md - defaulting to 0.0.0"
             CURRENT_VERSION="0.0.0"
           fi
           
@@ -64,12 +64,10 @@ jobs:
             exit 0
           fi
         
-          # If HEAD~1 exists (i.e., there is at least one previous commit):
+          # Get commit messages from the last commit range
           if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
-            # Commit messages since the last commit
             COMMITS="$(git log --pretty=format:%B HEAD~1..HEAD)"
           else
-            # If only one commit
             COMMITS="$(git log --pretty=format:%B HEAD)"
           fi
           
@@ -78,28 +76,40 @@ jobs:
       
           CURRENT_VERSION="${{ steps.get_version.outputs.current_version }}"
           
-          # Split MAJOR.MINOR.PATCH
+          # Split current version into MAJOR, MINOR, PATCH
           MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
           MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
           PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
       
-          # Look for a special tag <major_release></major_release> in the commit text
-          if echo "$COMMITS" | grep -q "<major_release></major_release>"; then
+          # Extract text between <major_release> and </major_release>
+          MAJOR_NOTES=$(echo "$COMMITS" | sed -n '/<major_release>/,/<\/major_release>/p' | sed 's/<major_release>//g; s/<\/major_release>//g')
+          
+          # Extract text between <minor_release> and </minor_release>
+          MINOR_NOTES=$(echo "$COMMITS" | sed -n '/<minor_release>/,/<\/minor_release>/p' | sed 's/<minor_release>//g; s/<\/minor_release>//g')
+      
+          if [ -n "$MAJOR_NOTES" ]; then
+            echo "Major release tag found. Bumping major version."
             MAJOR=$((MAJOR + 1))
             MINOR=0
             PATCH=0
             RELEASE_TYPE="(MAJOR)"
+            RELEASE_NOTES="$MAJOR_NOTES"
+          elif [ -n "$MINOR_NOTES" ]; then
+            echo "Minor release tag found. Bumping minor version."
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            RELEASE_TYPE="(MINOR)"
+            RELEASE_NOTES="$MINOR_NOTES"
           else
             PATCH=$((PATCH + 1))
             RELEASE_TYPE="(PATCH)"
+            RELEASE_NOTES="$COMMITS"
           fi
       
           NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
           echo "New version: $NEW_VERSION $RELEASE_TYPE"
           echo "::set-output name=new_version::$NEW_VERSION"
-          
-          # Release notes are simply the commit messages
-          echo "::set-output name=release_notes::$COMMITS"
+          echo "::set-output name=release_notes::$RELEASE_NOTES"
 
       - name: Update VERSIONS.md with new version
         id: update_versions_md
@@ -114,7 +124,6 @@ jobs:
 
           # Generate an ISO8601 UTC timestamp (e.g., 2025-01-23T18:20:02.123Z)
           DATE="$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')"
-          # Date 
           echo "::set-output name=new_date::$DATE"
           
           # Write a new section at the beginning of VERSIONS.md
@@ -138,10 +147,10 @@ jobs:
           fi
         
           NEW_VERSION="${{ steps.determine_new_version.outputs.new_version }}"
-          # Replace line "## Version 0.0.1" with e.g. "## Version 1.2.3"
+          # Replace the line starting with "## Version" with the new version
           sed -i "s|^## Version .*|## Version ${NEW_VERSION}|" README.md
           DATE="${{ steps.update_versions_md.outputs.new_date }}"
-          # Replace line "**Date:** 2024-12-17" with e.g. "**Date:** 2025-01-23T18:20:02.123Z"
+          # Replace the line starting with "**Date:**" with the new date
           sed -i "s|^- \*\*Date:\*\* .*|- **Date:** ${DATE}|" README.md         
           echo "README.md (if placeholders present) updated."
 
@@ -162,6 +171,5 @@ jobs:
             echo "Is a rebumping, skip ..."
             exit 0
           fi
-
           # Push to main (or another branch if applicable)
           git push origin main
