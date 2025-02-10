@@ -1,0 +1,929 @@
+
+
+DATEI
+[.\base_rfp_scraper.py]
+Name: base_rfp_scraper.py
+Geändert: 2025-02-06 12:28:10
+Größe: 2996 Bytes
+Typ: File
+
+from typing import Any, Dict
+import requests
+from bs4 import BeautifulSoup
+
+from offermee.AI.rfp_processor import RFPProcessor
+from offermee.database.facades.main_facades import RFPFacade, ReadFacade
+from offermee.database.models.main_models import RFPSource
+from offermee.scraper.base_scraper import BaseScraper
+from offermee.utils.config import Config
+from offermee.utils.logger import CentralLogger
+
+
+class BaseRFPScraper(BaseScraper):
+    """
+    General base class for scrapers.
+    Provides basic functions such as HTTP fetching,
+    HTML parsing, and unified logging.
+    """
+
+    def __init__(self, base_url):
+        self.base_url = base_url
+        self.headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+            )
+        }
+        # Set up logger
+        self.logger = CentralLogger.getLogger(__name__)
+        self.project_processor: RFPProcessor = RFPProcessor()
+
+    def fetch_page(self, url, params=None):
+        """
+        Sends an HTTP request and returns the content of the page.
+        """
+        try:
+            self.logger.info(f"fetch_page: url='{url}', params='{params}'")
+            response = requests.get(url, params=params, headers=self.headers)
+            response.raise_for_status()
+            return response.text
+        except requests.RequestException as e:
+            self.logger.error(f"Error fetching page: {e}")
+            return None
+
+    def process(self, project: Dict[str, Any]) -> None:
+        """
+        Analyzes the rfp (request for proposal) description with an LLM and stores the extracted data.
+        """
+        self.logger.info(f"Processing project: {project.get('title', 'No title')}")
+        analysis = self.project_processor.analyze_rfp(str(project))
+        new_rfp = analysis.get("project") if analysis else {}
+        if not new_rfp:
+            self.logger.error(
+                f"Analysis failed for project: {project.get('title', 'No title')}"
+            )
+            return
+        try:
+            original_link = new_rfp["original_link"] = new_rfp.get(
+                "original_link", project["link"]
+            )
+            existing_project = ReadFacade.get_source_rule_unique_rfp_record(
+                source=RFPSource.ONLINE, original_link=original_link
+            )
+            if existing_project:
+                self.logger.info(f"RFP already exists: {new_rfp.get('title')}")
+                return
+            self.logger.info(f"AI RFP analysis: {new_rfp}")
+            new_rfp["source"] = RFPSource.ONLINE
+            RFPFacade.create(
+                new_rfp, created_by=Config.get_instance().get_current_user()
+            )
+            self.logger.info(f"RFP saved: {new_rfp.get('title')}")
+        except Exception as e:
+            self.logger.exception(f"Error saving RFP: {e}")
+
+
+
+DATEI
+[.\base_scraper.py]
+Name: base_scraper.py
+Geändert: 2025-02-06 12:27:41
+Größe: 2355 Bytes
+Typ: File
+
+from typing import Any, Dict
+import requests
+from bs4 import BeautifulSoup
+
+from offermee.AI.rfp_processor import RFPProcessor
+from offermee.database.facades.main_facades import RFPFacade, ReadFacade
+from offermee.database.models.main_models import RFPSource
+from offermee.utils.config import Config
+from offermee.utils.logger import CentralLogger
+from offermee.scraper.scraper_interface import Scraper
+
+
+class BaseScraper(Scraper):
+    """
+    General base class for scrapers.
+    Provides basic functions such as HTTP fetching,
+    HTML parsing, and unified logging.
+    """
+
+    def __init__(self, base_url):
+        self.base_url = base_url
+        self.headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+            )
+        }
+        # Set up logger
+        self.logger = CentralLogger.getLogger(__name__)
+
+    def fetch_page(self, url, params=None):
+        """
+        Sends an HTTP request and returns the content of the page.
+        """
+        try:
+            self.logger.info(f"fetch_page: url='{url}', params='{params}'")
+            response = requests.get(url, params=params, headers=self.headers)
+            response.raise_for_status()
+            return response.text
+        except requests.RequestException as e:
+            self.logger.error(f"Error fetching page: {e}")
+            return None
+
+    def parse_html(self, html_content):
+        """
+        Parses HTML content and returns a BeautifulSoup object.
+        """
+        return BeautifulSoup(html_content, "html.parser")
+
+    def fetch(self, *args, **kwargs):
+        """
+        Default implementation, can be overridden by subclasses.
+        """
+        raise NotImplementedError("fetch must be overridden in the subclass.")
+
+    def fetch_paginated(self, *args, **kwargs):
+        """
+        Default implementation, can be overridden by subclasses.
+        """
+        raise NotImplementedError("fetch_paginated must be overridden in the subclass.")
+
+    def process(self, *args, **kwargs):
+        """
+        Default implementation, can be overridden by subclasses.
+        """
+        raise NotImplementedError("process must be overridden in the subclass.")
+
+
+
+DATEI
+[.\freelancermap.py]
+Name: freelancermap.py
+Geändert: 2025-02-06 12:29:44
+Größe: 14081 Bytes
+Typ: File
+
+from typing import List, Tuple, Dict, Any, Optional
+from offermee.AI.rfp_processor import RFPProcessor
+from offermee.htmls.save_utils import generate_filename_from_url, save_html
+from offermee.utils.logger import CentralLogger
+from offermee.scraper.base_rfp_scraper import BaseRFPScraper
+from bs4 import BeautifulSoup
+
+from offermee.utils.international import _T
+
+
+class FreelanceMapScraper(BaseRFPScraper):
+    """
+    Scrapes RFPs (Requests For Proposals -> Projects) from the FreelancerMap platform.
+
+    Supports searching with various parameters such as query terms, categories, contract types,
+    remote options, industries, matching skills and location-based filtering. Also maps human-readable
+    values to the identifiers expected by FreelancerMap.
+
+    Features:
+    - Parameter mapping with error logging for invalid/missing values.
+    - Pagination support.
+    - Extraction of project details (title, description, link, etc.).
+    - Analysis of project descriptions via an LLM (e.g. GPT-4).
+    - Storage of structured project data in the database.
+    """
+
+    BASE_URL = "https://www.freelancermap.de"
+    SEARCH_URL = "https://www.freelancermap.de/projektboerse.html"
+
+    # Mappings for countries, contract types, and remote options
+    COUNTRY_MAPPING = {
+        "Deutschland": 1,
+        "Österreich": 2,
+        "Schweiz": 3,
+        "DACH": [1, 2, 3],
+        "EU": "EU",
+        "Europa": "Europe",
+        "Erde": "World",
+    }
+
+    CONTRACT_TYPE_MAPPING = {
+        "Contractor": "contracting",
+        "ANÜ": "employee_leasing",
+        "Festanstellung": "permanent_position",
+    }
+
+    REMOTE_MAPPING = {
+        "remote": 100,
+        "onsite": 0,
+        "hybrid": 50,
+    }
+
+    def __init__(self) -> None:
+        super().__init__(self.BASE_URL)
+        self.logger = CentralLogger.getLogger(__name__)
+        self.project_processor = RFPProcessor()
+
+    def map_params(
+        self,
+        contract_types: Optional[List[str]],
+        remote: Optional[List[str]],
+        countries: Optional[List[str]],
+    ) -> Tuple[List[Any], List[Any], List[Any]]:
+        """
+        Maps enum values to IDs or strings expected by FreelancerMap.
+
+        Parameters:
+            contract_types (List[str]): List of contract types.
+            remote (List[str]): List of remote work options.
+            countries (List[str]): List of country names.
+
+        Returns:
+            Tuple containing:
+                - List of mapped contract types.
+                - List of mapped remote options.
+                - List of mapped country identifiers.
+        """
+        mapped_contract_types: List[Any] = []
+        if contract_types:
+            for ct in contract_types:
+                if ct in self.CONTRACT_TYPE_MAPPING:
+                    mapped_contract_types.append(self.CONTRACT_TYPE_MAPPING[ct])
+                else:
+                    self.logger.warning(f"Invalid contract type value: {ct}")
+
+        mapped_remote: List[Any] = []
+        if remote:
+            for r in remote:
+                if r in self.REMOTE_MAPPING:
+                    mapped_remote.append(self.REMOTE_MAPPING[r])
+                else:
+                    self.logger.warning(f"Invalid remote value: {r}")
+
+        mapped_countries: List[Any] = []
+        if countries:
+            for country in countries:
+                mapped_value = self.COUNTRY_MAPPING.get(country)
+                if isinstance(mapped_value, list):
+                    mapped_countries.extend(mapped_value)
+                elif mapped_value:
+                    mapped_countries.append(mapped_value)
+                else:
+                    self.logger.warning(f"Invalid country value: {country}")
+
+        return mapped_contract_types, mapped_remote, mapped_countries
+
+    def parse_search_page_html(
+        self, html_content: str, max_results: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        self.logger.info(
+            f"Start parsing search page HTML content (max_results={max_results})."
+        )
+        rfps: List[Dict[str, Any]] = []
+        try:
+            soup = BeautifulSoup(html_content, "html.parser")
+            rfp_items = soup.find_all(
+                "div", class_="project-container project card box", limit=max_results
+            )
+            for item in rfp_items:
+                title_tag = item.find("a", class_="project-title")
+                title = title_tag.get_text(strip=True) if title_tag else "No title"
+                link = (
+                    f"https://www.freelancermap.de{title_tag['href']}"
+                    if title_tag and title_tag.get("href")
+                    else "No link"
+                )
+                description_tag = item.find("div", class_="description")
+                short_description = (
+                    description_tag.get_text(strip=True)
+                    if description_tag
+                    else "No description"
+                )
+                rfp = {
+                    "title": title,
+                    "link": link,
+                    "short-description": short_description,
+                }
+                rfps.append(rfp)
+                self.logger.info(f"Parsed RFP: {rfp}")
+        except Exception as e:
+            self.logger.exception(f"Error while parsing search HTML: {e}")
+        return rfps
+
+    def parse_rfp_page_html(
+        self, html_content: str, rfp: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        self.logger.info(
+            f"Start parsing RFP page HTML (RFP: {rfp.get('title', 'No title')}, HTML size: {len(html_content)})."
+        )
+        # Save HTML to disk
+        save_html(html_content, filename=generate_filename_from_url(rfp["link"]))
+        try:
+            soup = BeautifulSoup(html_content, "html.parser")
+            title_header_tag = soup.find("h1", class_="m-t-1 h2")
+            title_header = (
+                title_header_tag.get_text(strip=True)
+                if title_header_tag
+                else "No title header"
+            )
+
+            description_div = soup.find(
+                "div", class_="projectcontent", itemprop="description"
+            )
+            description = ""
+            keywords: List[str] = []
+            if description_div:
+                # Iterate over all child divs to extract keywords and description content
+                for desc_div in description_div.find_all("div"):
+                    class_attributes = desc_div.get("class", [])
+                    if "keywords-container" in class_attributes:
+                        for kw_span in desc_div.find_all(
+                            "span", class_="keyword no-truncate"
+                        ):
+                            keywords.append(kw_span.get_text(strip=True))
+                    elif "content" in class_attributes:
+                        # Remove the header if present and get the rest of the text
+                        description = desc_div.get_text(strip=False).replace(
+                            '<h2 class="h4">Beschreibung</h2>', ""
+                        )
+
+            # Extract details from <dl> sections
+            details: Dict[str, str] = {}
+            for dl in soup.find_all("dl", class_="m-t-1"):
+                dts = dl.find_all("dt")
+                dds = dl.find_all("dd")
+                for dt, dd in zip(dts, dds):
+                    label = dt.get_text(strip=True).replace(":", "")
+                    value = dd.get_text(strip=True)
+                    details[label] = value
+
+            rfp.update(
+                {
+                    "title-header": title_header,
+                    "description": description,
+                    "keywords": keywords,
+                    "project-details": {
+                        "start": details.get("Start", "No start date"),
+                        "workload": details.get("Auslastung", "No workload"),
+                        "duration": details.get("Dauer", "No duration"),
+                        "provider": details.get("Von", "No provider"),
+                        "date-posted": details.get("Eingestellt", "No date posted"),
+                        "contact-person": details.get(
+                            "Ansprechpartner", "No contact person"
+                        ),
+                        "provider-project-id": details.get(
+                            "Projekt-ID", "No project ID"
+                        ),
+                        "industry": details.get("Branche", "No industry"),
+                        "contract-type": details.get("Vertragsart", "No contract type"),
+                        "type-of-assignment": details.get(
+                            "Einsatzart", "No type of assignment"
+                        ),
+                    },
+                }
+            )
+            self.logger.info(f"Parsed project details: {rfp}")
+        except Exception as e:
+            self.logger.exception(f"Error while parsing project HTML: {e}")
+        return rfp
+
+    def fetch(
+        self,
+        query: Optional[str] = None,
+        categories: Optional[List[Any]] = None,
+        contract_types: Optional[List[str]] = None,
+        remote: Optional[List[str]] = None,
+        industries: Optional[List[Any]] = None,
+        matching_skills: Optional[List[Any]] = None,
+        countries: Optional[List[str]] = None,
+        states: Optional[List[Any]] = None,
+        sort: int = 1,
+        page: int = 1,
+        max_results: int = 10,
+        progress: Any = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Fetches RFPs from FreelancerMap based on detailed parameters.
+        """
+        try:
+            mapped_contract_types, mapped_remote, mapped_countries = self.map_params(
+                contract_types, remote, countries
+            )
+            params: Dict[str, Any] = {
+                "query": query,
+                "categories[]": categories,
+                "projectContractTypes[]": mapped_contract_types,
+                "remoteInPercent[]": mapped_remote,
+                "industry[]": industries,
+                "matchingSkills[]": matching_skills,
+                "countries[]": mapped_countries,
+                "states[]": states,
+                "sort": sort,
+                "pagenr": page,
+                "hideAppliedProjects": "true",
+            }
+            # Filter out empty parameters (keep zeros and non-empty lists)
+            params = {
+                key: value
+                for key, value in params.items()
+                if value not in (None, [], {})
+            }
+
+            search_page_html_content = self.fetch_page(self.SEARCH_URL, params=params)
+            if not search_page_html_content:
+                self.logger.error("No content received from search page.")
+                return []
+            rfps = self.parse_search_page_html(
+                search_page_html_content, max_results=max_results
+            )
+            count = len(rfps)
+            current: int = 0
+            for project in rfps:
+                current += 1
+                project_page_html_content = self.fetch_page(project["link"])
+                if not project_page_html_content:
+                    self.logger.error(
+                        f"No project page available for {project.get('title')}. Skipping."
+                    )
+                    continue
+                project = self.parse_rfp_page_html(
+                    project_page_html_content, rfp=project
+                )
+                if progress:
+                    progress.progress(
+                        current / count,
+                        f"{_T('Processing RFPs')}: {current} of {count}",
+                    )
+                self.process_rfp(project)  # llm analysis and store in db
+                if progress:
+                    progress.progress(
+                        current / count, f"{_T('Processed RFPs')}: {current} of {count}"
+                    )
+            return rfps
+        except AttributeError as e:
+            self.logger.exception(f"AttributeError while parsing project: {e}")
+            return []
+        except Exception as e:
+            self.logger.exception(f"General error while fetching projects: {e}")
+            return []
+
+    def fetch_paginated(
+        self,
+        query: Optional[str] = None,
+        categories: Optional[List[Any]] = None,
+        contract_types: Optional[List[str]] = None,
+        remote: Optional[List[str]] = None,
+        industries: Optional[List[Any]] = None,
+        matching_skills: Optional[List[Any]] = None,
+        countries: Optional[List[str]] = None,
+        states: Optional[List[Any]] = None,
+        sort: int = 1,
+        max_pages: int = 5,
+        max_results: int = 50,
+        progress: Any = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Fetches multiple pages of RFPs and aggregates them.
+        """
+        all_rfps: List[Dict[str, Any]] = []
+        for page in range(1, max_pages + 1):
+            rfps = self.fetch(
+                query=query,
+                categories=categories,
+                contract_types=contract_types,
+                remote=remote,
+                industries=industries,
+                matching_skills=matching_skills,
+                countries=countries,
+                states=states,
+                sort=sort,
+                page=page,
+                max_results=max_results,  # max results per page can be controlled if needed
+                progress=progress,
+            )
+            if not rfps:
+                break  # No more RFPs found
+            for rfp in rfps:
+                all_rfps.append(rfp)
+                if len(all_rfps) >= max_results:
+                    break
+            if len(all_rfps) >= max_results:
+                break
+        return all_rfps
+
+
+
+DATEI
+[.\rfp_email_scraper.py]
+Name: rfp_email_scraper.py
+Geändert: 2025-02-05 17:02:23
+Größe: 7652 Bytes
+Typ: File
+
+import imaplib
+import email
+from email.header import decode_header
+import datetime
+from typing import List, Dict, Any, Optional
+
+# Project-specific imports
+from offermee.utils.config import Config
+from offermee.AI.rfp_processor import RFPProcessor
+from offermee.database.facades.main_facades import RFPFacade, ReadFacade
+from offermee.database.models.main_models import RFPSource
+from offermee.utils.logger import CentralLogger
+
+# Configure logging
+logger = CentralLogger.getLogger(__name__)
+
+
+def connect_to_email(
+    server: str, port: int, email_user: str, email_pass: str, mailbox: str = "INBOX"
+) -> Optional[imaplib.IMAP4_SSL]:
+    """Connects to the specified email server and mailbox.
+
+    Args:
+        server (str): The email server address.
+        port (int): The email server port.
+        email_user (str): The email user.
+        email_pass (str): The email password.
+        mailbox (str, optional): The mailbox to connect to. Defaults to "INBOX".
+
+    Returns:
+        Optional[imaplib.IMAP4_SSL]: The IMAP4_SSL object if successful, None otherwise.
+    """
+    try:
+        mail = imaplib.IMAP4_SSL(server, port)
+        mail.login(email_user, email_pass)
+        mail.select(mailbox)
+        logger.info(f"Successfully connected to the mailbox '{mailbox}'.")
+        return mail
+    except imaplib.IMAP4.error as e:
+        logger.error(f"Error connecting to the email server: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Error connecting to the email server: {e}")
+        return None
+
+
+def fetch_emails(
+    mail: imaplib.IMAP4_SSL,
+    since_date: str,
+    subject_filter: str = None,
+    sender_filter: str = None,
+) -> List[bytes]:
+    try:
+        # Search for emails since the specified date
+        status, messages = mail.search(None, f'(SINCE "{since_date}")')
+        if status != "OK":
+            logger.error("Error searching for emails.")
+            return []
+
+        email_ids = messages[0].split()
+        logger.info(f"Found emails since {since_date}: {len(email_ids)}")
+
+        filtered_emails = []
+        for eid in email_ids:
+            status, msg_data = mail.fetch(eid, "(RFC822)")
+            if status != "OK":
+                logger.warning(f"Error fetching email ID {eid}. Skipping.")
+                continue
+            msg = email.message_from_bytes(msg_data[0][1])
+
+            # Decode the subject
+            subject, encoding = decode_header(msg.get("Subject"))[0]
+            if isinstance(subject, bytes):
+                subject = subject.decode(encoding if encoding else "utf-8")
+
+            # Decode the sender
+            from_, encoding = decode_header(msg.get("From"))[0]
+            if isinstance(from_, bytes):
+                from_ = from_.decode(encoding if encoding else "utf-8")
+
+            # Filter by subject and sender if specified
+            if subject_filter and subject_filter not in subject:
+                continue
+            if sender_filter and sender_filter not in from_:
+                continue
+
+            filtered_emails.append(msg_data[0][1])
+
+        logger.info(f"Remaining emails after filtering: {len(filtered_emails)}")
+        return filtered_emails
+    except Exception as e:
+        logger.error(f"Error fetching emails: {e}")
+        return []
+
+
+def parse_email(msg_bytes: bytes) -> Dict[str, Any]:
+    try:
+        msg = email.message_from_bytes(msg_bytes)
+
+        # Decode the subject
+        subject, encoding = decode_header(msg.get("Subject"))[0]
+        if isinstance(subject, bytes):
+            subject = subject.decode(encoding if encoding else "utf-8")
+
+        # Decode the sender
+        from_, encoding = decode_header(msg.get("From"))[0]
+        if isinstance(from_, bytes):
+            from_ = from_.decode(encoding if encoding else "utf-8")
+
+        # Extract the date
+        date_str = msg.get("Date")
+        try:
+            # Parse the date into a datetime object
+            email_date = email.utils.parsedate_to_datetime(date_str)
+        except Exception as e:
+            logger.warning(f"Unknown date format in email: {date_str}. Error: {e}")
+            email_date = None
+
+        # Extract the email content
+        if msg.is_multipart():
+            parts = msg.walk()
+            body = ""
+            for part in parts:
+                content_type = part.get_content_type()
+                content_disposition = str(part.get("Content-Disposition"))
+                if (
+                    content_type == "text/plain"
+                    and "attachment" not in content_disposition
+                ):
+                    charset = part.get_content_charset() or "utf-8"
+                    body += part.get_payload(decode=True).decode(
+                        charset, errors="ignore"
+                    )
+        else:
+            body = msg.get_payload(decode=True).decode(
+                msg.get_content_charset() or "utf-8", errors="ignore"
+            )
+
+        return {
+            "subject": subject,
+            "from": from_,
+            "body": body,
+            "date": str(email_date),  # Add timestamp
+        }
+    except Exception as e:
+        logger.error(f"Error parsing the email: {e}")
+        return {}
+
+
+def process_email(rfp_data: Dict[str, Any], operator: str):
+    try:
+        processor = RFPProcessor()
+        result = processor.analyze_rfp(rfp_data["body"])
+        if not result or "project" not in result:
+            logger.warning("AI analysis did not return a valid 'project' structure.")
+            return
+
+        rfp: Dict[str, Any] = result["project"]
+        # Check if the RFP already exists
+        rfp_record = ReadFacade.get_source_rule_unique_rfp_record(
+            source=RFPSource.EMAIL,
+            contact_person_email=rfp.get("contact_person_email"),
+            title=rfp.get("title"),
+        )
+        if rfp_record:
+            logger.info(
+                f"Skipping RFP '{rfp.get('title')}' of '{rfp.get('contact_person_email')}' that already exists in db."
+            )
+            return
+
+        # Transform and save the new project
+        rfp["source"] = RFPSource.EMAIL
+        RFPFacade.create(rfp, operator)
+        logger.info(
+            f"New RFP '{rfp.get('title')}' of '{rfp.get('contact_person_email')}' successfully saved to db."
+        )
+    except Exception as e:
+        logger.error(f"ERROR while processing the Email: {e}")
+
+
+def scrap_rfps_from_email(since_days: int = 2):
+    # Load configuration
+    config = Config.get_instance().get_config_data()
+    email_user = config.imap_email
+    email_pass = config.imap_password
+    server = config.imap_server
+    port = config.imap_port
+    mailbox = config.rfp_mailbox
+    subject_filter = config.rfp_email_subject_filter
+    sender_filter = config.rfp_email_sender_filter
+    operator = config.current_user
+
+    # Connect to the email server
+    mail = connect_to_email(server, port, email_user, email_pass, mailbox)
+
+    # Define the date (last 48 hours)
+    since_date = (
+        datetime.datetime.now() - datetime.timedelta(days=since_days)
+    ).strftime("%d-%b-%Y")
+
+    # Fetch relevant emails
+    emails = fetch_emails(mail, since_date, subject_filter, sender_filter)
+
+    # Process each email
+    for msg_bytes in emails:
+        rfp_data = parse_email(msg_bytes)
+        if rfp_data:
+            process_email(rfp_data, operator)
+
+    # Logout from the email server
+    mail.logout()
+    logger.info("Email scraping completed.")
+
+
+
+DATEI
+[.\scraper_interface.py]
+Name: scraper_interface.py
+Geändert: 2025-02-06 12:26:42
+Größe: 1059 Bytes
+Typ: File
+
+from abc import ABC, abstractmethod
+
+
+class Scraper(ABC):
+    """
+    Abstract interface for all scrapers.
+    Defines the methods that a concrete scraper should have.
+    """
+
+    @abstractmethod
+    def fetch_page(self, url, params=None):
+        """
+        Sends an HTTP request and returns the content of the page.
+        """
+        pass
+
+    @abstractmethod
+    def fetch(self, *args, **kwargs):
+        """
+        Fetches (single page).
+        """
+        pass
+
+    @abstractmethod
+    def fetch_paginated(self, *args, **kwargs):
+        """
+        Fetches (multiple pages, paginated).
+        """
+        pass
+
+    @abstractmethod
+    def parse_html(self, *args, **kwargs):
+        """
+        Parses HTML content and returns a BeautifulSoup object.
+        """
+        pass
+
+    @abstractmethod
+    def process(self, *args, **kwargs) -> None:
+        """
+        Analyzes and processes the scraped content (may use an LLM for analysis and may stores the extracted data to db).
+        """
+        pass
+
+
+
+DATEI
+[.\selenium_utils.py]
+Name: selenium_utils.py
+Geändert: 2025-01-06 10:46:58
+Größe: 723 Bytes
+Typ: File
+
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+import time
+
+
+def setup_browser(driver_path="chromedriver"):
+    """Initializes a Selenium browser."""
+    service = Service(driver_path)
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")
+    return webdriver.Chrome(service=service, options=options)
+
+
+def fetch_dynamic_page(url, wait_time=3):
+    """Loads a page with Selenium and returns the HTML content."""
+    browser = setup_browser()
+    browser.get(url)
+    time.sleep(wait_time)  # Wait until the page is loaded
+    content = browser.page_source
+    browser.quit()
+    return content
+
+
+
+DATEI
+[.\upwork.py]
+Name: upwork.py
+Geändert: 2025-02-06 12:30:37
+Größe: 3051 Bytes
+Typ: File
+
+from bs4 import BeautifulSoup
+
+from offermee.scraper.base_rfp_scraper import BaseRFPScraper
+
+
+class UpworkScraper(BaseRFPScraper):
+    """
+    Scraper for Upwork projects.
+    This class uses the RSS feed from Upwork to collect projects based on search parameters.
+    """
+
+    BASE_URL = "https://www.upwork.com"
+    SEARCH_URL = "https://www.upwork.com/ab/feed/jobs/rss"
+
+    def __init__(self):
+        super().__init__(self.BASE_URL)
+        # Upwork-specific configurations could be added here.
+
+    def fetch(self, query, max_results=10):
+        """
+        Fetches projects from Upwork based on the search query.
+        """
+        try:
+            params = {
+                "q": query,
+                "sort": "recency",
+                "paging": f"1;{max_results}",  # Example for pagination
+            }
+            self.logger.info(f"Fetching Upwork projects with query: '{query}'")
+            xml_content = self.fetch_page(self.SEARCH_URL, params=params)
+            if not xml_content:
+                self.logger.warning("No content received from Upwork.")
+                return []
+
+            soup = BeautifulSoup(xml_content, "xml")
+            projects = []
+            for item in soup.find_all("item", limit=max_results):
+                title = item.title.text if item.title else "No title"
+                link = item.link.text if item.link else "No link"
+                description = (
+                    item.description.text if item.description else "No description"
+                )
+
+                projects.append(
+                    {"title": title, "link": link, "description": description}
+                )
+
+            self.logger.info(f"Found {len(projects)} projects from Upwork.")
+            return projects
+        except AttributeError as e:
+            self.logger.error(f"AttributeError beim Parsen eines Projekts: {e}")
+            return []
+        except Exception as e:
+            self.logger.error(f"Allgemeiner Fehler beim Abrufen von Projekten: {e}")
+            return []
+
+    def fetch_paginated(
+        self,
+        query=None,
+        categories=None,
+        contract_types=None,
+        remote=None,
+        industries=None,
+        matching_skills=None,
+        countries=None,
+        states=None,
+        sort=1,
+        max_pages=5,
+        max_results=50,
+    ):
+        """
+        Fetches multiple pages of projects and aggregates them.
+        """
+        all_projects = []
+        for page in range(1, max_pages + 1):
+            current_query = f"{query} page:{page}"
+            projects = self.fetch_rfps(query=current_query, max_results=max_results)
+
+            if not projects:
+                break  # No more projects found
+
+            all_projects.extend(projects)
+
+            # If we want to limit the total number:
+            if len(all_projects) >= max_results:
+                all_projects = all_projects[:max_results]
+                break
+
+        return all_projects
+
+
+
+DATEI
+[.\__init__.py]
+Name: __init__.py
+Geändert: 2024-12-18 09:39:11
+Größe: 33 Bytes
+Typ: File
+
+# Scraper Module Initialization

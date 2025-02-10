@@ -33,14 +33,14 @@
             "format": "date-time",
             "title": "Created At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000001B2F588C180>"
+            "default": "<function datetime.utcnow at 0x0000013F2C5ECC20>"
         },
         "updated_at": {
             "type": "string",
             "format": "date-time",
             "title": "Updated At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000001B2F588C220>"
+            "default": "<function datetime.utcnow at 0x0000013F2C5ECCC0>"
         },
         "contact_id": {
             "type": "integer",

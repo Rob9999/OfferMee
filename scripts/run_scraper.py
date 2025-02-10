@@ -7,7 +7,7 @@ def main():
     ai_manager = AIManager("genai")
     scraper = FreelanceMapScraper()
 
-    projects = scraper.fetch_rfps(
+    projects = scraper.fetch(
         query="C# OR C++ OR Java OR Python OR KI",
         contract_types=["contracting"],
         matching_skills=[
@@ -29,7 +29,7 @@ def main():
         print(f"   Beschreibung: {project['description']}\n")
 
     print("Starte Freelancermap-Scraper paginated...")
-    projects = scraper.fetch_rfps_paginated(
+    projects = scraper.fetch_paginated(
         query="Python OR Java",
         contract_types=["contracting"],
         countries=[1, 2, 3],

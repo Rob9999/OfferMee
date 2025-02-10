@@ -29,7 +29,7 @@ Base = DatabaseManager.Base
 
 class LocationType(PyEnum):
     Remote = "Remote"
-    OnSite = "On-site"
+    OnSite = "OnSite"
     Hybrid = "Hybrid"
 
 
@@ -818,7 +818,7 @@ class RFPModel(Base):
     location = Column(
         Enum(LocationType),
         nullable=True,
-        comment="Expected working modality: Remote, On-site or Hybrid",
+        comment="Expected working modality: Remote, OnSite or Hybrid",
         info={"label": _T("Location")},
     )
     industry = Column(

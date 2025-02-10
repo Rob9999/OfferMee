@@ -39,7 +39,7 @@ OfferMee – AI-powered project scout for freelancers. Automatically find projec
 ## **Features (MVP Scope)**
 
 ### **1. Project Discovery Automation**
-- Automated search across freelance portals (e.g., Upwork, Freelancer, and others via scraping/APIs).
+- Automated search across freelance portals (e.g. Freelancer, and others via scraping/APIs).
 - NLP-based filtering for relevant keywords, skills, and experience levels.
 - A dynamic project list sorted by relevance and preferences.
 
@@ -55,7 +55,7 @@ OfferMee – AI-powered project scout for freelancers. Automatically find projec
    - Project duration, complexity, and location.
 
 ### **4. Offer Generation & Approval**
-- Automatic creation of a "freibleibendes" offer based on project data.
+- Automatic creation of an offer based on project data.
 - Integration of customizable templates for emails or platform submissions.
 - Freelance approval flow before sending offers.
 

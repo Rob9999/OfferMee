@@ -21,11 +21,11 @@
 					],
 					"enum": [
 						"Remote",
-						"On-site",
+						"OnSite",
 						"Hybrid",
 						null
 					],
-					"description": "Expected working modality: Remote, On-site or Hybrid"
+					"description": "Expected working modality: Remote, OnSite or Hybrid"
 				},
 				"must-have-requirements": {
 					"type": "array",

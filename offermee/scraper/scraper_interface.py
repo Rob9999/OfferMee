@@ -8,15 +8,36 @@ class Scraper(ABC):
     """
 
     @abstractmethod
-    def fetch_rfps(self, *args, **kwargs):
+    def fetch_page(self, url, params=None):
         """
-        Fetches projects (single page).
+        Sends an HTTP request and returns the content of the page.
         """
         pass
 
     @abstractmethod
-    def fetch_rfps_paginated(self, *args, **kwargs):
+    def fetch(self, *args, **kwargs):
         """
-        Fetches projects (multiple pages, paginated).
+        Fetches (single page).
+        """
+        pass
+
+    @abstractmethod
+    def fetch_paginated(self, *args, **kwargs):
+        """
+        Fetches (multiple pages, paginated).
+        """
+        pass
+
+    @abstractmethod
+    def parse_html(self, *args, **kwargs):
+        """
+        Parses HTML content and returns a BeautifulSoup object.
+        """
+        pass
+
+    @abstractmethod
+    def process(self, *args, **kwargs) -> None:
+        """
+        Analyzes and processes the scraped content (may use an LLM for analysis and may stores the extracted data to db).
         """
         pass

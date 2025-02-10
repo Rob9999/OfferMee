@@ -51,7 +51,7 @@
             "format": "date-time",
             "title": "Created At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x000001B2F580AC00>"
+            "default": "<function datetime.utcnow at 0x0000013F2C56F6A0>"
         }
     },
     "required": [

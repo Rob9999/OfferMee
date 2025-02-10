@@ -1,17 +1,14 @@
 from typing import List, Tuple, Dict, Any, Optional
 from offermee.AI.rfp_processor import RFPProcessor
-from offermee.utils.config import Config
-from offermee.database.facades.main_facades import RFPFacade, ReadFacade
-from offermee.database.models.main_models import RFPSource
 from offermee.htmls.save_utils import generate_filename_from_url, save_html
 from offermee.utils.logger import CentralLogger
-from offermee.scraper.base_scraper import BaseScraper
+from offermee.scraper.base_rfp_scraper import BaseRFPScraper
 from bs4 import BeautifulSoup
 
 from offermee.utils.international import _T
 
 
-class FreelanceMapScraper(BaseScraper):
+class FreelanceMapScraper(BaseRFPScraper):
     """
     Scrapes RFPs (Requests For Proposals -> Projects) from the FreelancerMap platform.
 
@@ -55,8 +52,6 @@ class FreelanceMapScraper(BaseScraper):
 
     def __init__(self) -> None:
         super().__init__(self.BASE_URL)
-        self.logger = CentralLogger.getLogger(__name__)
-        self.project_processor = RFPProcessor()
 
     def map_params(
         self,
@@ -221,7 +216,7 @@ class FreelanceMapScraper(BaseScraper):
             self.logger.exception(f"Error while parsing project HTML: {e}")
         return rfp
 
-    def fetch_rfps(
+    def fetch(
         self,
         query: Optional[str] = None,
         categories: Optional[List[Any]] = None,
@@ -272,26 +267,25 @@ class FreelanceMapScraper(BaseScraper):
             )
             count = len(rfps)
             current: int = 0
-            for project in rfps:
+            for rfp in rfps:
                 current += 1
-                project_page_html_content = self.fetch_page(project["link"])
+                project_page_html_content = self.fetch_page(rfp["link"])
                 if not project_page_html_content:
                     self.logger.error(
-                        f"No project page available for {project.get('title')}. Skipping."
+                        f"No project page available for {rfp.get('title')}. Skipping."
                     )
                     continue
-                project = self.parse_rfp_page_html(
-                    project_page_html_content, rfp=project
-                )
+                rfp = self.parse_rfp_page_html(project_page_html_content, rfp=rfp)
                 if progress:
                     progress.progress(
                         current / count,
-                        f"{_T('Processing RFPs')}: {current} of {count}",
+                        f"{_T('Processing RFPs')}: {current} / {count}",
                     )
-                self.process_rfp(project)  # llm analysis and store in db
+                # llm analysis and store in db
+                self.process(rfp)
                 if progress:
                     progress.progress(
-                        current / count, f"{_T('Processed RFPs')}: {current} of {count}"
+                        current / count, f"{_T('Processed RFPs')}: {current} / {count}"
                     )
             return rfps
         except AttributeError as e:
@@ -301,38 +295,7 @@ class FreelanceMapScraper(BaseScraper):
             self.logger.exception(f"General error while fetching projects: {e}")
             return []
 
-    def process_rfp(self, project: Dict[str, Any]) -> None:
-        """
-        Analyzes the rfp (request for proposal) description with an LLM and stores the extracted data.
-        """
-        self.logger.info(f"Processing project: {project.get('title', 'No title')}")
-        analysis = self.project_processor.analyze_rfp(str(project))
-        new_rfp = analysis.get("project") if analysis else {}
-        if not new_rfp:
-            self.logger.error(
-                f"Analysis failed for project: {project.get('title', 'No title')}"
-            )
-            return
-        try:
-            original_link = new_rfp["original_link"] = new_rfp.get(
-                "original_link", project["link"]
-            )
-            existing_project = ReadFacade.get_source_rule_unique_rfp_record(
-                source=RFPSource.ONLINE, original_link=original_link
-            )
-            if existing_project:
-                self.logger.info(f"RFP already exists: {new_rfp.get('title')}")
-                return
-            self.logger.info(f"AI RFP analysis: {new_rfp}")
-            new_rfp["source"] = RFPSource.ONLINE
-            RFPFacade.create(
-                new_rfp, created_by=Config.get_instance().get_current_user()
-            )
-            self.logger.info(f"RFP saved: {new_rfp.get('title')}")
-        except Exception as e:
-            self.logger.exception(f"Error saving RFP: {e}")
-
-    def fetch_rfps_paginated(
+    def fetch_paginated(
         self,
         query: Optional[str] = None,
         categories: Optional[List[Any]] = None,
@@ -352,7 +315,7 @@ class FreelanceMapScraper(BaseScraper):
         """
         all_rfps: List[Dict[str, Any]] = []
         for page in range(1, max_pages + 1):
-            rfps = self.fetch_rfps(
+            rfps = self.fetch(
                 query=query,
                 categories=categories,
                 contract_types=contract_types,
@@ -374,4 +337,10 @@ class FreelanceMapScraper(BaseScraper):
                     break
             if len(all_rfps) >= max_results:
                 break
+            # Optionally update progress across pages.
+            if progress:
+                overall_progress = page / max_pages
+                progress.progress(
+                    overall_progress, f"{_T('Processed page')}: {page} / {max_pages}"
+                )
         return all_rfps

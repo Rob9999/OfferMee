@@ -1,6 +1,7 @@
 from asyncio import sleep
 import datetime
 import json
+import traceback
 from typing import Any, Dict, List, Optional
 import base64
 import streamlit as st
@@ -30,6 +31,7 @@ from offermee.enums.process_status import Status
 from offermee.matcher.skill_matcher import SkillMatcher
 from offermee.matcher.price_matcher import PriceMatcher
 from offermee.offers.generator import OfferGenerator
+from offermee.offers.dynamic_price_suggestor import DynamicPriceSuggester
 from offermee.utils.email_utils import EmailUtils
 from offermee.utils.container import Container
 
@@ -113,6 +115,7 @@ def offer_matcher_render():
                 {"status": RFPStatus.NEW}
             )
             rfp_count = len(rfp_records)
+            print(rfp_records)
             for new_rfp_record in rfp_records:
                 new_rfp = {
                     "data": new_rfp_record,
@@ -136,7 +139,7 @@ def offer_matcher_render():
             new_rfps = [
                 new_rfp
                 for new_rfp in rfps
-                if new_rfp.get("data", {}).get("status") == ProjectStatus.NEW
+                if new_rfp.get("data", {}).get("status") == RFPStatus.NEW
             ]
             st.success(f"{_T('Current new stored RFPs')}: {len(new_rfps)}")
 
@@ -235,6 +238,11 @@ def offer_matcher_render():
                     key=f"make_offer_for_rfp_{new_rfp_record.get('id')}",
                 ):
                     current_process["rfp-id"] = new_rfp_record.get("id")
+                    current_process["price_suggestion"] = (
+                        DynamicPriceSuggester.get_suggested_rates(
+                            freelancer=freelancer, rfp=new_rfp_record
+                        )
+                    )
 
                 if current_process.get("rfp-id") == new_rfp_record.get("id"):
                     key_rfp_offer = key_rfp + "_offer"
@@ -286,6 +294,9 @@ def offer_matcher_render():
                     path_offer_selected_cv_pdf_path_name = join_container_path(
                         path_offer_process, "cv_pdf_path_name"
                     )
+                    price_suggestion: Dict[str, Any] = current_process.get(
+                        "price_suggestion"
+                    )
                     with st.container(key=key_rfp_offer_freelancer + "_container"):
                         freelancer_desired_rate_min = freelancer.get("desired_rate_min")
                         if not freelancer_desired_rate_min:
@@ -303,7 +314,8 @@ def offer_matcher_render():
                                 f"{_T('Hourly Rate remote in')} {_T('€')} {_T('plus VAT')}: ({_T('min')}) {freelancer_desired_rate_min:.2f}",
                                 key=key_rfp_offer_freelancer + "_hourly_rate_remote",
                                 value=container.get_value(
-                                    path_hourly_rate_remote, freelancer_desired_rate_min
+                                    path_hourly_rate_remote,
+                                    price_suggestion.get("hourly_rate_remote"),
                                 ),
                                 format="%.2f",
                             ),
@@ -315,7 +327,7 @@ def offer_matcher_render():
                                 key=key_rfp_offer_freelancer + "_hourly_rate_onsite",
                                 value=container.get_value(
                                     path_hourly_rate_onsite,
-                                    freelancer_desired_rate_min * 1.2,
+                                    price_suggestion.get("hourly_rate_onsite"),
                                 ),
                                 format="%.2f",
                             ),
@@ -328,7 +340,7 @@ def offer_matcher_render():
                                 + "_daily_flat_rate_onsite",
                                 value=container.get_value(
                                     path_daily_flat_rate_onsite,
-                                    freelancer_desired_rate_min * 8 + 500.00,
+                                    price_suggestion.get("daily_flat_rate_onsite"),
                                 ),
                                 format="%.2f",
                             ),
@@ -340,7 +352,7 @@ def offer_matcher_render():
                                 key=key_rfp_offer_freelancer + "_yearly_rate_onsite",
                                 value=container.get_value(
                                     path_yearly_flat_rate_onsite,
-                                    freelancer_desired_rate_min * 1680,
+                                    price_suggestion.get("yearly_flat_rate_onsite"),
                                 ),
                                 format="%.2f",
                             ),
@@ -506,6 +518,7 @@ def offer_matcher_render():
     except Exception as e:
         log_error(__name__, f"ERROR: {e}")
         st.error(f"{_T('ERROR')}: {e}")
+        traceback.print_exception(type(e), e, e.__traceback__)
 
 
 def export_selected_cv(selected_cv_id: int, cvs: List[Dict[str, Any]]):

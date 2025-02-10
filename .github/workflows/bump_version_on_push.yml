@@ -13,29 +13,27 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
         with:
-          # Voraussetzung: Du hast ein Deploy-Key in deinem Repo hinterlegt,
-          # der auch 'Write Access' hat.
+          # Prerequisite: You have a deploy key in your repo with 'Write Access'.
           ssh-key: ${{ secrets.SSH_DEPLOY_KEY }}
 
       - name: Configure Git
         run: |
-          # Konfiguriert Name/Email für Commits,
-          # damit wir diese Commits identifizieren können.
+          # Configure name/email for commits so we can identify these commits.
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Stop if last commit is from GitHub Actions (avoid infinite loop)
         id: check_who_commits
         run: |
-          # Holt die E-Mail-Adresse des letzten Commits
+          # Get the email address of the last commit
           LAST_COMMIT_AUTHOR_EMAIL="$(git log -1 --pretty=format:'%ae')"
           echo "Last commit author email: $LAST_COMMIT_AUTHOR_EMAIL"
-          # Ist diese E-Mail == GitHub Actions? Dann Abbruch
+          # If this email == GitHub Actions? Then abort
           if [ "$LAST_COMMIT_AUTHOR_EMAIL" = "41898282+github-actions[bot]@users.noreply.github.com" ]; then
             echo "Commit was made by GitHub Action, skipping..."
             echo "::set-output name=skip::true"
             exit 0
-          el
+          else
             echo "Commit was made by $LAST_COMMIT_AUTHOR_EMAIL ..."
             echo "::set-output name=skip::false"
           fi
@@ -47,15 +45,15 @@ jobs:
             echo "Is a rebumping, skip ..."
             exit 0
           fi
-          # Versuche die Zeile zu finden, die mit '## v' beginnt, z.B. "## v1.2.3 - 2025-01-21"
+          # Try to find the line that starts with '## v', e.g. "## v1.2.3 - 2025-01-21"
           CURRENT_VERSION="$(grep -m1 '^## v' VERSIONS.md | sed -E 's/^## v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')"
           
           if [ -z "$CURRENT_VERSION" ]; then
-            echo "Keine Version in VERSIONS.md gefunden - default=0.0.0"
+            echo "No version found in VERSIONS.md - default=0.0.0"
             CURRENT_VERSION="0.0.0"
           fi
           
-          echo "Aktuelle Version: $CURRENT_VERSION"
+          echo "Current version: $CURRENT_VERSION"
           echo "::set-output name=current_version::$CURRENT_VERSION"
 
       - name: Determine new version
@@ -66,12 +64,12 @@ jobs:
             exit 0
           fi
         
-          # Wenn HEAD~1 existiert (also es gibt mindestens einen Vorgänger-Commit):
+          # If HEAD~1 exists (i.e., there is at least one previous commit):
           if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
-            # Commit-Messages seit dem letzten Commit
+            # Commit messages since the last commit
             COMMITS="$(git log --pretty=format:%B HEAD~1..HEAD)"
           else
-            # Falls einziger Commit
+            # If only one commit
             COMMITS="$(git log --pretty=format:%B HEAD)"
           fi
           
@@ -80,12 +78,12 @@ jobs:
       
           CURRENT_VERSION="${{ steps.get_version.outputs.current_version }}"
           
-          # Zerlege MAJOR.MINOR.PATCH
+          # Split MAJOR.MINOR.PATCH
           MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
           MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
           PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
       
-          # Suche im Commit-Text nach einem speziellen Tag <major_release></major_release>
+          # Look for a special tag <major_release></major_release> in the commit text
           if echo "$COMMITS" | grep -q "<major_release></major_release>"; then
             MAJOR=$((MAJOR + 1))
             MINOR=0
@@ -97,10 +95,10 @@ jobs:
           fi
       
           NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-          echo "Neue Version: $NEW_VERSION $RELEASE_TYPE"
+          echo "New version: $NEW_VERSION $RELEASE_TYPE"
           echo "::set-output name=new_version::$NEW_VERSION"
           
-          # Release Notes sind einfach die Commit-Messages
+          # Release notes are simply the commit messages
           echo "::set-output name=release_notes::$COMMITS"
 
       - name: Update VERSIONS.md with new version
@@ -114,12 +112,12 @@ jobs:
           NEW_VERSION="${{ steps.determine_new_version.outputs.new_version }}"
           RELEASE_NOTES="${{ steps.determine_new_version.outputs.release_notes }}"
 
-          # Erzeuge einen ISO8601 UTC-Zeitstempel (z.B. 2025-01-23T18:20:02.123Z)
+          # Generate an ISO8601 UTC timestamp (e.g., 2025-01-23T18:20:02.123Z)
           DATE="$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')"
           # Date 
           echo "::set-output name=new_date::$DATE"
           
-          # Schreibe einen neuen Abschnitt an den Anfang von VERSIONS.md
+          # Write a new section at the beginning of VERSIONS.md
           {
             echo "## v${NEW_VERSION} - ${DATE}"
             echo ""
@@ -140,12 +138,12 @@ jobs:
           fi
         
           NEW_VERSION="${{ steps.determine_new_version.outputs.new_version }}"
-          # Zeile "## Version 0.0.1" ersetzen durch z.B. "## Version 1.2.3"
+          # Replace line "## Version 0.0.1" with e.g. "## Version 1.2.3"
           sed -i "s|^## Version .*|## Version ${NEW_VERSION}|" README.md
           DATE="${{ steps.update_versions_md.outputs.new_date }}"
-          # Zeile "**Date:** 2024-12-17" ersetzen durch z.B. "**Date:** 2025-01-23T18:20:02.123Z"
+          # Replace line "**Date:** 2024-12-17" with e.g. "**Date:** 2025-01-23T18:20:02.123Z"
           sed -i "s|^- \*\*Date:\*\* .*|- **Date:** ${DATE}|" README.md         
-          echo "README.md (falls Platzhalter vorhanden) aktualisiert."
+          echo "README.md (if placeholders present) updated."
 
       - name: Commit changes
         run: |
@@ -165,5 +163,5 @@ jobs:
             exit 0
           fi
 
-          # Push auf main (oder ggf. ein anderer Branch)
+          # Push to main (or another branch if applicable)
           git push origin main

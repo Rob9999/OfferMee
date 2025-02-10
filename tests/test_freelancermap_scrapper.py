@@ -98,7 +98,7 @@ class TestFreelanceMapScraper(unittest.TestCase):
         mock_get.side_effect = requests.exceptions.ConnectionError("Netzwerkfehler")
 
         scraper = FreelanceMapScraper()
-        projects = scraper.fetch_rfps(query="Test", max_results=5)
+        projects = scraper.fetch(query="Test", max_results=5)
 
         self.assertEqual(projects, [])
         mock_get.assert_called_once()

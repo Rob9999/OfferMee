@@ -1,4 +1,5 @@
 import streamlit as st
+from offermee.scraper.upwork import UpworkScraper
 from offermee.utils.international import _T
 from offermee.dashboard.helpers.web_dashboard import log_info
 from offermee.database.db_connection import connect_to_db
@@ -16,7 +17,7 @@ def rfp_scrap_online_render():
     st.header(_T("Scrap Requests For Proposal (RFPs) Online"))
 
     # Platform selection
-    platforms = ["FreelancerMap"]  # Add more platforms later
+    platforms = ["FreelancerMap", "Upwork"]  # Add more platforms later
     platform = st.selectbox("Select Platform:", platforms)
 
     # Search parameters
@@ -42,7 +43,7 @@ def rfp_scrap_online_render():
     if st.button("Start Scraping"):
         if platform == "FreelancerMap":
             scraper = FreelanceMapScraper()  # "https://www.freelancermap.de"
-            projects = scraper.fetch_rfps_paginated(
+            rfps = scraper.fetch_paginated(
                 query=query,
                 categories=None,
                 contract_types=ContractType(contract_type_selection).name,
@@ -58,11 +59,28 @@ def rfp_scrap_online_render():
             )
             # log_debug(__name__, f"Found Projects:\n{projects}")
             # Display and save results
-            if projects:
-                st.success(f"{len(projects)} projects found!")
-                for project in projects:
-                    st.subheader(project.get("title", ""))
-                    st.write(f"Description: {project.get('description', '')}")
-                    st.write(f"[Link to Project]({project.get('link', '')})")
+            if rfps:
+                st.success(f"{_T('RFPs found')}: {len(rfps)}")
+                for rfp in rfps:
+                    st.subheader(rfp.get("title", ""))
+                    st.write(f"Description: {rfp.get('description', '')}")
+                    st.write(f"[Link to Project]({rfp.get('link', '')})")
             else:
-                st.warning("No projects found.")
+                st.warning(_T("No RFPs found."))
+        elif platform == "Upwork":
+            scraper = UpworkScraper()
+            rfps = scraper.fetch_paginated(
+                query=query,
+                max_pages=max_pages,
+                max_results=max_results,
+                progress=st.progress(0),
+            )
+            # Display and save results
+            if rfps:
+                st.success(f"{_T('RFPs found')}: {len(rfps)}")
+                for rfp in rfps:
+                    st.subheader(rfp.get("title", ""))
+                    st.write(f"Description: {rfp.get('description', '')}")
+                    st.write(f"[Link to Project]({rfp.get('link', '')})")
+            else:
+                st.warning(_T("No RFPs found."))

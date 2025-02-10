@@ -1,6 +1,11 @@
+from typing import Any, Dict
 import requests
 from bs4 import BeautifulSoup
 
+from offermee.AI.rfp_processor import RFPProcessor
+from offermee.database.facades.main_facades import RFPFacade, ReadFacade
+from offermee.database.models.main_models import RFPSource
+from offermee.utils.config import Config
 from offermee.utils.logger import CentralLogger
 from offermee.scraper.scraper_interface import Scraper
 
@@ -42,16 +47,20 @@ class BaseScraper(Scraper):
         """
         return BeautifulSoup(html_content, "html.parser")
 
-    def fetch_rfps(self, *args, **kwargs):
+    def fetch(self, *args, **kwargs):
         """
         Default implementation, can be overridden by subclasses.
         """
-        raise NotImplementedError("fetch_rfps must be overridden in the subclass.")
+        raise NotImplementedError("fetch must be overridden in the subclass.")
 
-    def fetch_rfps_paginated(self, *args, **kwargs):
+    def fetch_paginated(self, *args, **kwargs):
         """
         Default implementation, can be overridden by subclasses.
         """
-        raise NotImplementedError(
-            "fetch_rfps_paginated must be overridden in the subclass."
-        )
+        raise NotImplementedError("fetch_paginated must be overridden in the subclass.")
+
+    def process(self, *args, **kwargs):
+        """
+        Default implementation, can be overridden by subclasses.
+        """
+        raise NotImplementedError("process must be overridden in the subclass.")
