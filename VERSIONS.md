@@ -1,3 +1,7 @@
+## v1.0.2 - 2025-02-11T09:58:47.457Z
+
+- Refactored some naming
+
 ## v1.0.1 - 2025-02-10T10:27:57.707Z
 
 - Updated Documentation
