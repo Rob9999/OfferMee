@@ -236,7 +236,7 @@ def save_to_db(
             raise ValueError(f"Missing RFP Source, see {RFPSource}")
         rfp_record = ReadFacade.get_source_rule_unique_rfp_record(
             source=source,
-            contact_person_email=rfp.get("contact_person_email"),
+            contact_person_email=rfp.get("contact-person-email"),
             title=rfp.get("title"),
             original_link=rfp.get("orginal_link"),
             provider=rfp.get("provider"),
@@ -244,7 +244,7 @@ def save_to_db(
         update_record: bool = False
         if rfp_record:
             st.warning(
-                f"{_T('Similar RFP already exists')}: '{rfp.get('source')}', '{rfp.get('title')}', '{rfp.get('contact_person_email')}', '{rfp.get('provider')}', '{rfp.get('orginal_link')}'."
+                f"{_T('Similar RFP already exists')}: '{rfp.get('source')}', '{rfp.get('title')}', '{rfp.get('contact-person-email')}', '{rfp.get('provider')}', '{rfp.get('orginal_link')}'."
             )
             update_record = st.checkbox(
                 _T("Update Record"),

@@ -1110,8 +1110,8 @@ class TransformService:
         if not company:
             company_data = {
                 "name": rfp.get("provider"),
-                "industries": [rfp.get("industry")],
-                "regions": [rfp.get("region")],
+                "industries": [{"name": str(rfp.get("industry"))}],
+                "regions": [{"name": str(rfp.get("region"))}],
                 "website": rfp.get("provider_link"),
             }
             company_id = CompanyService.create(

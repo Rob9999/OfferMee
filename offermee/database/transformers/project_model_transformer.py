@@ -47,8 +47,8 @@ def db_to_json(project: ProjectModel) -> dict:
             "max-hourly-rate": project.hourly_rate,
             "other-conditions": project.other_conditions,
             "contact-person": project.contact_person,
-            "project-provider": project.provider,
-            "project-provider-link": project.provider_link,
+            "provider": project.provider,
+            "provider-link": project.provider_link,
             "start-date": (
                 project.start_date.strftime("%d.%m.%Y") if project.start_date else None
             ),

@@ -165,8 +165,8 @@
 				"max-hourly-rate",
 				"other-conditions",
 				"contact-person",
-				"project-provider",
-				"project-provider-link",
+				"provider",
+				"provider-link",
 				"start-date",
 				"original-link"
 			]

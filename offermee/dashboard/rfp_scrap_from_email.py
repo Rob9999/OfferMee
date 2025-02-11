@@ -270,19 +270,19 @@ def rfp_scrap_from_email_render():
                         rfp["source"] = RFPSource.EMAIL
                         rfp_record = ReadFacade.get_source_rule_unique_rfp_record(
                             source=RFPSource.EMAIL,
-                            contact_person_email=rfp.get("contact_person_email"),
+                            contact_person_email=rfp.get("contact-person-email"),
                             title=rfp.get("title"),
                         )
                         if rfp_record:
                             st.warning(
-                                f"{_T('Similar RFP already exists')}: '{rfp.get('title')}', '{rfp.get('contact_person_email')}'."
+                                f"{_T('Similar RFP already exists')}: '{rfp.get('title')}', '{rfp.get('contact-person-email')}'."
                             )
                             return
                         # create and save
                         RFPFacade.create(rfp, operator)
                         rfps[rfp_index]["status"] = Status.SAVED
                         st.success(
-                            f"{_T('Saved RFP')}:' {rfp.get('title')}', '{rfp.get('contact_person_email')}'."
+                            f"{_T('Saved RFP')}:' {rfp.get('title')}', '{rfp.get('contact-person-email')}'."
                         )
                     except Exception as e:
                         log_error(__name__, f"Error saving to DB: {e}")

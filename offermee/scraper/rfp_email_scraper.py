@@ -159,12 +159,12 @@ def process_email(rfp_data: Dict[str, Any], operator: str):
         # Check if the RFP already exists
         rfp_record = ReadFacade.get_source_rule_unique_rfp_record(
             source=RFPSource.EMAIL,
-            contact_person_email=rfp.get("contact_person_email"),
+            contact_person_email=rfp.get("contact-person-email"),
             title=rfp.get("title"),
         )
         if rfp_record:
             logger.info(
-                f"Skipping RFP '{rfp.get('title')}' of '{rfp.get('contact_person_email')}' that already exists in db."
+                f"Skipping RFP '{rfp.get('title')}' of '{rfp.get('contact-person-email')}' that already exists in db."
             )
             return
 
@@ -172,7 +172,7 @@ def process_email(rfp_data: Dict[str, Any], operator: str):
         rfp["source"] = RFPSource.EMAIL
         RFPFacade.create(rfp, operator)
         logger.info(
-            f"New RFP '{rfp.get('title')}' of '{rfp.get('contact_person_email')}' successfully saved to db."
+            f"New RFP '{rfp.get('title')}' of '{rfp.get('contact-person-email')}' successfully saved to db."
         )
     except Exception as e:
         logger.error(f"ERROR while processing the Email: {e}")

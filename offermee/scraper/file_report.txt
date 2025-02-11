@@ -1,12 +1,20 @@
-
-
-DATEI
+
+
+
+
+DATEI
+
 [.\base_rfp_scraper.py]
-Name: base_rfp_scraper.py
-Geändert: 2025-02-06 12:28:10
-Größe: 2996 Bytes
-Typ: File
-
+Name: base_rfp_scraper.py
+
+Geändert: 2025-02-06 12:28:10
+
+Größe: 2996 Bytes
+
+Typ: File
+
+
+
 from typing import Any, Dict
 import requests
 from bs4 import BeautifulSoup
@@ -81,16 +89,25 @@ class BaseRFPScraper(BaseScraper):
             self.logger.info(f"RFP saved: {new_rfp.get('title')}")
         except Exception as e:
             self.logger.exception(f"Error saving RFP: {e}")
-
-
-
-DATEI
+
+
+
+
+
+
+DATEI
+
 [.\base_scraper.py]
-Name: base_scraper.py
-Geändert: 2025-02-06 12:27:41
-Größe: 2355 Bytes
-Typ: File
-
+Name: base_scraper.py
+
+Geändert: 2025-02-06 12:27:41
+
+Größe: 2355 Bytes
+
+Typ: File
+
+
+
 from typing import Any, Dict
 import requests
 from bs4 import BeautifulSoup
@@ -157,16 +174,25 @@ class BaseScraper(Scraper):
         Default implementation, can be overridden by subclasses.
         """
         raise NotImplementedError("process must be overridden in the subclass.")
-
-
-
-DATEI
+
+
+
+
+
+
+DATEI
+
 [.\freelancermap.py]
-Name: freelancermap.py
-Geändert: 2025-02-06 12:29:44
-Größe: 14081 Bytes
-Typ: File
-
+Name: freelancermap.py
+
+Geändert: 2025-02-06 12:29:44
+
+Größe: 14081 Bytes
+
+Typ: File
+
+
+
 from typing import List, Tuple, Dict, Any, Optional
 from offermee.AI.rfp_processor import RFPProcessor
 from offermee.htmls.save_utils import generate_filename_from_url, save_html
@@ -510,16 +536,25 @@ class FreelanceMapScraper(BaseRFPScraper):
             if len(all_rfps) >= max_results:
                 break
         return all_rfps
-
-
-
-DATEI
+
+
+
+
+
+
+DATEI
+
 [.\rfp_email_scraper.py]
-Name: rfp_email_scraper.py
-Geändert: 2025-02-05 17:02:23
-Größe: 7652 Bytes
-Typ: File
-
+Name: rfp_email_scraper.py
+
+Geändert: 2025-02-05 17:02:23
+
+Größe: 7652 Bytes
+
+Typ: File
+
+
+
 import imaplib
 import email
 from email.header import decode_header
@@ -732,16 +767,25 @@ def scrap_rfps_from_email(since_days: int = 2):
     # Logout from the email server
     mail.logout()
     logger.info("Email scraping completed.")
-
-
-
-DATEI
+
+
+
+
+
+
+DATEI
+
 [.\scraper_interface.py]
-Name: scraper_interface.py
-Geändert: 2025-02-06 12:26:42
-Größe: 1059 Bytes
-Typ: File
-
+Name: scraper_interface.py
+
+Geändert: 2025-02-06 12:26:42
+
+Größe: 1059 Bytes
+
+Typ: File
+
+
+
 from abc import ABC, abstractmethod
 
 
@@ -785,16 +829,25 @@ class Scraper(ABC):
         Analyzes and processes the scraped content (may use an LLM for analysis and may stores the extracted data to db).
         """
         pass
-
-
-
-DATEI
+
+
+
+
+
+
+DATEI
+
 [.\selenium_utils.py]
-Name: selenium_utils.py
-Geändert: 2025-01-06 10:46:58
-Größe: 723 Bytes
-Typ: File
-
+Name: selenium_utils.py
+
+Geändert: 2025-01-06 10:46:58
+
+Größe: 723 Bytes
+
+Typ: File
+
+
+
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -817,16 +870,25 @@ def fetch_dynamic_page(url, wait_time=3):
     content = browser.page_source
     browser.quit()
     return content
-
-
-
-DATEI
+
+
+
+
+
+
+DATEI
+
 [.\upwork.py]
-Name: upwork.py
-Geändert: 2025-02-06 12:30:37
-Größe: 3051 Bytes
-Typ: File
-
+Name: upwork.py
+
+Geändert: 2025-02-06 12:30:37
+
+Größe: 3051 Bytes
+
+Typ: File
+
+
+
 from bs4 import BeautifulSoup
 
 from offermee.scraper.base_rfp_scraper import BaseRFPScraper
@@ -916,14 +978,23 @@ class UpworkScraper(BaseRFPScraper):
                 break
 
         return all_projects
-
-
-
-DATEI
+
+
+
+
+
+
+DATEI
+
 [.\__init__.py]
-Name: __init__.py
-Geändert: 2024-12-18 09:39:11
-Größe: 33 Bytes
-Typ: File
-
+Name: __init__.py
+
+Geändert: 2024-12-18 09:39:11
+
+Größe: 33 Bytes
+
+Typ: File
+
+
+
 # Scraper Module Initialization

@@ -727,6 +727,11 @@ class IndustryModel(Base):
     def __repr__(self):
         return f"<Industry(name='{self.name}')>"
 
+    def to_dict(self):
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
+
 
 class RegionModel(Base):
     __tablename__ = "regions"
@@ -735,6 +740,11 @@ class RegionModel(Base):
 
     def __repr__(self):
         return f"<Region(name='{self.name}')>"
+
+    def to_dict(self):
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
 
 
 class CompanyModel(Base):
@@ -895,14 +905,14 @@ class RFPModel(Base):
         comment="Email of the contact person for the project (if available)",
         info={"label": _T("Contact Person Email")},
     )
-    # "project-provider" (required, can be null)
+    # "provider" (required, can be null)
     provider = Column(
         String,
         nullable=True,
         comment="Project provider (if available)",
         info={"label": _T("Provider")},
     )
-    # "project-provider-link" (required, format=uri, can be null)
+    # "provider-link" (required, format=uri, can be null)
     provider_link = Column(
         String,
         nullable=True,
