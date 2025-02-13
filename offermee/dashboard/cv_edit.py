@@ -99,10 +99,10 @@ def get_cv_data_and_schema(cv: Dict[str, Any]) -> tuple[Dict[str, Any], Dict[str
         schema: Dict[str, Any] = SchemaFacade.get_by_id(schema_id)
         if not schema:
             raise ValueError(f"cv_schema_reference_id #{schema_id} is Unknown")
-        cv_schema = json.loads(schema.get("schema_definition"))
+        cv_schema = schema.get("schema_definition")
         if cv_schema is None:
             raise ValueError(f"cv_schema '{schema.get('name')}' is None")
         return structured_data, cv_schema
     except Exception as e:
-        log_error(__name__, "Cv data or schema reference is corrupt or None: {e}")
+        log_error(__name__, f"Cv data or schema reference is corrupt or None: {e}")
         return None, None
