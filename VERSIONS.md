@@ -1,3 +1,7 @@
+## v1.0.4 - 2025-02-13T16:32:15.340Z
+
+- Refactored cv pdf export
+
 ## v1.0.3 - 2025-02-13T10:29:36.855Z
 
 - refactored cv edit
