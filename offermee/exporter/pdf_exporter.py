@@ -600,7 +600,6 @@ def _create_flexible_table(
         normalized_column_widths=col_text_widths_normalized,
         available_width=available_width,
     )
-    print(col_widths)
 
     # 4. Create table
     table = Table(filtered_data, colWidths=col_widths)
