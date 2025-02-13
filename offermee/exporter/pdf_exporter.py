@@ -459,28 +459,28 @@ def remove_empty_columns(
     headers: List[Any], data: List[List[Any]]
 ) -> tuple[List[Any], List[List[Any]]]:
     """
-    Entfernt Spalten, die komplett leer sind (keine Werte).
-    'Leer' bedeutet hier None, leerer String oder leere Liste.
+    Removes columns that are completely empty (no values).
+    'Empty' here means None, empty string, empty list, or value 0.
     """
     if not data:
         return data
 
-    # Maximale Anzahl Spalten in den Zeilen herausfinden
+    # Find the maximum number of columns in the rows
     max_cols = max(len(row) for row in data)
 
-    # Herausfinden, welche Spalten beibehalten werden sollen
+    # Determine which columns to keep
     columns_to_keep = []
     for col_index in range(max_cols):
-        # Wenn in *irgendeiner* Zeile etwas in dieser Spalte steht, behalten wir sie
-        # (vorausgesetzt die Zeile ist überhaupt lang genug).
+        # If there is something in this column in *any* row, we keep it
+        # (provided the row is long enough).
         keep_this_col = any(
-            len(row) > col_index and row[col_index] not in (None, "", [])
+            len(row) > col_index and row[col_index] not in (None, "", [], 0, 0.0)
             for row in data
         )
         if keep_this_col:
             columns_to_keep.append(col_index)
 
-    # Neue Datenstruktur nur mit den beizubehaltenden Spalten
+    # New data structure with only the columns to keep
     new_data = []
     for row in data:
         new_row = [row[i] for i in columns_to_keep if i < len(row)]
@@ -496,10 +496,18 @@ def measure_column_widths(data: List[List[Any]]) -> List[int]:
         return []
     max_cols = max(len(row) for row in data)
     column_widths = [0] * max_cols
+    header = True
     for row in data:
         for col_index, cell in enumerate(row):
-            if cell is not None and cell != "" and cell != []:
+            if isinstance(cell, Paragraph):
+                text = cell.text
+                column_widths[col_index] = max(column_widths[col_index], len(text))
+            elif cell is not None and cell != "" and cell != []:
                 column_widths[col_index] = max(column_widths[col_index], len(str(cell)))
+            if header:
+                column_widths[col_index] += 5
+        if header:
+            header = False
     return column_widths
 
 
@@ -536,18 +544,18 @@ def _create_flexible_table(
     paragraph_style: ParagraphStyle,
 ) -> Table:
     """
-    Erstellt eine Tabelle aus 'cv_data'.
-    Leere Zeilen und Spalten werden entfernt.
+    Creates a table from 'cv_data'.
+    Removes empty rows and columns.
     """
-    # 1. Leere Zeilen filtern (zweites Element leer usw. – ggf. anpassen, falls mehr Spalten).
-    #    Falls du ALLE Spalten checken willst, müsstest du hier statt row[1] jede Spalte prüfen.
+    # 1. Filter empty rows (second element empty, etc. – adjust if more columns).
+    #    If you want to check ALL columns, you would need to check each column instead of row[1].
     filtered_rows = [
-        row for row in data if any(cell not in [None, "", []] for cell in row)
+        row for row in data if any(cell not in [None, "", [], 0, 0.0] for cell in row)
     ]
     if not filtered_rows:
         return None
 
-    # 2. Spalten filtern
+    # 2. Filter columns
     filtered_headers, filtered_data = remove_empty_columns(
         headers=headers, data=filtered_rows
     )
@@ -557,41 +565,44 @@ def _create_flexible_table(
     if filtered_headers:
         filtered_data.insert(0, filtered_headers)
 
-    # 2.1. Spaltenbreiten berechnen
-    col_text_widths_normalized = measure_column_widths_normalized(filtered_data)
+    # 2.1. Calculate column widths
+    col_text_widths_normalized = measure_column_widths_normalized(
+        [filtered_headers] + filtered_data
+    )
 
-    # 3. UTF-32-Konvertierung (optional)
-    for row_index, row in enumerate(filtered_data):
-        for col_index in range(len(row)):
-            filtered_data[row_index][col_index] = row[col_index]
+    # 3. UTF-32 conversion (optional)
+    # for row_index, row in enumerate(filtered_data):
+    #    for col_index in range(len(row)):
+    #        filtered_data[row_index][col_index] = row[col_index]
 
-    # 4. Wandeln in Paragraphs + Unicode-fähige Schrift
-    #    Damit erfolgt Zeilenumbruch automatisch.
+    # 4. Convert to Paragraphs + Unicode-capable font
+    #    This allows ReportLab to handle layout (wrapping) automatically.
     for row_index, row in enumerate(filtered_data):
         for col_index, cell_value in enumerate(row):
             if cell_value is None:
                 cell_value = ""
-            # Wichtig: mit Paragraph kann ReportLab das Layout (Umbruch) steuern
+            # Important: with Paragraph, ReportLab can control the layout (wrapping)
             filtered_data[row_index][col_index] = Paragraph(
                 str(cell_value), paragraph_style
             )
 
-    # 4. Tabellenbreite berechnen (z. B. DIN A4, abzüglich 2 * 1 inch Rand => "available_width")
-    #    Du kannst auch doc.width verwenden, wenn du ein SimpleDocTemplate(...) hast.
+    # 4. Calculate table width (e.g., DIN A4, minus 2 * 1 inch margin => "available_width")
+    #    You can also use doc.width if you have a SimpleDocTemplate(...).
     PAGE_WIDTH, PAGE_HEIGHT = A4
     left_margin = right_margin = inch
     available_width = PAGE_WIDTH - left_margin - right_margin
 
-    # 5. Final Spaltenbreiten berechnen
-    col_widths = measure_column_widths(filtered_data)
-    # 3.1 Adjust column widths according the normalized text widths
+    # 5. Finally calculate column widths
+    col_widths = measure_column_widths([filtered_headers] + filtered_data)
+    # 3.1 Adjust column widths according to the normalized text widths
     col_widths = adjust_column_widths(
         column_widths=col_widths,
         normalized_column_widths=col_text_widths_normalized,
         available_width=available_width,
     )
+    print(col_widths)
 
-    # 4. Tabelle erstellen
+    # 4. Create table
     table = Table(filtered_data, colWidths=col_widths)
     table.setStyle(TableStyle(style_commands))
     return table

@@ -17,14 +17,14 @@
             "format": "date-time",
             "title": "Created At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x0000027F76253380>"
+            "default": "<function datetime.utcnow at 0x00000262300D3380>"
         },
         "updated_at": {
             "type": "string",
             "format": "date-time",
             "title": "Updated At",
             "readOnly": true,
-            "default": "<function datetime.utcnow at 0x0000027F762534C0>"
+            "default": "<function datetime.utcnow at 0x00000262300D34C0>"
         }
     },
     "required": [
