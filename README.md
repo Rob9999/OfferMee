@@ -7,8 +7,8 @@ OfferMee – AI-powered project scout for freelancers. Automatically find projec
 *OfferMee is an open-source tool that helps freelancers streamline their project acquisition process. Using AI, it finds suitable projects online, calculates competitive rates, and sends preliminary offers based on your preferences and skills.*
 
 
-## Version 1.0.2
-- **Date:** 2025-02-11T09:58:47.457Z
+## Version 1.0.3
+- **Date:** 2025-02-13T10:29:36.855Z
 - **Author:** Robert Alexander Massinger, Munich, Germany, https://github.com/Rob9999
 
 
