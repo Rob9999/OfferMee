@@ -1,3 +1,7 @@
+## v1.0.5 - 2025-02-13T16:32:51.270Z
+
+- Merge branch 'main' of https://github.com/Rob9999/OfferMee
+
 ## v1.0.4 - 2025-02-13T16:32:15.340Z
 
 - Refactored cv pdf export
